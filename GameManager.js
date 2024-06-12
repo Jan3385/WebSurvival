@@ -34,8 +34,9 @@ function PerlinPixel(x,y){
 }
 const EmptyPixel = new PixelData(new rgb(147, 200, 0));
 class PlayerData extends PixelData{
-    constructor(color, x, y){
+    constructor(color, borderColor, x, y){
         super(color, PixelStatus.block);
+        this.borderColor = borderColor;
         this.x = x;
         this.y = y;
         this.OverlapPixel = PerlinPixel(x, y);
@@ -69,12 +70,15 @@ let interactCol = new rgb(0, 0, 0);
 //Class for rendering the game
 class Renderer{
     constructor(){
-        this.canvasScale = 12;
+        this.canvasScale = 10;
 
         this.init();
         this.Draw();
     }
     init(){
+        if(canvas.width % this.canvasScale != 0 || canvas.height % this.canvasScale != 0) 
+            console.error('Canvas size is not divisible by scale');
+
         for (let i = 0; i < canvas.width/this.canvasScale; i++) {
             mapData[i] = [];
             for (let j = 0; j < canvas.height/this.canvasScale; j++) {
@@ -100,6 +104,9 @@ class Renderer{
                 }
             }
         }
+        ctx.strokeStyle = Player.borderColor.get();
+        ctx.lineWidth = 2;
+        ctx.strokeRect(Player.x*this.canvasScale, Player.y*this.canvasScale, this.canvasScale-1, this.canvasScale-1);
     }
     UpdateHighlightInteraction(){
         const ctx = canvas.getContext('2d');
@@ -115,7 +122,10 @@ class Renderer{
             ctx.fillStyle = interact.color.get();
             ctx.fillRect(interact.x*this.canvasScale, interact.y*this.canvasScale, this.canvasScale, this.canvasScale);
         });
-    
+    }
+    UpdateResources(){
+        document.getElementById("stone").innerHTML = "Stone: "+Resources.stone;
+        document.getElementById("wood").innerHTML = "Wood: "+Resources.wood;
     }
 }
 let ResourceTerrain = {
@@ -184,7 +194,7 @@ class TerrainManipulator{
     }
 }
 
-let Player = new PlayerData(new rgb(175, 71, 210), 10, 10);
+let Player = new PlayerData(new rgb(0, 0, 0), new rgb(244, 211, 94), 10, 10);
 let Render = new Renderer();
 let Terrain = new TerrainManipulator();
 
@@ -226,15 +236,16 @@ function Update(){
         switch(mapData[Player.x + movVec.x][Player.y + movVec.y].interactType){
             case InteractType.stone:
                 brokePixel = iPixel.Damage();
-                if(brokePixel) Resources.stone+= Math.floor(Math.random() * 3);
+                if(brokePixel) Resources.stone+= Math.floor(1 + Math.random()*2);
                 break;
             case InteractType.wood:
                 brokePixel = iPixel.Damage();
-                if(brokePixel) Resources.wood+= Math.floor(Math.random() * 3);
+                if(brokePixel) Resources.wood+= Math.floor(1 + Math.random()*2);
                 break;
             case InteractType.door:
                 break;
         }
+        Render.UpdateResources();
     } 
     if(mapData[Player.x + movVec.x][Player.y + movVec.y].status == PixelStatus.free) 
         Terrain.MovePlayer(Player, movVec.x, movVec.y);
