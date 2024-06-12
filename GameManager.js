@@ -41,7 +41,7 @@ function Update(){
     //movement checker
     let moveTileStatus = mapData[Player.x + MovementVector.x][Player.y + MovementVector.y].status;
 
-    if(moveTileStatus == PixelStatus.interact ||moveTileStatus == PixelStatus.taken){
+    if(moveTileStatus == PixelStatus.interact){
         const iPixel = mapData[Player.x + MovementVector.x][Player.y + MovementVector.y];
         let brokePixel;
         switch(mapData[Player.x + MovementVector.x][Player.y + MovementVector.y].interactType){
