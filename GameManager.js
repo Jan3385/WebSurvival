@@ -38,29 +38,13 @@ let Resources = {
 }
 
 function Update(){
-    // movement
-    const movVec = {x: 0, y: 0};
-    switch(InputKey){
-        case 87:
-            movVec.y = -1;
-            break;
-        case 68:
-            movVec.x = 1;
-            break;
-        case 83:
-            movVec.y = 1;
-            break;
-        case 65:
-            movVec.x = -1;
-            break;
-    }
     //movement checker
-    let moveTileStatus = mapData[Player.x + movVec.x][Player.y + movVec.y].status;
+    let moveTileStatus = mapData[Player.x + MovementVector.x][Player.y + MovementVector.y].status;
 
     if(moveTileStatus == PixelStatus.interact ||moveTileStatus == PixelStatus.taken){
-        const iPixel = mapData[Player.x + movVec.x][Player.y + movVec.y];
+        const iPixel = mapData[Player.x + MovementVector.x][Player.y + MovementVector.y];
         let brokePixel;
-        switch(mapData[Player.x + movVec.x][Player.y + movVec.y].interactType){
+        switch(mapData[Player.x + MovementVector.x][Player.y + MovementVector.y].interactType){
             case InteractType.stone:
                 brokePixel = iPixel.Damage();
                 if(brokePixel) Resources.stone+= Math.floor(1 + Math.random()*2);
@@ -76,7 +60,7 @@ function Update(){
     } 
 
     if(moveTileStatus == PixelStatus.free) 
-        Terrain.MovePlayer(Player, movVec.x, movVec.y);
+        Terrain.MovePlayer(Player, MovementVector.x, MovementVector.y);
 
     UpdateInput();
 

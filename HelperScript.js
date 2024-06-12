@@ -4,27 +4,47 @@ window.addEventListener("keyup", onKeyUp, false);
 
 let buttons = document.getElementsByClassName("SelectionButtonDiv")[0].querySelectorAll("button");
 
-let InputKey = null;
-let inputRegistered = false;
-let keyUnpressed = false;
+let MovementVector = {x:0,y:0};
+
+let usedInput = false;
 function onKeyDown(event){
-    console.log(event.keyCode)
-    InputKey = event.keyCode;
-    inputRegistered = false;
-    keyUnpressed = false;
+    switch(event.keyCode){
+        case 87:
+            MovementVector.y = -1;
+            break;
+        case 68:
+            MovementVector.x = 1;
+            break;
+        case 83:
+            MovementVector.y = 1;
+            break;
+        case 65:
+            MovementVector.x = -1;
+            break;
+    }
+    usedInput = false;
 }
+let clearX = false;
+let clearY = false;
 function onKeyUp(event){
-    if(InputKey == event.keyCode){
-        keyUnpressed = true;
-        if(inputRegistered){
-            InputKey = null;
-        }
+    if(event.keyCode == 87 || event.keyCode == 83){
+        if(usedInput) MovementVector.y = 0;
+        else clearY = true;
+    }
+    if(event.keyCode == 68 || event.keyCode == 65){
+       if(usedInput) MovementVector.x = 0;
+       else clearX = true;
     }
 }
 function UpdateInput(){
-    inputRegistered = true;
-    if(keyUnpressed && InputKey != null){
-        InputKey = null;
+    usedInput = true;
+    if(clearX) {
+        MovementVector.x = 0;
+        clearX = false;
+    }
+    if(clearY) {
+        MovementVector.y = 0;
+        clearY = false;
     }
 }
 
