@@ -119,8 +119,6 @@ class Renderer{
      * @constructor
      */
     constructor(){
-        this.canvasScale = 10;
-
         this.init();
         this.Draw();
     }
@@ -128,12 +126,12 @@ class Renderer{
      * Initialises the canvas and fills it with perlin noise
      */
     init(){
-        if(canvas.width % this.canvasScale != 0 || canvas.height % this.canvasScale != 0) 
+        if(canvas.width % canvasScale != 0 || canvas.height % canvasScale != 0) 
             console.error('Canvas size is not divisible by scale');
 
-        for (let i = 0; i < canvas.width/this.canvasScale; i++) {
+        for (let i = 0; i < canvas.width/canvasScale; i++) {
             mapData[i] = [];
-            for (let j = 0; j < canvas.height/this.canvasScale; j++) {
+            for (let j = 0; j < canvas.height/canvasScale; j++) {
                 mapData[i][j] = PerlinPixel(i, j); 
             }
         }
@@ -145,23 +143,24 @@ class Renderer{
     Draw() {
         const ctx = canvas.getContext('2d');
     
-        for (let i = 0; i < canvas.width/this.canvasScale; i++) {
-            for (let j = 0; j < canvas.height/this.canvasScale; j++) {
+        for (let i = 0; i < canvas.width/canvasScale; i++) {
+            for (let j = 0; j < canvas.height/canvasScale; j++) {
                 const pixel = mapData[i][j];
                 ctx.fillStyle = pixel.color.get();
-                ctx.fillRect(i*this.canvasScale, j*this.canvasScale, this.canvasScale, this.canvasScale);
+                ctx.fillRect(i*canvasScale, j*canvasScale, canvasScale, canvasScale);
 
                 //interactavle pixel gets highlighted
                 if(pixel.status == PixelStatus.interact) {
                     ctx.strokeStyle = interactCol.get();
                     ctx.lineWidth = 2;
-                    ctx.strokeRect(i*this.canvasScale+1, j*this.canvasScale+1, this.canvasScale-2, this.canvasScale-2);
+                    ctx.strokeRect(i*canvasScale+1, j*canvasScale+1, canvasScale-2, canvasScale-2);
                 }
             }
         }
+        
         ctx.strokeStyle = Player.borderColor.get();
         ctx.lineWidth = 2;
-        ctx.strokeRect(Player.x*this.canvasScale+1, Player.y*this.canvasScale+1, this.canvasScale-2, this.canvasScale-2);
+        ctx.strokeRect(Player.x*canvasScale+1, Player.y*canvasScale+1, canvasScale-2, canvasScale-2);
     }
     /**
      * Updates the color border of interactable pixels
@@ -171,13 +170,13 @@ class Renderer{
 
         interactPosData.forEach(interact => {
             ctx.fillStyle = interact.color.get();
-            ctx.fillRect(interact.x*this.canvasScale, interact.y*this.canvasScale, this.canvasScale, this.canvasScale);
+            ctx.fillRect(interact.x*canvasScale, interact.y*canvasScale, canvasScale, canvasScale);
         });
     }
     /**
      * Updates the resource count on the screen
      */
-    UpdateResources(){
+    UpdateResourcesScreen(){
         document.getElementById("stone").innerHTML = "Stone: "+Resources.stone;
         document.getElementById("wood").innerHTML = "Wood: "+Resources.wood;
     }
@@ -295,7 +294,7 @@ class TerrainManipulator{
             pY = Math.floor((Math.random() * mapData[0].length -2) + 1);
         }while(((pX > centerVec.x-spawnArea && pX < centerVec.x + spawnArea) && (pY > centerVec.y-spawnArea && pY < centerVec.y + spawnArea)))
 
-        if(rand < 0.4) this.GenerateStone(pX, pY);
+        if(rand < (ResourceTerrain.wood/ResourceTerrain.stone)/3) this.GenerateStone(pX, pY);
         else this.GenerateTree(pX, pY);
     }
     /**

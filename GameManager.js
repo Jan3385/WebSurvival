@@ -1,4 +1,5 @@
 const canvas = document.getElementById('gameCanvas'); 
+let canvasScale = 10;
 let mapData = [];
 let interactPosData = [];
 
@@ -12,7 +13,8 @@ const MaxTResource = {
     wood: 30
 }
 
-let Player = new PlayerData(new rgb(0, 0, 0), new rgb(255, 255, 255), 10, 10);
+let Player = new PlayerData(new rgb(0, 0, 0), new rgb(255, 255, 255), 
+    Math.floor(canvas.width/canvasScale/2), Math.floor(canvas.height/canvasScale/2));
 let Render = new Renderer();
 let Terrain = new TerrainManipulator();
 
@@ -24,6 +26,10 @@ setInterval(UpdateInteractionIndicator, 1000);
 function Start(){
     Terrain.MovePlayer(Player, 0, 0); //Draw player
     Render.Draw();
+
+    for(let i = 0; i < 20; i++){
+        Terrain.GenerateRandomResource();
+    }
 }
 
 let Resources = {
@@ -66,7 +72,7 @@ function Update(){
             case InteractType.door:
                 break;
         }
-        Render.UpdateResources();
+        Render.UpdateResourcesScreen();
     } 
 
     if(moveTileStatus == PixelStatus.free) 
@@ -75,7 +81,7 @@ function Update(){
     UpdateInput();
 
     //Resource spawner
-    if(Math.random() > 0.9){
+    if(Math.random() > 0.98){
         Terrain.GenerateRandomResource();
     }
 
