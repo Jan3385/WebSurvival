@@ -1,10 +1,17 @@
 const canvas = document.getElementById('gameCanvas'); 
 let mapData = [];
+let interactPosData = [];
 
-function rgb(r, g, b){
-    return 'rgb(' + r + ',' + g + ',' + b + ')';
+class rgb{
+    constructor(r,g,b){
+        this.r = r;
+        this.g = g;
+        this.b = b;
+    }
+    get(){
+        return 'rgb(' + this.r + ',' + this.g + ',' + this.b + ')';
+    }
 }
-
 const PixelStatus = {
     free: "free",
     block: "block",
@@ -18,9 +25,9 @@ class PixelData{
 }
 function PerlinPixel(x,y){
     const pColor = Perlin.perlinColorTerrain(x/9,y/9);
-    return new PixelData(pColor.c, pColor.s);
+    return new PixelData(new rgb(pColor.r, pColor.g, pColor.b), pColor.s);
 }
-const EmptyPixel = new PixelData(rgb(147, 200, 0));
+const EmptyPixel = new PixelData(new rgb(147, 200, 0));
 class PlayerData extends PixelData{
     constructor(color, x, y){
         super(color, PixelStatus.block);
@@ -30,6 +37,29 @@ class PlayerData extends PixelData{
     }
 
 }
+const InteractType = {
+    stone: "stone",
+    wood: "wood",
+    door: "door"
+};
+class InteractData extends PixelData{
+    constructor(color, x, y, type){
+        super(color, PixelStatus.interact);
+        this.x = x;
+        this.y = y;
+        this.interactType = type;
+        this.health = 3;
+    }
+    Damage(){
+        this.health--;
+        if(this.health <= 0) {
+            Terrain.DeleteInteractPixel(this.x, this.y);
+            return true;
+        }
+        return false;
+    }
+}
+let interactCol = new rgb(0, 0, 0);
 //Class for rendering the game
 class Renderer{
     constructor(){
@@ -53,10 +83,33 @@ class Renderer{
         for (let i = 0; i < canvas.width/this.canvasScale; i++) {
             for (let j = 0; j < canvas.height/this.canvasScale; j++) {
                 const pixel = mapData[i][j];
-                ctx.fillStyle = pixel.color;
+                ctx.fillStyle = pixel.color.get();
                 ctx.fillRect(i*this.canvasScale, j*this.canvasScale, this.canvasScale, this.canvasScale);
+
+                //interactavle pixel gets highlighted
+                if(pixel.status == PixelStatus.interact) {
+                    ctx.strokeStyle = interactCol.get();
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(i*this.canvasScale, j*this.canvasScale, this.canvasScale-1, this.canvasScale-1);
+                }
             }
         }
+    }
+    UpdateHighlightInteraction(){
+        const ctx = canvas.getContext('2d');
+
+        interactPosData.forEach(interact => {
+            ctx.fillStyle = interact.color.get();
+            ctx.fillRect(interact.x*this.canvasScale, interact.y*this.canvasScale, this.canvasScale, this.canvasScale);
+        });
+    }
+    ChangeInteractionIndicator(){
+        const ctx = canvas.getContext('2d');
+        interactPosData.forEach(interact => {
+            ctx.fillStyle = interact.color.get();
+            ctx.fillRect(interact.x*this.canvasScale, interact.y*this.canvasScale, this.canvasScale, this.canvasScale);
+        });
+    
     }
 }
 //Class for terrain modification
@@ -72,7 +125,19 @@ class TerrainManipulator{
 
         mapData = NewMapData;
     }
-    
+    InsertInteractPixel(Pixel){
+        interactPosData.push({x: Pixel.x, y: Pixel.y})
+        Terrain.ModifyMapDataRaw(Pixel.x, Pixel.y, Pixel);
+    }
+    DeleteInteractPixel(pX, pY){
+        for (let i = 0; i < interactPosData.length; i++) {
+            if(interactPosData[i].x == pX && interactPosData[i].y == pY) {
+                interactPosData.splice(i, 1);
+                break;
+            }
+        }
+        this.ModifyMapDataRaw(pX, pY,PerlinPixel(pX, pY));
+    }
     Clear(){
         const ctx = canvas.getContext('2d');
 
@@ -94,17 +159,26 @@ class TerrainManipulator{
     }
 }
 
-let Player = new PlayerData(rgb(175, 71, 210), 10, 10);
+let Player = new PlayerData(new rgb(175, 71, 210), 10, 10);
 let Render = new Renderer();
 let Terrain = new TerrainManipulator();
 
 Start();
 const frameRate = 7;
 setInterval(Update, 1000/frameRate);
+setInterval(UpdateInteractionIndicator, 1500);
 
 function Start(){
     Terrain.MovePlayer(Player, 0, 0); //Draw player
+    Terrain.InsertInteractPixel(new InteractData(new rgb(100, 255, 255), 12, 12, InteractType.stone));
+    Render.Draw();
 }
+
+let Resources = {
+    stone: 0,
+    wood: 0,
+}
+
 function Update(){
     const movVec = {x: 0, y: 0};
     switch(InputKey){
@@ -121,10 +195,30 @@ function Update(){
             movVec.x = -1;
             break;
     }
+    if(mapData[Player.x + movVec.x][Player.y + movVec.y].status == PixelStatus.interact){
+        const iPixel = mapData[Player.x + movVec.x][Player.y + movVec.y];
+        let brokePixel;
+        switch(mapData[Player.x + movVec.x][Player.y + movVec.y].interactType){
+            case InteractType.stone:
+                brokePixel = iPixel.Damage();
+                if(brokePixel) Resources.stone+= Math.floor(Math.random() * 3);
+                break;
+            case InteractType.wood:
+                brokePixel = iPixel.Damage();
+                if(brokePixel) Resources.wood+= Math.floor(Math.random() * 3);
+                break;
+            case InteractType.door:
+                break;
+        }
+    } 
     if(mapData[Player.x + movVec.x][Player.y + movVec.y].status == PixelStatus.free) 
         Terrain.MovePlayer(Player, movVec.x, movVec.y);
 
     UpdateInput();
 
     Render.Draw();
+}
+function UpdateInteractionIndicator(){
+    if(interactCol.get() == new rgb(0, 0, 0).get()) interactCol = new rgb(122, 122, 0);
+    else interactCol = new rgb(0, 0, 0);
 }

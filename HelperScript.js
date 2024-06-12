@@ -102,20 +102,24 @@ class PerlinNoise {
     }
 
     perlinColorTerrain(x, y) {
-
         const value = this.perlin(x, y);
-        console.log(value);
         if(value > 0.7) return {
-            c: `rgb(${value * 10}, ${value * 10}, ${value * 400})`,
+            r: value*10,
+            g: value*10,
+            b: value*400,
             s: PixelStatus.block
         }
         if(value > 0.62) return {
-            c: `rgb(${value * 255 + 30}, ${value * 255 + 30}, ${value * 10})`,
+            r: value*255 + 30,
+            g: value * 255 + 30,
+            b: value*10,
             s: PixelStatus.free
         }
         //if(value < 0.25) return `rgb(${255 - value * 170}, ${255 - value * 170}, ${255 - value * 170})`;
         return {
-            c: `rgb(${value * 50}, ${230 - value * 60}, ${value * 50})`,
+            r: value*50,
+            g: 230 - value*60,
+            b: value*50,
             s: PixelStatus.free
         };
     }
