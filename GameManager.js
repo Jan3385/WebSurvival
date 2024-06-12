@@ -88,6 +88,6 @@ function Update(){
     Render.Draw();
 }
 function UpdateInteractionIndicator(){
-    if(interactCol.get() == new rgb(0, 0, 0).get()) interactCol = new rgb(40, 40, 40);
-    else interactCol = new rgb(0, 0, 0);
+    if(interactCol.get() == new rgb(30, 30, 30).get()) interactCol = new rgb(50, 50, 50);
+    else interactCol = new rgb(30, 30, 30);
 }

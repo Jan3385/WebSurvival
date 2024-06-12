@@ -111,7 +111,7 @@ class InteractData extends PixelData{
         return false;
     }
 }
-let interactCol = new rgb(0, 0, 0);
+let interactCol = new rgb(30, 30, 30);
 //Class for rendering the game
 class Renderer{
     /**
