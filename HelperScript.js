@@ -2,6 +2,8 @@
 window.addEventListener("keydown", onKeyDown, false);
 window.addEventListener("keyup", onKeyUp, false);
 
+let buttons = document.getElementsByClassName("SelectionButtonDiv")[0].querySelectorAll("button");
+
 let InputKey = null;
 let inputRegistered = false;
 let keyUnpressed = false;
@@ -104,22 +106,26 @@ class PerlinNoise {
 
     perlinColorTerrain(x, y) {
         const value = this.perlin(x, y);
+        //ocean
         if(value > 0.7) return {
             r: value*10,
             g: value*10,
             b: value*400,
             s: PixelStatus.block
         }
+        //sand
         if(value > 0.62) return {
             r: value*255 + 30,
             g: value * 255 + 30,
             b: value*10,
             s: PixelStatus.free
         }
+        //hills or rock (probably delete later)
         //if(value < 0.25) return `rgb(${255 - value * 170}, ${255 - value * 170}, ${255 - value * 170})`;
+        //grass
         return {
             r: value*50,
-            g: 230 - value*60,
+            g: 240 - value*90,
             b: value*50,
             s: PixelStatus.free
         };

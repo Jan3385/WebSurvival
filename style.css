@@ -16,3 +16,34 @@
 .tutorial{
     padding-left: 0;
 }
+.SelectionButtonDiv{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto 0 auto;
+    width: fit-content;
+    max-width: 80%;
+    padding: 0;
+    background-color: cadetblue;
+    border-radius: 5px;
+    button{
+        margin: 5px 5px;
+        min-height: 40px;
+        height: auto;
+        aspect-ratio: 2/1;
+    }
+    .Selected{
+        background-color: rgb(107, 158, 208);
+    }
+    .Selected:hover{
+        background-color: rgb(83, 157, 232);
+    }
+    .Unselected{
+        background-color: rgb(202, 202, 202);
+    }
+    .Unselected:hover{
+        background-color: rgb(98, 98, 98);
+    }
+}
