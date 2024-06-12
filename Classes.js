@@ -1,0 +1,369 @@
+/*
+ * RGB class for easy color representation
+ * @class
+ */
+class rgb{
+    /**
+     * @constructor
+     * @param {number} r 
+     * @param {number} g 
+     * @param {number} b 
+     */
+    constructor(r,g,b){
+        this.r = r;
+        this.g = g;
+        this.b = b;
+    }
+    /**
+    * Returns the rgb value in string format
+    * @returns {string}
+    */
+    get(){
+        return 'rgb(' + this.r + ',' + this.g + ',' + this.b + ')';
+    }
+    /**
+     * Makes the rgb value darker by the value
+     * @param {number} val 
+     */
+    Darken(val = 1.5){
+        this.r /= val;
+        this.g /= val;
+        this.b /= val;
+    }
+}
+
+const PixelStatus = {
+    free: "free",
+    taken: "taken",
+    block: "block",
+    interact: "interact"
+};
+class PixelData{
+    /**
+     * Stores data about the given pixel
+     * @param {number} color 
+     * @param {PixelStatus} status 
+     */
+    constructor(color, status = PixelStatus.free){
+        this.color = color;
+        this.status = status;
+    }
+}
+/**
+ * Given a X and Y position returns a predictable pixel using perlin noise
+ * @param {number} x 
+ * @param {number} y 
+ * @returns {PixelData} 
+ */
+function PerlinPixel(x,y){
+    const pColor = Perlin.perlinColorTerrain(x/9,y/9);
+    return new PixelData(new rgb(pColor.r, pColor.g, pColor.b), pColor.s);
+}
+const EmptyPixel = new PixelData(new rgb(147, 200, 0));
+class PlayerData extends PixelData{
+    /**
+     * Creates a player object with the given colors at the given position
+     * @param {rgb} color 
+     * @param {rgb} borderColor 
+     * @param {number} x 
+     * @param {number} y 
+     */
+    constructor(color, borderColor, x, y){
+        super(color, PixelStatus.block);
+        this.borderColor = borderColor;
+        this.x = x;
+        this.y = y;
+        this.OverlapPixel = PerlinPixel(x, y);
+    }
+}
+const InteractType = {
+    stone: "stone",
+    wood: "wood",
+    door: "door"
+};
+class InteractData extends PixelData{
+    /**
+     * Construct a interactable pixel with the given color at the given position
+     * @param {rgb} color 
+     * @param {number} x 
+     * @param {number} y 
+     * @param {InteractType} type 
+     * @param {number} [hp=6]
+     */
+    constructor(color, x, y, type, hp = 6){
+        super(color, PixelStatus.interact);
+        this.x = x;
+        this.y = y;
+        this.interactType = type;
+        this.health = hp;
+    }
+    /**
+     * Damages the interactable pixel, return true if it was destroyed (on final hit)
+     * @returns {boolean} 
+     */
+    Damage(){
+        this.health--;
+        this.color.Darken(1.3);
+        if(this.health <= 0) {
+            Terrain.DeleteInteractPixel(this.x, this.y);
+            return true;
+        }
+        return false;
+    }
+}
+let interactCol = new rgb(0, 0, 0);
+//Class for rendering the game
+class Renderer{
+    /**
+     * Creates a renderer object for the canvas
+     * @constructor
+     */
+    constructor(){
+        this.canvasScale = 10;
+
+        this.init();
+        this.Draw();
+    }
+    /**
+     * Initialises the canvas and fills it with perlin noise
+     */
+    init(){
+        if(canvas.width % this.canvasScale != 0 || canvas.height % this.canvasScale != 0) 
+            console.error('Canvas size is not divisible by scale');
+
+        for (let i = 0; i < canvas.width/this.canvasScale; i++) {
+            mapData[i] = [];
+            for (let j = 0; j < canvas.height/this.canvasScale; j++) {
+                mapData[i][j] = PerlinPixel(i, j); 
+            }
+        }
+        console.log("initialised zanvas with array of X:" + mapData.length + " Y:" + mapData[0].length);
+    }
+    /**
+     * Executes a draw call on the canvas, rendering everyting
+     */
+    Draw() {
+        const ctx = canvas.getContext('2d');
+    
+        for (let i = 0; i < canvas.width/this.canvasScale; i++) {
+            for (let j = 0; j < canvas.height/this.canvasScale; j++) {
+                const pixel = mapData[i][j];
+                ctx.fillStyle = pixel.color.get();
+                ctx.fillRect(i*this.canvasScale, j*this.canvasScale, this.canvasScale, this.canvasScale);
+
+                //interactavle pixel gets highlighted
+                if(pixel.status == PixelStatus.interact) {
+                    ctx.strokeStyle = interactCol.get();
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(i*this.canvasScale+1, j*this.canvasScale+1, this.canvasScale-2, this.canvasScale-2);
+                }
+            }
+        }
+        ctx.strokeStyle = Player.borderColor.get();
+        ctx.lineWidth = 2;
+        ctx.strokeRect(Player.x*this.canvasScale+1, Player.y*this.canvasScale+1, this.canvasScale-2, this.canvasScale-2);
+    }
+    /**
+     * Updates the color border of interactable pixels
+     */
+    UpdateHighlightInteraction(){
+        const ctx = canvas.getContext('2d');
+
+        interactPosData.forEach(interact => {
+            ctx.fillStyle = interact.color.get();
+            ctx.fillRect(interact.x*this.canvasScale, interact.y*this.canvasScale, this.canvasScale, this.canvasScale);
+        });
+    }
+    /**
+     * Updates the resource count on the screen
+     */
+    UpdateResources(){
+        document.getElementById("stone").innerHTML = "Stone: "+Resources.stone;
+        document.getElementById("wood").innerHTML = "Wood: "+Resources.wood;
+    }
+}
+//Class for terrain modification
+class TerrainManipulator{
+    /**
+     * Inserts a pixel at the given position
+     * @param {number} x 
+     * @param {number} y 
+     * @param {PixelData} PixelData 
+     */
+    ModifyMapDataRaw(x, y, PixelData){
+        mapData[x][y] = PixelData;
+    }
+    /**
+     * 
+     * @param {Array<Array<PixelData>>} NewMapData 
+     * @returns 
+     */
+    InsertMapData(NewMapData){
+        if(mapData.length != NewMapData.length || mapData[0].length != NewMapData[0].length) {
+            console.error('Map size is not matched');
+            return;
+        }
+
+        mapData = NewMapData;
+    }
+    /**
+     * Inserts a interactable pixel at the pixel inner position
+     * @param {InteractData} Pixel 
+     */
+    InsertInteractPixel(Pixel){
+        interactPosData.push({x: Pixel.x, y: Pixel.y})
+        Terrain.ModifyMapDataRaw(Pixel.x, Pixel.y, Pixel);
+
+        switch(Pixel.interactType){
+            case InteractType.stone:
+                ResourceTerrain.stone++;
+                break;
+            case InteractType.wood:
+                ResourceTerrain.wood++;
+                break;
+        }
+    }
+    /**
+     * Deletes the interactable pixel at the given X,Y position
+     * @param {number} pX 
+     * @param {number} pY 
+     * @throws {ReferenceError} No interactable type at that location
+     */
+    DeleteInteractPixel(pX, pY){
+        switch(mapData[pX][pY].interactType){
+            case InteractType.stone:
+                ResourceTerrain.stone--;
+                break;
+            case InteractType.wood:
+                ResourceTerrain.wood--;
+                break;
+            default:
+                throw new ReferenceError("Unknown interactable type");
+        }
+
+        for (let i = 0; i < interactPosData.length; i++) {
+            if(interactPosData[i].x == pX && interactPosData[i].y == pY) {
+                interactPosData.splice(i, 1);
+                break;
+            }
+        }
+        this.ModifyMapDataRaw(pX, pY,PerlinPixel(pX, pY));
+    }
+    /**
+     * Clears the map and fills it with perlin noise
+     */
+    Clear(){
+        const ctx = canvas.getContext('2d');
+
+        for (let i = 0; i < mapData.length; i++) {
+            for (let j = 0; j < mapData[0].length; j++) {
+                mapData[i][j] = PerlinPixel(i, j);
+            }
+        }
+    }
+    /**
+     * Moves the given player by the X and Y amount
+     * @param {PlayerData} Player 
+     * @param {number} x 
+     * @param {number} y 
+     */
+    MovePlayer(Player, x, y){
+        this.ModifyMapDataRaw(Player.x, Player.y, Player.OverlapPixel);
+        Player.x += x;
+        Player.y += y;
+        Player.OverlapPixel = mapData[Player.x][Player.y]; //when building just modify overlapPixel
+        this.ModifyMapDataRaw(Player.x, Player.y, new PixelData(Player.color));
+    }
+
+    /**
+     * Tries to generate a random resource on the map
+     */
+    GenerateRandomResource(){
+        let rand = Math.random();
+        const spawnArea = 12;
+
+        let centerVec = {
+            x: Math.floor(mapData.length / 2),
+            y: Math.floor(mapData[0].length / 2),
+        }
+        let pX;
+        let pY;
+
+        //gets a position outside of spawn area
+        do{
+            pX = Math.floor((Math.random() * mapData.length- 2) + 1);
+            pY = Math.floor((Math.random() * mapData[0].length -2) + 1);
+        }while(((pX > centerVec.x-spawnArea && pX < centerVec.x + spawnArea) && (pY > centerVec.y-spawnArea && pY < centerVec.y + spawnArea)))
+
+        if(rand < 0.4) this.GenerateStone(pX, pY);
+        else this.GenerateTree(pX, pY);
+    }
+    /**
+     * Generates a tree at the given position (mainly for internal use)
+     * @param {number} x 
+     * @param {number} y 
+     */
+    GenerateTree(x,y){
+        if(ResourceTerrain.wood + 5 > MaxTResource.wood) return;
+
+        //check if there is a space for the tree in a 3x3 grid
+        for(let i = x-1; i <= x+1; i++){
+            if(i < 0 || i > mapData.length) return;
+            for(let j = y-1; j<=y+1; j++){
+                if(j < 0 || j > mapData[0].length || mapData[i][j].status != PixelStatus.free) return;
+            }
+        }
+
+        const tPixel = new InteractData(new rgb(200, 70, 50), x, y, InteractType.wood);
+        Terrain.InsertInteractPixel(tPixel);
+        
+        let lPixel = new InteractData(new rgb(49, 87, 44), x+1, y, InteractType.wood, 2);
+        Terrain.InsertInteractPixel(lPixel);
+        lPixel = new InteractData(new rgb(49, 87, 44), x-1, y, InteractType.wood, 2);
+        Terrain.InsertInteractPixel(lPixel);
+        lPixel = new InteractData(new rgb(49, 87, 44), x, y+1, InteractType.wood, 2);
+        Terrain.InsertInteractPixel(lPixel);
+        lPixel = new InteractData(new rgb(49, 87, 44), x, y-1, InteractType.wood, 2);
+        Terrain.InsertInteractPixel(lPixel);
+    }
+    /**
+     * Generates a stone at the given position (mainly for internal use)
+     * @param {number} x 
+     * @param {number} y 
+     */
+    GenerateStone(x,y){
+        if(ResourceTerrain.stone + 5 > MaxTResource.stone) return;
+
+        //check if stone can freely spawn in a 3x3 grid
+        for(let i = x-1; i <= x+1; i++){
+            if(i < 0 || i > mapData.length) return;
+            for(let j = y-1; j<=y+1; j++){
+                if(j < 0 || j > mapData[0].length || mapData[i][j].status != PixelStatus.free) return;
+            }
+        }
+
+        let rPixel;
+        rPixel = new InteractData(new rgb(200, 200, 200), x, y, InteractType.stone);
+        Terrain.InsertInteractPixel(rPixel);
+        let sPixel = new InteractData(new rgb(200, 200, 200), x, y, InteractType.stone);
+        Terrain.InsertInteractPixel(sPixel);
+        sPixel = new InteractData(new rgb(200, 200, 200), x+1, y, InteractType.stone);
+        Terrain.InsertInteractPixel(sPixel);
+        sPixel = new InteractData(new rgb(200, 200, 200), x-1, y, InteractType.stone);
+        Terrain.InsertInteractPixel(sPixel);
+        sPixel = new InteractData(new rgb(200, 200, 200), x, y+1, InteractType.stone);
+        Terrain.InsertInteractPixel(sPixel);
+        sPixel = new InteractData(new rgb(200, 200, 200), x, y-1, InteractType.stone);
+        Terrain.InsertInteractPixel(sPixel);
+
+        let stoneVec = {
+            x: 1,
+            y: 1
+        }
+        if(Math.random() < 0.5) stoneVec.x *= -1;
+        if(Math.random() < 0.5) stoneVec.y *= -1;
+
+        sPixel = new InteractData(new rgb(200, 200, 200), x+stoneVec.x, y+stoneVec.y, InteractType.stone);
+        Terrain.InsertInteractPixel(sPixel);
+    }
+}

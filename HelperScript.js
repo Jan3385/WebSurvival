@@ -6,6 +6,7 @@ let InputKey = null;
 let inputRegistered = false;
 let keyUnpressed = false;
 function onKeyDown(event){
+    console.log(event.keyCode)
     InputKey = event.keyCode;
     inputRegistered = false;
     keyUnpressed = false;
