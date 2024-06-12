@@ -11,6 +11,11 @@ class rgb{
     get(){
         return 'rgb(' + this.r + ',' + this.g + ',' + this.b + ')';
     }
+    Darken(val = 1.5){
+        this.r /= val;
+        this.g /= val;
+        this.b /= val;
+    }
 }
 const PixelStatus = {
     free: "free",
@@ -48,10 +53,11 @@ class InteractData extends PixelData{
         this.x = x;
         this.y = y;
         this.interactType = type;
-        this.health = 3;
+        this.health = 10;
     }
     Damage(){
         this.health--;
+        this.color.Darken(1.3);
         if(this.health <= 0) {
             Terrain.DeleteInteractPixel(this.x, this.y);
             return true;
@@ -112,6 +118,10 @@ class Renderer{
     
     }
 }
+let ResourceTerrain = {
+    stone: 0,
+    wood: 0
+}
 //Class for terrain modification
 class TerrainManipulator{
     ModifyMapDataRaw(x, y, PixelData){
@@ -128,8 +138,26 @@ class TerrainManipulator{
     InsertInteractPixel(Pixel){
         interactPosData.push({x: Pixel.x, y: Pixel.y})
         Terrain.ModifyMapDataRaw(Pixel.x, Pixel.y, Pixel);
+
+        switch(Pixel.interactType){
+            case InteractType.stone:
+                ResourceTerrain.stone++;
+                break;
+            case InteractType.wood:
+                ResourceTerrain.wood++;
+                break;
+        }
     }
     DeleteInteractPixel(pX, pY){
+        switch(mapData[pX][pY].interactType){
+            case InteractType.stone:
+                ResourceTerrain.stone--;
+                break;
+            case InteractType.wood:
+                ResourceTerrain.wood--;
+                break;
+        }
+
         for (let i = 0; i < interactPosData.length; i++) {
             if(interactPosData[i].x == pX && interactPosData[i].y == pY) {
                 interactPosData.splice(i, 1);
@@ -146,9 +174,6 @@ class TerrainManipulator{
                 mapData[i][j] = PerlinPixel(i, j);
             }
         }
-
-        //promazat render
-        
     }
     MovePlayer(Player, x, y){
         this.ModifyMapDataRaw(Player.x, Player.y, Player.OverlapPixel);
