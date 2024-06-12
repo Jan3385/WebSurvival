@@ -24,27 +24,41 @@ function onKeyDown(event){
     }
     usedInput = false;
 }
-let clearX = false;
-let clearY = false;
+let clearMap = {xMinus: false, xPlus: false, yMinus: false, yPlus: false};
 function onKeyUp(event){
-    if(event.keyCode == 87 || event.keyCode == 83){
-        if(usedInput) MovementVector.y = 0;
-        else clearY = true;
-    }
-    if(event.keyCode == 68 || event.keyCode == 65){
-       if(usedInput) MovementVector.x = 0;
-       else clearX = true;
+    switch(event.keyCode){
+        case 87:
+            clearMap.yMinus = true;
+            break;
+        case 68:
+            clearMap.xPlus = true;
+            break;
+        case 83:
+            clearMap.yPlus = true;
+            break;
+        case 65:
+            clearMap.xMinus = true;
+            break;
     }
 }
 function UpdateInput(){
+    console.log(MovementVector)
     usedInput = true;
-    if(clearX) {
-        MovementVector.x = 0;
-        clearX = false;
+    if(clearMap.xMinus) {
+        if(MovementVector.x == -1) MovementVector.x = 0;
+        clearMap.xMinus = false;
     }
-    if(clearY) {
-        MovementVector.y = 0;
-        clearY = false;
+    if(clearMap.xPlus) {
+        if(MovementVector.x == 1) MovementVector.x = 0;
+        clearMap.xPlus = false;
+    }
+    if(clearMap.yMinus) {
+        if(MovementVector.y == -1) MovementVector.y = 0;
+        clearMap.yMinus = false;
+    }
+    if(clearMap.yPlus) {
+        if(MovementVector.y == 1) MovementVector.y = 0;
+        clearMap.yPlus = false;
     }
 }
 
