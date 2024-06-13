@@ -42,7 +42,6 @@ function onKeyUp(event){
     }
 }
 function UpdateInput(){
-    console.log(MovementVector)
     usedInput = true;
     if(clearMap.xMinus) {
         if(MovementVector.x == -1) MovementVector.x = 0;
