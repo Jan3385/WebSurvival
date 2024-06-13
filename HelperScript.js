@@ -8,7 +8,8 @@ let usedInput = false;
 let inputPresses = [];
 let removeInputValues = [];
 function onKeyDown(event){
-    console.log(event.keyCode)
+    //console.log(event.keyCode)
+    //for movement keys update movement vector
     switch(event.keyCode){
         case 87:
             MovementVector.y = -1;
@@ -27,14 +28,17 @@ function onKeyDown(event){
             usedInput = false;
             break;
         default:
+            //for other keys add to input presses array
             inputPresses.push(event.keyCode);
             usedInput = false;
             break;
     }
+    //building selection
     if(event.keyCode >= 49 && event.keyCode <= 57) SelectBuilding(event.keyCode - 49);
 }
 let clearMap = {xMinus: false, xPlus: false, yMinus: false, yPlus: false};
 function onKeyUp(event){
+    //clear movement vector if it was registered ingame
     if(usedInput){
         switch(event.keyCode){
             case 87:
@@ -56,6 +60,7 @@ function onKeyUp(event){
         return;
     }
 
+    //if the key was not registered ingame, designate for later removal
     switch(event.keyCode){
         case 87:
             clearMap.yMinus = true;
@@ -73,8 +78,10 @@ function onKeyUp(event){
 
     removeInputValues.push(event.keyCode);
 }
+//inputs have been used and can be cleared now
 function UpdateInput(){
     usedInput = true;
+    //clears any movement vector if its designated for clearing
     if(clearMap.xMinus) {
         if(MovementVector.x == -1) MovementVector.x = 0;
         clearMap.xMinus = false;
@@ -92,6 +99,7 @@ function UpdateInput(){
         clearMap.yPlus = false;
     }
 
+    //removes any keys that were designated for removal
     if(removeInputValues != []){
         removeInputValues.forEach(value => {
             inputPresses.splice(inputPresses.indexOf(value), 1);
