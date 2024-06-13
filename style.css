@@ -34,16 +34,16 @@
         height: auto;
         aspect-ratio: 2/1;
     }
-    .Selected{
+    #Selected{
         background-color: rgb(107, 158, 208);
     }
-    .Selected:hover{
+    #Selected:hover{
         background-color: rgb(83, 157, 232);
     }
-    .Unselected{
+    #Unselected{
         background-color: rgb(202, 202, 202);
     }
-    .Unselected:hover{
+    #Unselected:hover{
         background-color: rgb(98, 98, 98);
     }
 }

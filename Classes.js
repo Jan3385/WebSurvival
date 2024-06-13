@@ -319,12 +319,29 @@ class TerrainManipulator{
      */
     MovePlayer(Player, x, y){
         let mPixel = mapData[Player.x + x][Player.y + y];
-        if(mPixel.status != PixelStatus.free && mPixel.status != PixelStatus.taken) return; //TODO fix for floor
+        
+        //check if the player can move to the given position
+        if(mPixel.status != PixelStatus.free && mPixel.status != PixelStatus.taken && 
+            !(mPixel.status == PixelStatus.interact && mPixel.walkStatus == PixelStatus.taken)) return;
 
+        //move the player
         this.ModifyMapData(Player.x, Player.y, Player.OverlapPixel);
         Player.x += x;
         Player.y += y;
-        Player.OverlapPixel = mapData[Player.x][Player.y]; //when building just modify overlapPixel
+        Player.OverlapPixel = mapData[Player.x][Player.y];
+        this.ModifyMapData(Player.x, Player.y, new PixelData(Player.color));
+    }
+    /**
+     * Forcefully moves the player to a given X and Y position (skips any checks)
+     * @param {PlayerData} Player 
+     * @param {number} x 
+     * @param {number} y 
+     */
+    ForceMovePlayer(Player, x, y){
+        this.ModifyMapData(Player.x, Player.y, Player.OverlapPixel);
+        Player.x += x;
+        Player.y += y;
+        Player.OverlapPixel = mapData[Player.x][Player.y];
         this.ModifyMapData(Player.x, Player.y, new PixelData(Player.color));
     }
 

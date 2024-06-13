@@ -2,32 +2,34 @@
 window.addEventListener("keydown", onKeyDown, false);
 window.addEventListener("keyup", onKeyUp, false);
 
-let buttons = document.getElementsByClassName("SelectionButtonDiv")[0].querySelectorAll("button");
-
 let MovementVector = {x:0,y:0};
 
 let usedInput = false;
 let inputPress;
 function onKeyDown(event){
-    //console.log(event.keyCode)
+    console.log(event.keyCode)
     switch(event.keyCode){
         case 87:
             MovementVector.y = -1;
+            usedInput = false;
             break;
         case 68:
             MovementVector.x = 1;
+            usedInput = false;
             break;
         case 83:
             MovementVector.y = 1;
+            usedInput = false;
             break;
         case 65:
             MovementVector.x = -1;
+            usedInput = false;
             break;
         default:
             inputPress = event.keyCode;
             break;
     }
-    usedInput = false;
+    if(event.keyCode >= 49 && event.keyCode <= 57) SelectBuilding(event.keyCode - 49);
 }
 let clearMap = {xMinus: false, xPlus: false, yMinus: false, yPlus: false};
 function onKeyUp(event){
@@ -196,6 +198,7 @@ class PerlinNoise {
 }
 let Perlin = new PerlinNoise(Math.random() * 1000); //TODO add custom seed
 // --- building ---
+let buildButtons = document.getElementsByClassName("SelectionButtonDiv")[0].querySelectorAll("button");
 const BuildType = {
     Wall: 0,
     Floor: 1,
@@ -220,4 +223,6 @@ function SelectBuilding(id){
             SelectedBuilding = Building.Floor;
             break;
     }
+    buildButtons.forEach(button => button.id = "Unselected");
+    buildButtons[id].id = "Selected";
 }
