@@ -1,7 +1,3 @@
-/*
- * RGB class for easy color representation
- * @class
- */
 class rgb{
     /**
      * @constructor
