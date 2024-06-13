@@ -42,7 +42,7 @@ function Update(){
     const moveTile = mapData[Player.x + MovementVector.x][Player.y + MovementVector.y];
 
     //placement logic
-    if(inputPress == 69 && Player.OverlapPixel.status == PixelStatus.free) {
+    if(inputPresses.includes(69) && Player.OverlapPixel.status == PixelStatus.free) {
         if(Resources.stone >= SelectedBuilding.cost.stone
             && Resources.wood >= SelectedBuilding.cost.wood){
                 

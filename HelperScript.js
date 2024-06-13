@@ -5,7 +5,8 @@ window.addEventListener("keyup", onKeyUp, false);
 let MovementVector = {x:0,y:0};
 
 let usedInput = false;
-let inputPress;
+let inputPresses = [];
+let removeInputValues = [];
 function onKeyDown(event){
     console.log(event.keyCode)
     switch(event.keyCode){
@@ -26,7 +27,8 @@ function onKeyDown(event){
             usedInput = false;
             break;
         default:
-            inputPress = event.keyCode;
+            inputPresses.push(event.keyCode);
+            usedInput = false;
             break;
     }
     if(event.keyCode >= 49 && event.keyCode <= 57) SelectBuilding(event.keyCode - 49);
@@ -48,7 +50,7 @@ function onKeyUp(event){
                 if(MovementVector.x == -1) MovementVector.x = 0;
                 break;
             default:
-                if(event.keyCode == inputPress) inputPress = null;
+                inputPresses.splice(inputPresses.indexOf(event.keyCode), 1);
                 break;
         }
         return;
@@ -68,6 +70,8 @@ function onKeyUp(event){
             clearMap.xMinus = true;
             break;
     }
+
+    removeInputValues.push(event.keyCode);
 }
 function UpdateInput(){
     usedInput = true;
@@ -87,7 +91,13 @@ function UpdateInput(){
         if(MovementVector.y == 1) MovementVector.y = 0;
         clearMap.yPlus = false;
     }
-    if(inputPress != null) inputPress = null;
+
+    if(removeInputValues != []){
+        removeInputValues.forEach(value => {
+            inputPresses.splice(inputPresses.indexOf(value), 1);
+        });
+        removeInputValues = [];
+    } 
 }
 
 // -- Perlin Noise Generator --
