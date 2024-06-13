@@ -205,11 +205,11 @@ const BuildType = {
 }
 let Building = {
     Wall: {
-        build: new BuildingData(new rgb(127, 79, 36), 1, 1, PixelStatus.block, 12, false, InteractType.wall),
+        build: new BuildingData(new rgb(127, 79, 36), 1, 1, PixelStatus.block, 12, true, InteractType.wall),
         cost: {stone: 0, wood: 10}
     },
     Floor: {
-        build: new BuildingData(new rgb(221, 184, 146), 1, 1, PixelStatus.taken, 20, false, InteractType.floor),
+        build: new BuildingData(new rgb(175, 164, 126), 1, 1, PixelStatus.taken, 20, false, InteractType.floor),
         cost: {stone: 0, wood: 2}
     }
 }
@@ -225,4 +225,9 @@ function SelectBuilding(id){
     }
     buildButtons.forEach(button => button.id = "Unselected");
     buildButtons[id].id = "Selected";
+}
+function cheat(){
+    Resources.stone += 1000;
+    Resources.wood += 1000;
+    Render.UpdateResourcesScreen();
 }
