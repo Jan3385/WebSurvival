@@ -7,7 +7,9 @@ let buttons = document.getElementsByClassName("SelectionButtonDiv")[0].querySele
 let MovementVector = {x:0,y:0};
 
 let usedInput = false;
+let inputPress;
 function onKeyDown(event){
+    console.log(event.keyCode)
     switch(event.keyCode){
         case 87:
             MovementVector.y = -1;
@@ -21,11 +23,35 @@ function onKeyDown(event){
         case 65:
             MovementVector.x = -1;
             break;
+        default:
+            inputPress = event.keyCode;
+            break;
     }
     usedInput = false;
 }
 let clearMap = {xMinus: false, xPlus: false, yMinus: false, yPlus: false};
 function onKeyUp(event){
+    if(usedInput){
+        switch(event.keyCode){
+            case 87:
+                if(MovementVector.y == -1) MovementVector.y = 0;
+                break;
+            case 68:
+                if(MovementVector.x == 1) MovementVector.x = 0;
+                break;
+            case 83:
+                if(MovementVector.y == 1) MovementVector.y = 0;
+                break;
+            case 65:
+                if(MovementVector.x == -1) MovementVector.x = 0;
+                break;
+            default:
+                if(event.keyCode == inputPress) inputPress = null;
+                break;
+        }
+        return;
+    }
+
     switch(event.keyCode){
         case 87:
             clearMap.yMinus = true;
@@ -59,6 +85,7 @@ function UpdateInput(){
         if(MovementVector.y == 1) MovementVector.y = 0;
         clearMap.yPlus = false;
     }
+    if(inputPress != null) inputPress = null;
 }
 
 // -- Perlin Noise Generator --

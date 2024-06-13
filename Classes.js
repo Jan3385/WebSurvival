@@ -189,7 +189,7 @@ class TerrainManipulator{
      * @param {number} y 
      * @param {PixelData} PixelData 
      */
-    ModifyMapDataRaw(x, y, PixelData){
+    ModifyMapData(x, y, PixelData){
         mapData[x][y] = PixelData;
     }
     /**
@@ -197,7 +197,7 @@ class TerrainManipulator{
      * @param {Array<Array<PixelData>>} NewMapData 
      * @returns 
      */
-    InsertMapData(NewMapData){
+    InsertMapDataRaw(NewMapData){
         if(mapData.length != NewMapData.length || mapData[0].length != NewMapData[0].length) {
             console.error('Map size is not matched');
             return;
@@ -211,7 +211,7 @@ class TerrainManipulator{
      */
     InsertInteractPixel(Pixel){
         interactPosData.push({x: Pixel.x, y: Pixel.y})
-        Terrain.ModifyMapDataRaw(Pixel.x, Pixel.y, Pixel);
+        Terrain.ModifyMapData(Pixel.x, Pixel.y, Pixel);
 
         switch(Pixel.interactType){
             case InteractType.stone:
@@ -246,7 +246,7 @@ class TerrainManipulator{
                 break;
             }
         }
-        this.ModifyMapDataRaw(pX, pY,PerlinPixel(pX, pY));
+        this.ModifyMapData(pX, pY,PerlinPixel(pX, pY));
     }
     /**
      * Clears the map and fills it with perlin noise
@@ -267,11 +267,14 @@ class TerrainManipulator{
      * @param {number} y 
      */
     MovePlayer(Player, x, y){
-        this.ModifyMapDataRaw(Player.x, Player.y, Player.OverlapPixel);
+        let mPixel = mapData[Player.x + x][Player.y + y];
+        if(mPixel.status != PixelStatus.free && mPixel.status != PixelStatus.taken) return;
+
+        this.ModifyMapData(Player.x, Player.y, Player.OverlapPixel);
         Player.x += x;
         Player.y += y;
         Player.OverlapPixel = mapData[Player.x][Player.y]; //when building just modify overlapPixel
-        this.ModifyMapDataRaw(Player.x, Player.y, new PixelData(Player.color));
+        this.ModifyMapData(Player.x, Player.y, new PixelData(Player.color));
     }
 
     /**

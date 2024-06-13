@@ -41,9 +41,16 @@ function Update(){
     //movement checker
     let moveTileStatus = mapData[Player.x + MovementVector.x][Player.y + MovementVector.y].status;
 
+    //placement logic
+    if(inputPress == 69) {
+        Player.OverlapPixel = new InteractData(new rgb(200, 70, 50), Player.x, Player.y, InteractType.wood);
+    }
+
+    //movement interactions
     if(moveTileStatus == PixelStatus.interact){
         const iPixel = mapData[Player.x + MovementVector.x][Player.y + MovementVector.y];
         let brokePixel;
+
         switch(mapData[Player.x + MovementVector.x][Player.y + MovementVector.y].interactType){
             case InteractType.stone:
                 brokePixel = iPixel.Damage();
@@ -58,9 +65,13 @@ function Update(){
         }
         Render.UpdateResourcesScreen();
     } 
-
-    if(moveTileStatus == PixelStatus.free) 
-        Terrain.MovePlayer(Player, MovementVector.x, MovementVector.y);
+    else{
+        //moves player
+        Terrain.MovePlayer(Player, MovementVector.x, 0);
+        Terrain.MovePlayer(Player, 0, MovementVector.y);
+    }
+    
+    
 
     UpdateInput();
 
