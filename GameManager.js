@@ -42,13 +42,20 @@ function Update(){
     const moveTile = mapData[Player.x + MovementVector.x][Player.y + MovementVector.y];
 
     //placement logic
-    if(inputPress == 69) {
-        Player.OverlapPixel = Building.Wall.at(Player.x, Player.y);
+    if(inputPress == 69 && Player.OverlapPixel.status == PixelStatus.free) {
+        if(Resources.stone >= SelectedBuilding.cost.stone
+            && Resources.wood >= SelectedBuilding.cost.wood){
+                
+                Resources.stone -= SelectedBuilding.cost.stone;
+                Resources.wood -= SelectedBuilding.cost.wood;
+
+                Player.OverlapPixel = SelectedBuilding.build.at(Player.x, Player.y);
+                Render.UpdateResourcesScreen();
+        }
     }
     //movement interactions
     if(moveTile.status == PixelStatus.interact){
         let brokePixel;
-
         switch(moveTile.interactType){
             case InteractType.stone:
                 brokePixel = moveTile.Damage();
@@ -60,6 +67,12 @@ function Update(){
                 break;
             case InteractType.wall:
                 moveTile.Damage();
+                break;
+            case InteractType.floor:
+                //ignore floor
+                console.log("floor");
+                Terrain.MovePlayer(Player, MovementVector.x, 0);
+                Terrain.MovePlayer(Player, 0, MovementVector.y);
                 break;
         }
         Render.UpdateResourcesScreen();

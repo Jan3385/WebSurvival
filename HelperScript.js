@@ -201,6 +201,23 @@ const BuildType = {
     Floor: 1,
 }
 let Building = {
-    Wall: new BuildingData(new rgb(200, 70, 50), 1, 1, PixelStatus.block, 12),
-    Floor: new BuildingData(new rgb(200, 70, 50), 1, 1, PixelStatus.block, 20)
+    Wall: {
+        build: new BuildingData(new rgb(127, 79, 36), 1, 1, PixelStatus.block, 12, false, InteractType.wall),
+        cost: {stone: 0, wood: 10}
+    },
+    Floor: {
+        build: new BuildingData(new rgb(221, 184, 146), 1, 1, PixelStatus.taken, 20, false, InteractType.floor),
+        cost: {stone: 0, wood: 2}
+    }
+}
+let SelectedBuilding = Building.Wall;
+function SelectBuilding(id){
+    switch(id){
+        case 0:
+            SelectedBuilding = Building.Wall;
+            break;
+        case 1:
+            SelectedBuilding = Building.Floor;
+            break;
+    }
 }

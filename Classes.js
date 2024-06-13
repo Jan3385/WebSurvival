@@ -17,6 +17,11 @@ class rgb{
     new(){
         return new rgb(this.r, this.g, this.b);
     }
+    newSlightlyRandom(val){
+        return new rgb(this.r + Math.floor(Math.random()*val), 
+                        this.g + Math.floor(Math.random()*val), 
+                        this.b + Math.floor(Math.random()*val));
+    }
     /**
     * Returns the rgb value in string format
     * @returns {string}
@@ -84,6 +89,7 @@ const InteractType = {
     wood: 1,
     door: 2,
     wall: 3,
+    floor: 4,
 };
 class InteractData extends PixelData{
     /**
@@ -100,6 +106,7 @@ class InteractData extends PixelData{
         this.y = y;
         this.interactType = type;
         this.health = hp;
+        this.highlight = true;
     }
     /**
      * Damages the interactable pixel, return true if it was destroyed (on final hit)
@@ -124,13 +131,15 @@ class BuildingData extends InteractData{
      * @param {number} y 
      * @param {PixelStatus} walkStatus 
      * @param {number} hp 
+     * @param {boolean} highlight
+     * @param {InteractType} interactionType
      */
-    constructor(color, x, y, walkStatus, hp = 12){
-        super(color, x, y, InteractType.wall, hp);
+    constructor(color, x, y, walkStatus, hp = 12, highlight = true, interactionType){
+        super(color, x, y, interactionType, hp);
         this.maxHealh = hp;
         this.defaultColor = color;
         this.walkStatus = walkStatus
-
+        this.highlight = highlight;
     }
     /**
      * Returns this object at the specified coordinates
@@ -139,11 +148,11 @@ class BuildingData extends InteractData{
      * @returns {ThisType}
      */
     at(x,y){
-        return new BuildingData(this.defaultColor.new(), x, y, this.walkStatus, this.maxHealh);
+        return new BuildingData(this.defaultColor.newSlightlyRandom(30), x, y, this.walkStatus, this.maxHealh, this.highlight, this.interactType);
     }
     Damage(){
         this.health--;
-        this.color.Darken(1.2);
+        this.color.Darken(1.07);
         if(this.health <= 0) {
             Terrain.ModifyMapData(this.x, this.y, PerlinPixel(this.x, this.y));
             return true;
@@ -195,9 +204,11 @@ class Renderer{
 
                 //interactavle pixel gets highlighted
                 if(pixel.status == PixelStatus.interact) {
-                    ctx.strokeStyle = interactCol.get();
-                    ctx.lineWidth = 2;
-                    ctx.strokeRect(i*canvasScale+1, j*canvasScale+1, canvasScale-2, canvasScale-2);
+                    if(pixel.highlight){
+                        ctx.strokeStyle = interactCol.get();
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(i*canvasScale+1, j*canvasScale+1, canvasScale-2, canvasScale-2);
+                    }
                 }
             }
         }
@@ -312,7 +323,7 @@ class TerrainManipulator{
      */
     MovePlayer(Player, x, y){
         let mPixel = mapData[Player.x + x][Player.y + y];
-        if(mPixel.status != PixelStatus.free && mPixel.status != PixelStatus.taken) return;
+        if(mPixel.status != PixelStatus.free && mPixel.status != PixelStatus.taken) return; //TODO fix for floor
 
         this.ModifyMapData(Player.x, Player.y, Player.OverlapPixel);
         Player.x += x;
