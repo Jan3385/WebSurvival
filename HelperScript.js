@@ -9,7 +9,7 @@ let MovementVector = {x:0,y:0};
 let usedInput = false;
 let inputPress;
 function onKeyDown(event){
-    console.log(event.keyCode)
+    //console.log(event.keyCode)
     switch(event.keyCode){
         case 87:
             MovementVector.y = -1;
@@ -195,3 +195,12 @@ class PerlinNoise {
     }
 }
 let Perlin = new PerlinNoise(Math.random() * 1000); //TODO add custom seed
+// --- building ---
+const BuildType = {
+    Wall: 0,
+    Floor: 1,
+}
+let Building = {
+    Wall: new BuildingData(new rgb(200, 70, 50), 1, 1, PixelStatus.block, 12),
+    Floor: new BuildingData(new rgb(200, 70, 50), 1, 1, PixelStatus.block, 20)
+}

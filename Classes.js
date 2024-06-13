@@ -14,6 +14,9 @@ class rgb{
         this.g = g;
         this.b = b;
     }
+    new(){
+        return new rgb(this.r, this.g, this.b);
+    }
     /**
     * Returns the rgb value in string format
     * @returns {string}
@@ -77,9 +80,10 @@ class PlayerData extends PixelData{
     }
 }
 const InteractType = {
-    stone: "stone",
-    wood: "wood",
-    door: "door"
+    stone: 0,
+    wood: 1,
+    door: 2,
+    wall: 3,
 };
 class InteractData extends PixelData{
     /**
@@ -103,7 +107,7 @@ class InteractData extends PixelData{
      */
     Damage(){
         this.health--;
-        this.color.Darken(1.3);
+        this.color.Darken(1.2);
         if(this.health <= 0) {
             Terrain.DeleteInteractPixel(this.x, this.y);
             return true;
@@ -111,7 +115,47 @@ class InteractData extends PixelData{
         return false;
     }
 }
-let interactCol = new rgb(30, 30, 30);
+
+class BuildingData extends InteractData{
+    /**
+     * @constructor
+     * @param {rgb} color 
+     * @param {number} x 
+     * @param {number} y 
+     * @param {PixelStatus} walkStatus 
+     * @param {number} hp 
+     */
+    constructor(color, x, y, walkStatus, hp = 12){
+        super(color, x, y, InteractType.wall, hp);
+        this.maxHealh = hp;
+        this.defaultColor = color;
+        this.walkStatus = walkStatus
+
+    }
+    /**
+     * Returns this object at the specified coordinates
+     * @param {number} x 
+     * @param {number} y 
+     * @returns {ThisType}
+     */
+    at(x,y){
+        return new BuildingData(this.defaultColor.new(), x, y, this.walkStatus, this.maxHealh);
+    }
+    Damage(){
+        this.health--;
+        this.color.Darken(1.2);
+        if(this.health <= 0) {
+            Terrain.ModifyMapData(this.x, this.y, PerlinPixel(this.x, this.y));
+            return true;
+        }
+        return false;
+    }
+    FullyHeal(){
+        this.health = this.maxHealh;
+        this.color = this.defaultColor;
+    }
+}
+let interactCol = new rgb(60, 60, 60);
 //Class for rendering the game
 class Renderer{
     /**

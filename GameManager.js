@@ -39,28 +39,27 @@ let Resources = {
 
 function Update(){
     //movement checker
-    let moveTileStatus = mapData[Player.x + MovementVector.x][Player.y + MovementVector.y].status;
+    const moveTile = mapData[Player.x + MovementVector.x][Player.y + MovementVector.y];
 
     //placement logic
     if(inputPress == 69) {
-        Player.OverlapPixel = new InteractData(new rgb(200, 70, 50), Player.x, Player.y, InteractType.wood);
+        Player.OverlapPixel = Building.Wall.at(Player.x, Player.y);
     }
-
     //movement interactions
-    if(moveTileStatus == PixelStatus.interact){
-        const iPixel = mapData[Player.x + MovementVector.x][Player.y + MovementVector.y];
+    if(moveTile.status == PixelStatus.interact){
         let brokePixel;
 
-        switch(mapData[Player.x + MovementVector.x][Player.y + MovementVector.y].interactType){
+        switch(moveTile.interactType){
             case InteractType.stone:
-                brokePixel = iPixel.Damage();
+                brokePixel = moveTile.Damage();
                 if(brokePixel) Resources.stone+= Math.floor(1 + Math.random()*2);
                 break;
             case InteractType.wood:
-                brokePixel = iPixel.Damage();
+                brokePixel = moveTile.Damage();
                 if(brokePixel) Resources.wood+= Math.floor(1 + Math.random()*2);
                 break;
-            case InteractType.door:
+            case InteractType.wall:
+                moveTile.Damage();
                 break;
         }
         Render.UpdateResourcesScreen();
@@ -83,6 +82,6 @@ function Update(){
     Render.Draw();
 }
 function UpdateInteractionIndicator(){
-    if(interactCol.get() == new rgb(30, 30, 30).get()) interactCol = new rgb(50, 50, 50);
-    else interactCol = new rgb(30, 30, 30);
+    if(interactCol.get() == new rgb(60, 60, 60).get()) interactCol = new rgb(50, 50, 50);
+    else interactCol = new rgb(60, 60, 60);
 }
