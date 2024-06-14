@@ -19,7 +19,6 @@ function onKeyDown(event){
             }
             break;
         case 68:
-            console.log(MovementVector)
             if(MovementVector.x != 1){
                 MovementVector.x = 1;
                 usedInput = false;

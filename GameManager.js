@@ -44,7 +44,6 @@ function Update(){
     //placement logic
     isBuilding = false;
     if(inputPresses.includes(69) && Player.OverlapPixel.status == PixelStatus.free) {
-        console.log(SelectedBuilding)
         if(Resources.stone >= SelectedBuilding.cost.stone
             && Resources.wood >= SelectedBuilding.cost.wood){
                 
