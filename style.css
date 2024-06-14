@@ -1,4 +1,4 @@
-.MainList{
+.Main-List{
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -8,7 +8,7 @@
     list-style: none;
 
 }
-.GameSpacer {
+.Game-Spacer {
     display: inline-block;
     width: max-content;
     min-width: 100px;
@@ -16,11 +16,12 @@
 }
 .tutorial{
     background-color: rgb(230, 230, 230);
-    padding: 20px;
+    padding: 10px;
     padding-left: 30px;
     height: 100%;
+    width: 10svw;
 }
-.SelectionButtonDiv{
+.Selection-Button-Div{
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
