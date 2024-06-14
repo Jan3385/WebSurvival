@@ -235,7 +235,7 @@ const BuildType = {
 }
 let Building = [
     CheapWall = {
-        build: new BuildingData(new rgb(255, 243, 176), 1, 1, PixelStatus.block, 3, true, InteractType.wall),
+        build: new BuildingData(new rgb(244, 211, 94), 1, 1, PixelStatus.block, 3, true, InteractType.wall),
         cost: {stone: 0, wood: 3}
     },
     WoodenWall = {
@@ -246,21 +246,49 @@ let Building = [
         build: new BuildingData(new rgb(85, 85, 85), 1, 1, PixelStatus.block, 24, true, InteractType.wall),
         cost: {stone: 15, wood: 2}
     },
-    Floor = {
+    CheapFloor = {
+        build: new BuildingData(new rgb(255, 243, 176), 1, 1, PixelStatus.taken, 1, false, InteractType.floor),
+        cost: {stone: 0, wood: 1}
+    },
+    WoodenFloor = {
         build: new BuildingData(new rgb(175, 164, 126), 1, 1, PixelStatus.taken, 3, false, InteractType.floor),
         cost: {stone: 0, wood: 2}
+    },
+    StoneFloor = {
+        build: new BuildingData(new rgb(206, 212, 218), 1, 1, PixelStatus.taken, 6, false, InteractType.floor),
+        cost: {stone: 2, wood: 0}
     }
 ];
 
-let SelectedBuilding = Building[2];
+let SelectedBuilding = Building[0];
+let buildId = 0;
 function SelectBuilding(id){
-    SelectedBuilding = Building[id];
-
     buildButtons.forEach(button => button.id = "Unselected");
     buildButtons[id].id = "Selected";
+
+    buildId = id;
+    UpdateSelectedBuilding();
 }
 function cheat(){
     Resources.stone += 1000;
     Resources.wood += 1000;
     Render.UpdateResourcesScreen();
+}
+/**
+ * Returns the id of the selected material
+ * @returns {number}
+ */
+function GetSelectedMaterialId(){
+    const option = document.getElementById("Material-Select").value;
+
+    return Number.parseInt(option);
+}
+function UpdateSelectedBuilding(){
+    let id = buildId;
+    if(buildId <= 2){
+        const materialId = GetSelectedMaterialId();
+        id = buildId * 3 + materialId;
+    }
+    SelectedBuilding = Building[id];
+
 }

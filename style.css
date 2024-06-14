@@ -37,12 +37,6 @@
     padding: 0;
     background-color: cadetblue;
     border-radius: 5px;
-    button{
-        margin: 5px 5px;
-        min-height: 40px;
-        height: auto;
-        aspect-ratio: 2/1;
-    }
     #Selected{
         background-color: rgb(107, 158, 208);
     }
@@ -54,5 +48,24 @@
     }
     #Unselected:hover{
         background-color: rgb(98, 98, 98);
+    }
+    .Selectable-Material{
+        display: flex;
+        margin: 5px;
+        button{
+            margin: 5px;
+            min-height: 40px;
+            height: auto;
+            aspect-ratio: 2/1;
+        }
+        select{
+            margin: 5px;
+            min-height: 40px;
+            height: auto;
+            aspect-ratio: 2/1;
+            option{
+                border: 1px solid black;
+            }
+        }
     }
 }

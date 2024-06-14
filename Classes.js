@@ -426,14 +426,17 @@ class TerrainManipulator{
         sPixel = new InteractData(new rgb(200, 200, 200), x, y-1, InteractType.stone);
         Terrain.InsertInteractPixel(sPixel);
 
-        let stoneVec = {
-            x: 1,
-            y: 1
-        }
-        if(Math.random() < 0.5) stoneVec.x *= -1;
-        if(Math.random() < 0.5) stoneVec.y *= -1;
+        let stoneVec = {x: 1, y: 1}
+        let repeats = Math.floor(Math.random()*3)+1;
+        for(let i = 0; i < repeats; i++) {
+            stoneVec.x = Math.floor(Math.random()*2)-1;
+            stoneVec.y = Math.floor(Math.random()*2)-1;
+            if(stoneVec.x == 0) stoneVec.x = 1;
+            if(stoneVec.y == 0) stoneVec.y = 1;
 
-        sPixel = new InteractData(new rgb(200, 200, 200), x+stoneVec.x, y+stoneVec.y, InteractType.stone);
-        Terrain.InsertInteractPixel(sPixel);
+            console.log(stoneVec)
+            sPixel = new InteractData(new rgb(200, 200, 200), x+stoneVec.x, y+stoneVec.y, InteractType.stone);
+            Terrain.InsertInteractPixel(sPixel);
+        }
     }
 }

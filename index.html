@@ -30,8 +30,16 @@
         </li>
     </ul>
     <div class="Selection-Button-Div">
-        <button onclick="SelectBuilding(0)" id="Selected">Wall</button>
-        <button onclick="SelectBuilding(1)" id="Unselected">Floor</button>
+        <div class="Selectable-Material" >
+            <select id="Material-Select" onchange="UpdateSelectedBuilding();">
+                <option value="0">cheap wood</option>
+                <option value="1">wood</option>
+                <option value="2">stone</option>
+            </select>
+            <button onclick="SelectBuilding(0)" id="Selected">Wall</button>
+            <button onclick="SelectBuilding(1)" id="Unselected">Floor</button>
+        </div>
+        
         <!-- <button onclick="SelectBuilding(2)" id="Unselected">Door</button>
         <button onclick="SelectBuilding(3)" id="Unselected">Furnace</button>
         <button onclick="SelectBuilding(4)" id="Unselected">Turret</button>
