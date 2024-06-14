@@ -165,6 +165,36 @@ class BuildingData extends InteractData{
         this.color = this.defaultColor;
     }
 }
+class DoorData extends BuildingData{
+    /**
+     * @constructor
+     * @param {rgb} color 
+     * @param {number} x 
+     * @param {number} y 
+     * @param {PixelStatus} walkStatus 
+     * @param {number} hp 
+     * @param {boolean} highlight
+     * @param {InteractType} interactionType
+     */
+    constructor(color, x, y, walkStatus, hp = 12, highlight = true, interactionType){
+        super(color, x, y, walkStatus, hp, highlight, interactionType);
+    }
+    at(x,y){
+        return new DoorData(this.defaultColor.newSlightlyRandom(30), x, y, this.walkStatus, this.maxHealh, this.highlight, this.interactType);
+    }
+    Open(){
+        this.walkStatus = PixelStatus.taken;
+        this.color = this.color.changeBy(-30);
+        this.highlight = false;
+        console.log("Door opened");
+    }
+    Close(){
+        this.walkStatus = PixelStatus.block;
+        this.color = this.color.changeBy(+30);
+        this.highlight = true;
+        console.log("Door closed");
+    }
+}
 let interactCol = new rgb(60, 60, 60);
 //Class for rendering the game
 class Renderer{
@@ -324,7 +354,6 @@ class TerrainManipulator{
      */
     MovePlayer(Player, x, y){
         let mPixel = mapData[Player.x + x][Player.y + y];
-        
         //check if the player can move to the given position
         if(mPixel.status == PixelStatus.free || mPixel.status == PixelStatus.taken || 
          (mPixel.status == PixelStatus.interact && mPixel.walkStatus == PixelStatus.taken)){
@@ -332,12 +361,15 @@ class TerrainManipulator{
             //move the player
 
             //if is player exiting a door, lock it
-            if(Player.OverlapPixel.status == PixelStatus.interact && 
-              Player.OverlapPixel.interactType == InteractType.door && x != 0 && y != 0) {
+            console.log(Player.OverlapPixel);
+            console.log(x + " " + y);
+            console.log(Player.OverlapPixel.status == PixelStatus.interact && 
+                Player.OverlapPixel.interactType == InteractType.door && x != 0 && y != 0);
 
-                Player.OverlapPixel.walkStatus = PixelStatus.block;
-                console.log(Player.OverlapPixel.color.changeBy(+30))
-                Player.OverlapPixel.color = Player.OverlapPixel.color.changeBy(+30);
+            if(Player.OverlapPixel.status == PixelStatus.interact && 
+              Player.OverlapPixel.interactType == InteractType.door && (x != 0 || y != 0)) {
+
+                Player.OverlapPixel.Close();
             }
 
             this.ModifyMapData(Player.x, Player.y, Player.OverlapPixel);
@@ -347,9 +379,7 @@ class TerrainManipulator{
             this.ModifyMapData(Player.x, Player.y, new PixelData(Player.color));
 
         }else if(mPixel.status == PixelStatus.interact && mPixel.interactType == InteractType.door){
-            mPixel.walkStatus = PixelStatus.taken;
-            console.log(mPixel.color.changeBy(-30))
-            mPixel.color = mPixel.color.changeBy(-30);
+            mPixel.Open();
         }
     }
     /**
@@ -455,7 +485,6 @@ class TerrainManipulator{
             if(stoneVec.x == 0) stoneVec.x = 1;
             if(stoneVec.y == 0) stoneVec.y = 1;
 
-            console.log(stoneVec)
             sPixel = new InteractData(new rgb(200, 200, 200), x+stoneVec.x, y+stoneVec.y, InteractType.stone);
             Terrain.InsertInteractPixel(sPixel);
         }

@@ -23,6 +23,11 @@ let tickSpeed = 7;
 setInterval(Update, 1000/tickSpeed);
 setInterval(UpdateInteractionIndicator, 1000);
 
+let Resources = {
+    stone: 0,
+    wood: 0,
+}
+
 function Start(){
     Terrain.MovePlayer(Player, 0, 0); //Draw player
     Render.Draw();
@@ -32,10 +37,6 @@ function Start(){
     }
 }
 
-let Resources = {
-    stone: 0,
-    wood: 0,
-}
 let isBuilding = false;
 function Update(){
     //movement checker
@@ -55,6 +56,7 @@ function Update(){
                 isBuilding = true;
         }
     }
+
     //movement interactions
     if(moveTile.status == PixelStatus.interact){
         let brokePixel;
@@ -72,6 +74,7 @@ function Update(){
                 break;
             case InteractType.floor:
             case InteractType.door:
+                if(MovementVector.x == 0 && MovementVector.y == 0) break;
                 //ignore door and floor
                 if(!isBuilding){
                     Terrain.MovePlayer(Player, MovementVector.x, 0);
@@ -84,7 +87,7 @@ function Update(){
         }
         Render.UpdateResourcesScreen();
     } 
-    else{
+    else if(!(MovementVector.x == 0 && MovementVector.y == 0)){
         //moves player
         //if player is not building allow diagonal movement else only move non-diagonaly
         if(!isBuilding){
@@ -94,7 +97,6 @@ function Update(){
             if(MovementVector.x != 0) MovementVector.y = 0;
             Terrain.MovePlayer(Player, MovementVector.x, MovementVector.y);
         }
-        
     }
     
     
