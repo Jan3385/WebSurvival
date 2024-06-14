@@ -257,6 +257,18 @@ let Building = [
     StoneFloor = {
         build: new BuildingData(new rgb(206, 212, 218), 1, 1, PixelStatus.taken, 6, false, InteractType.floor),
         cost: {stone: 2, wood: 0}
+    },
+    cheapDoor = {
+        build: new BuildingData(new rgb(255, 231, 230), 1, 1, PixelStatus.block, 3, true, InteractType.door),
+        cost: {stone: 0, wood: 10}
+    },
+    woodenDoor = {
+        build: new BuildingData(new rgb(200, 180, 166), 1, 1, PixelStatus.block, 12, true, InteractType.door),
+        cost: {stone: 0, wood: 20}
+    },
+    stoneDoor = {
+        build: new BuildingData(new rgb(200, 200, 200), 1, 1, PixelStatus.block, 24, true, InteractType.door),
+        cost: {stone: 25, wood: 2}
     }
 ];
 

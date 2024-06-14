@@ -18,6 +18,11 @@ class rgb{
                         this.g + Math.floor(Math.random()*val), 
                         this.b + Math.floor(Math.random()*val));
     }
+    changeBy(val){
+        return new rgb(this.r + val, 
+                        this.g + val, 
+                        this.b + val);
+    }
     /**
     * Returns the rgb value in string format
     * @returns {string}
@@ -321,15 +326,31 @@ class TerrainManipulator{
         let mPixel = mapData[Player.x + x][Player.y + y];
         
         //check if the player can move to the given position
-        if(mPixel.status != PixelStatus.free && mPixel.status != PixelStatus.taken && 
-            !(mPixel.status == PixelStatus.interact && mPixel.walkStatus == PixelStatus.taken)) return;
+        if(mPixel.status == PixelStatus.free || mPixel.status == PixelStatus.taken || 
+         (mPixel.status == PixelStatus.interact && mPixel.walkStatus == PixelStatus.taken)){
 
-        //move the player
-        this.ModifyMapData(Player.x, Player.y, Player.OverlapPixel);
-        Player.x += x;
-        Player.y += y;
-        Player.OverlapPixel = mapData[Player.x][Player.y];
-        this.ModifyMapData(Player.x, Player.y, new PixelData(Player.color));
+            //move the player
+
+            //if is player exiting a door, lock it
+            if(Player.OverlapPixel.status == PixelStatus.interact && 
+              Player.OverlapPixel.interactType == InteractType.door && x != 0 && y != 0) {
+
+                Player.OverlapPixel.walkStatus = PixelStatus.block;
+                console.log(Player.OverlapPixel.color.changeBy(+30))
+                Player.OverlapPixel.color = Player.OverlapPixel.color.changeBy(+30);
+            }
+
+            this.ModifyMapData(Player.x, Player.y, Player.OverlapPixel);
+            Player.x += x;
+            Player.y += y;
+            Player.OverlapPixel = mapData[Player.x][Player.y];
+            this.ModifyMapData(Player.x, Player.y, new PixelData(Player.color));
+
+        }else if(mPixel.status == PixelStatus.interact && mPixel.interactType == InteractType.door){
+            mPixel.walkStatus = PixelStatus.taken;
+            console.log(mPixel.color.changeBy(-30))
+            mPixel.color = mPixel.color.changeBy(-30);
+        }
     }
     /**
      * Forcefully moves the player to a given X and Y position (skips any checks)

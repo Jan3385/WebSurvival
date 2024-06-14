@@ -71,7 +71,8 @@ function Update(){
                 moveTile.Damage();
                 break;
             case InteractType.floor:
-                //ignore floor
+            case InteractType.door:
+                //ignore door and floor
                 if(!isBuilding){
                     Terrain.MovePlayer(Player, MovementVector.x, 0);
                     Terrain.MovePlayer(Player, 0, MovementVector.y);
