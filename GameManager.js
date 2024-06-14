@@ -36,13 +36,15 @@ let Resources = {
     stone: 0,
     wood: 0,
 }
-
+let isBuilding = false;
 function Update(){
     //movement checker
     const moveTile = mapData[Player.x + MovementVector.x][Player.y + MovementVector.y];
 
     //placement logic
+    isBuilding = false;
     if(inputPresses.includes(69) && Player.OverlapPixel.status == PixelStatus.free) {
+        console.log(SelectedBuilding)
         if(Resources.stone >= SelectedBuilding.cost.stone
             && Resources.wood >= SelectedBuilding.cost.wood){
                 
@@ -51,6 +53,7 @@ function Update(){
 
                 Player.OverlapPixel = SelectedBuilding.build.at(Player.x, Player.y);
                 Render.UpdateResourcesScreen();
+                isBuilding = true;
         }
     }
     //movement interactions
@@ -70,17 +73,28 @@ function Update(){
                 break;
             case InteractType.floor:
                 //ignore floor
-                console.log("floor");
-                Terrain.MovePlayer(Player, MovementVector.x, 0);
-                Terrain.MovePlayer(Player, 0, MovementVector.y);
+                if(!isBuilding){
+                    Terrain.MovePlayer(Player, MovementVector.x, 0);
+                    Terrain.MovePlayer(Player, 0, MovementVector.y);
+                }else{
+                    if(MovementVector.x != 0) MovementVector.y = 0;
+                    Terrain.MovePlayer(Player, MovementVector.x, MovementVector.y);
+                }
                 break;
         }
         Render.UpdateResourcesScreen();
     } 
     else{
         //moves player
-        Terrain.MovePlayer(Player, MovementVector.x, 0);
-        Terrain.MovePlayer(Player, 0, MovementVector.y);
+        //if player is not building allow diagonal movement else only move non-diagonaly
+        if(!isBuilding){
+            Terrain.MovePlayer(Player, MovementVector.x, 0);
+            Terrain.MovePlayer(Player, 0, MovementVector.y);
+        }else{
+            if(MovementVector.x != 0) MovementVector.y = 0;
+            Terrain.MovePlayer(Player, MovementVector.x, MovementVector.y);
+        }
+        
     }
     
     

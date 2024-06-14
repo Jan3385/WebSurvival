@@ -11,8 +11,12 @@
 .Game-Spacer {
     display: inline-block;
     width: max-content;
-    min-width: 100px;
     padding: 5px;
+    div{
+        margin: 0;
+        height: 100%;
+        width: 5svw;
+    }
 }
 .tutorial{
     background-color: rgb(230, 230, 230);

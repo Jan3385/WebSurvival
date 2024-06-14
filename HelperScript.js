@@ -7,36 +7,49 @@ let MovementVector = {x:0,y:0};
 let usedInput = false;
 let inputPresses = [];
 let removeInputValues = [];
+
+//calls repeatedly on key hold
 function onKeyDown(event){
-    //console.log(event.keyCode)
     //for movement keys update movement vector
     switch(event.keyCode){
         case 87:
-            MovementVector.y = -1;
-            usedInput = false;
+            if(MovementVector.y != -1){
+                MovementVector.y = -1;
+                usedInput = false;
+            }
             break;
         case 68:
-            MovementVector.x = 1;
-            usedInput = false;
+            console.log(MovementVector)
+            if(MovementVector.x != 1){
+                MovementVector.x = 1;
+                usedInput = false;
+            }
             break;
         case 83:
-            MovementVector.y = 1;
-            usedInput = false;
+            if(MovementVector.y != 1){
+                MovementVector.y = 1;
+                usedInput = false;
+            }
             break;
         case 65:
-            MovementVector.x = -1;
-            usedInput = false;
+            if(MovementVector.x != -1){
+                MovementVector.x = -1;
+                usedInput = false;
+            }
             break;
         default:
             //for other keys add to input presses array
-            inputPresses.push(event.keyCode);
-            usedInput = false;
+            if(!inputPresses.includes(event.keyCode)){
+                inputPresses.push(event.keyCode);
+                usedInput = false;
+            }
             break;
     }
     //building selection
     if(event.keyCode >= 49 && event.keyCode <= 57) SelectBuilding(event.keyCode - 49);
 }
 let clearMap = {xMinus: false, xPlus: false, yMinus: false, yPlus: false};
+//calls only once when key is released
 function onKeyUp(event){
     //clear movement vector if it was registered ingame
     if(usedInput){
@@ -54,7 +67,7 @@ function onKeyUp(event){
                 if(MovementVector.x == -1) MovementVector.x = 0;
                 break;
             default:
-                inputPresses.splice(inputPresses.indexOf(event.keyCode), 1);
+                if(inputPresses.includes(event.keyCode)) inputPresses.splice(inputPresses.indexOf(event.keyCode), 1);
                 break;
         }
         return;
@@ -102,7 +115,7 @@ function UpdateInput(){
     //removes any keys that were designated for removal
     if(removeInputValues != []){
         removeInputValues.forEach(value => {
-            inputPresses.splice(inputPresses.indexOf(value), 1);
+            if(inputPresses.includes(value)) inputPresses.splice(inputPresses.indexOf(value), 1);
         });
         removeInputValues = [];
     } 
@@ -216,31 +229,34 @@ class PerlinNoise {
 }
 let Perlin = new PerlinNoise(Math.random() * 1000); //TODO add custom seed
 // --- building ---
-let buildButtons = document.getElementsByClassName("SelectionButtonDiv")[0].querySelectorAll("button");
+let buildButtons = document.getElementsByClassName("Selection-Button-Div")[0].querySelectorAll("button");
 const BuildType = {
     Wall: 0,
     Floor: 1,
 }
-let Building = {
-    Wall: {
+let Building = [
+    CheapWall = {
+        build: new BuildingData(new rgb(255, 243, 176), 1, 1, PixelStatus.block, 3, true, InteractType.wall),
+        cost: {stone: 0, wood: 3}
+    },
+    WoodenWall = {
         build: new BuildingData(new rgb(127, 79, 36), 1, 1, PixelStatus.block, 12, true, InteractType.wall),
         cost: {stone: 0, wood: 10}
     },
-    Floor: {
-        build: new BuildingData(new rgb(175, 164, 126), 1, 1, PixelStatus.taken, 20, false, InteractType.floor),
+    StoneWall = {
+        build: new BuildingData(new rgb(85, 85, 85), 1, 1, PixelStatus.block, 24, true, InteractType.wall),
+        cost: {stone: 15, wood: 2}
+    },
+    Floor = {
+        build: new BuildingData(new rgb(175, 164, 126), 1, 1, PixelStatus.taken, 3, false, InteractType.floor),
         cost: {stone: 0, wood: 2}
     }
-}
-let SelectedBuilding = Building.Wall;
+];
+
+let SelectedBuilding = Building[2];
 function SelectBuilding(id){
-    switch(id){
-        case 0:
-            SelectedBuilding = Building.Wall;
-            break;
-        case 1:
-            SelectedBuilding = Building.Floor;
-            break;
-    }
+    SelectedBuilding = Building[id];
+
     buildButtons.forEach(button => button.id = "Unselected");
     buildButtons[id].id = "Selected";
 }
