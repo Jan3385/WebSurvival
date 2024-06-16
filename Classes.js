@@ -167,6 +167,14 @@ class BuildingData extends InteractData{
         }
         return false;
     }
+    DamageNoDelete(){
+        this.health--;
+        this.color.Darken(1.07);
+        if(this.health <= 0) {
+            return true;
+        }
+        return false;
+    }
     FullyHeal(){
         this.health = this.maxHealh;
         this.color = this.defaultColor;

@@ -57,6 +57,18 @@ function Update(){
         }
     }
 
+    //digging underneath player logic
+    if(inputPresses.includes(81)){
+        //if standing on a building damage it
+        if(Player.OverlapPixel instanceof InteractData){
+            let brokePixel = Player.OverlapPixel.DamageNoDelete();
+            console.log(Player.OverlapPixel)
+            if(brokePixel){
+                Player.OverlapPixel = PerlinPixel(Player.x, Player.y);
+            }
+        }
+    }
+
     //movement interactions
     if(moveTile.status == PixelStatus.interact){
         let brokePixel;
