@@ -47,6 +47,13 @@ const PixelStatus = {
     block: "block",
     interact: "interact"
 };
+const _Highlight = {
+    none: 0,
+    lightBorder: 1,
+    border: 2,
+    thickBorder: 3,
+    slash: 4,
+}
 class PixelData{
     /**
      * Stores data about the given pixel
@@ -101,13 +108,13 @@ class InteractData extends PixelData{
      * @param {InteractType} type 
      * @param {number} [hp=6]
      */
-    constructor(color, x, y, type, hp = 6){
+    constructor(color, x, y, type, hp = 6, highlight = _Highlight.border){
         super(color, PixelStatus.interact);
         this.x = x;
         this.y = y;
         this.interactType = type;
         this.health = hp;
-        this.highlight = true;
+        this.highlight = highlight;
     }
     /**
      * Damages the interactable pixel, return true if it was destroyed (on final hit)
@@ -132,10 +139,10 @@ class BuildingData extends InteractData{
      * @param {number} y 
      * @param {PixelStatus} walkStatus 
      * @param {number} hp 
-     * @param {boolean} highlight
+     * @param {_Highlight} highlight
      * @param {InteractType} interactionType
      */
-    constructor(color, x, y, walkStatus, hp = 12, highlight = true, interactionType){
+    constructor(color, x, y, walkStatus, hp = 12, highlight = _Highlight.border, interactionType){
         super(color, x, y, interactionType, hp);
         this.maxHealh = hp;
         this.defaultColor = color;
@@ -173,26 +180,31 @@ class DoorData extends BuildingData{
      * @param {number} y 
      * @param {PixelStatus} walkStatus 
      * @param {number} hp 
-     * @param {boolean} highlight
+     * @param {_Highlight} highlight
      * @param {InteractType} interactionType
      */
-    constructor(color, x, y, walkStatus, hp = 12, highlight = true, interactionType){
+    constructor(color, x, y, walkStatus, hp = 12, highlight = _Highlight.border, interactionType){
         super(color, x, y, walkStatus, hp, highlight, interactionType);
+        this.isOpen = false;
     }
     at(x,y){
         return new DoorData(this.defaultColor.newSlightlyRandom(30), x, y, this.walkStatus, this.maxHealh, this.highlight, this.interactType);
     }
     Open(){
+        if(this.isOpen) return;
+
         this.walkStatus = PixelStatus.taken;
         this.color = this.color.changeBy(-30);
-        this.highlight = false;
-        console.log("Door opened");
+        this.highlight = _Highlight.lightBorder;
+        this.isOpen = true;
     }
     Close(){
+        if(!this.isOpen) return;
+
         this.walkStatus = PixelStatus.block;
         this.color = this.color.changeBy(+30);
-        this.highlight = true;
-        console.log("Door closed");
+        this.highlight = _Highlight.slash;
+        this.isOpen = false;
     }
 }
 let interactCol = new rgb(60, 60, 60);
@@ -227,6 +239,7 @@ class Renderer{
     Draw() {
         const ctx = canvas.getContext('2d');
     
+        ctx.beginPath(); //Clear ctx from prev. frame
         for (let i = 0; i < canvas.width/canvasScale; i++) {
             for (let j = 0; j < canvas.height/canvasScale; j++) {
                 const pixel = mapData[i][j];
@@ -235,14 +248,38 @@ class Renderer{
 
                 //interactavle pixel gets highlighted
                 if(pixel.status == PixelStatus.interact) {
-                    if(pixel.highlight){
-                        ctx.strokeStyle = interactCol.get();
-                        ctx.lineWidth = 2;
-                        ctx.strokeRect(i*canvasScale+1, j*canvasScale+1, canvasScale-2, canvasScale-2);
+                    switch(pixel.highlight){
+                        case _Highlight.none:
+                            break;
+                        case _Highlight.lightBorder:
+                            ctx.strokeStyle = interactCol.get();
+                            ctx.lineWidth = 1;
+                            ctx.strokeRect(i*canvasScale+1, j*canvasScale+1, canvasScale-2, canvasScale-2);
+                            break;
+                        case _Highlight.border:
+                            ctx.strokeStyle = interactCol.get();
+                            ctx.lineWidth = 2;
+                            ctx.strokeRect(i*canvasScale+1, j*canvasScale+1, canvasScale-2, canvasScale-2);
+                            break;
+                        case _Highlight.thickBorder:
+                            ctx.strokeStyle = interactCol.get();
+                            ctx.lineWidth = 4;
+                            ctx.strokeRect(i*canvasScale+2, j*canvasScale+2, canvasScale-4, canvasScale-4);
+                            break;
+                        case _Highlight.slash:
+                            ctx.strokeStyle = interactCol.get();
+                            ctx.lineWidth = 2;
+                            ctx.strokeRect(i*canvasScale+1, j*canvasScale+1, canvasScale-2, canvasScale-2);
+                            
+                            ctx.moveTo(i*canvasScale+1, j*canvasScale+1);
+                            ctx.lineTo(i*canvasScale+canvasScale-1, j*canvasScale+canvasScale-1);
+                            break;
                     }
                 }
             }
         }
+        ctx.lineWidth = 2;
+        ctx.stroke(); //write all the diagonal lines
         
         ctx.strokeStyle = Player.borderColor.get();
         ctx.lineWidth = 2;
@@ -361,11 +398,6 @@ class TerrainManipulator{
             //move the player
 
             //if is player exiting a door, lock it
-            console.log(Player.OverlapPixel);
-            console.log(x + " " + y);
-            console.log(Player.OverlapPixel.status == PixelStatus.interact && 
-                Player.OverlapPixel.interactType == InteractType.door && x != 0 && y != 0);
-
             if(Player.OverlapPixel.status == PixelStatus.interact && 
               Player.OverlapPixel.interactType == InteractType.door && (x != 0 || y != 0)) {
 

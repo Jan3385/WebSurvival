@@ -235,39 +235,39 @@ const BuildType = {
 }
 let Building = [
     CheapWall = {
-        build: new BuildingData(new rgb(244, 211, 94), 1, 1, PixelStatus.block, 3, true, InteractType.wall),
+        build: new BuildingData(new rgb(244, 211, 94), 1, 1, PixelStatus.block, 3, _Highlight.border, InteractType.wall),
         cost: {stone: 0, wood: 3}
     },
     WoodenWall = {
-        build: new BuildingData(new rgb(127, 79, 36), 1, 1, PixelStatus.block, 12, true, InteractType.wall),
+        build: new BuildingData(new rgb(127, 79, 36), 1, 1, PixelStatus.block, 12, _Highlight.border, InteractType.wall),
         cost: {stone: 0, wood: 10}
     },
     StoneWall = {
-        build: new BuildingData(new rgb(85, 85, 85), 1, 1, PixelStatus.block, 24, true, InteractType.wall),
+        build: new BuildingData(new rgb(85, 85, 85), 1, 1, PixelStatus.block, 24, _Highlight.border, InteractType.wall),
         cost: {stone: 15, wood: 2}
     },
     CheapFloor = {
-        build: new BuildingData(new rgb(255, 243, 176), 1, 1, PixelStatus.taken, 1, false, InteractType.floor),
+        build: new BuildingData(new rgb(255, 243, 176), 1, 1, PixelStatus.taken, 1, _Highlight.none, InteractType.floor),
         cost: {stone: 0, wood: 1}
     },
     WoodenFloor = {
-        build: new BuildingData(new rgb(175, 164, 126), 1, 1, PixelStatus.taken, 3, false, InteractType.floor),
+        build: new BuildingData(new rgb(175, 164, 126), 1, 1, PixelStatus.taken, 3, _Highlight.none, InteractType.floor),
         cost: {stone: 0, wood: 2}
     },
     StoneFloor = {
-        build: new BuildingData(new rgb(206, 212, 218), 1, 1, PixelStatus.taken, 6, false, InteractType.floor),
+        build: new BuildingData(new rgb(206, 212, 218), 1, 1, PixelStatus.taken, 6, _Highlight.none, InteractType.floor),
         cost: {stone: 2, wood: 0}
     },
     cheapDoor = {
-        build: new DoorData(new rgb(255, 231, 230), 1, 1, PixelStatus.block, 3, true, InteractType.door),
+        build: new DoorData(new rgb(255, 231, 230), 1, 1, PixelStatus.block, 3, _Highlight.slash, InteractType.door),
         cost: {stone: 0, wood: 10}
     },
     woodenDoor = {
-        build: new DoorData(new rgb(200, 180, 166), 1, 1, PixelStatus.block, 12, true, InteractType.door),
+        build: new DoorData(new rgb(200, 180, 166), 1, 1, PixelStatus.block, 12, _Highlight.slash, InteractType.door),
         cost: {stone: 0, wood: 20}
     },
     stoneDoor = {
-        build: new DoorData(new rgb(200, 200, 200), 1, 1, PixelStatus.block, 24, true, InteractType.door),
+        build: new DoorData(new rgb(200, 200, 200), 1, 1, PixelStatus.block, 24, _Highlight.slash, InteractType.door),
         cost: {stone: 25, wood: 2}
     }
 ];

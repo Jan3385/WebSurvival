@@ -114,3 +114,6 @@ function UpdateInteractionIndicator(){
     if(interactCol.get() == new rgb(60, 60, 60).get()) interactCol = new rgb(50, 50, 50);
     else interactCol = new rgb(60, 60, 60);
 }
+function GetPixelInfo(x,y){
+    return mapData[x][y];
+}
