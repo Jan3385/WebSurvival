@@ -16,6 +16,21 @@
         margin: 0;
         height: 100%;
         width: 5svw;
+        div{
+            display: inline-block;
+            height: 5%;
+            p{
+                margin: 0;
+                padding: 0;
+            }
+            img{
+                height: auto;
+                vertical-align: middle;
+                width: 50%;
+                aspect-ratio: 1/1;
+            
+            }
+        }
     }
 }
 .tutorial{
@@ -65,6 +80,32 @@
             aspect-ratio: 2/1;
             option{
                 border: 1px solid black;
+            }
+        }
+        li{
+            list-style-type:none;
+        }
+        .Cost-List{
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            p{
+                display: flex;
+                background-color: white;
+                padding:5px;
+                border-radius: 5px;
+                margin-left: 3px;
+                img{
+                    height: auto;
+                    width: 20px;
+                    aspect-ratio: 1/1;
+                    margin: 0;
+                    padding: 0;
+                }
+            }
+            .Cost-Build{
+                margin-right: 20px;
             }
         }
     }
