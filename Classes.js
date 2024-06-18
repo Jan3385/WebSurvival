@@ -308,8 +308,8 @@ class Renderer{
      * Updates the resource count on the screen
      */
     UpdateResourcesScreen(){
-        document.getElementById("stone").innerHTML = "Stone: "+Resources.stone;
-        document.getElementById("wood").innerHTML = "Wood: "+Resources.wood;
+        document.getElementById("stone").innerHTML = ": "+Resources.stone;
+        document.getElementById("wood").innerHTML = ": "+Resources.wood;
     }
 }
 //Class for terrain modification
