@@ -230,16 +230,30 @@ class Renderer{
      * Initialises the canvas and fills it with perlin noise
      */
     init(){
-        if(canvas.width % canvasScale != 0 || canvas.height % canvasScale != 0) 
-            console.error('Canvas size is not divisible by scale');
+        //set canvas size
+        let resolution = {x: 64, y: 48}; 
+        canvas.width = Math.floor(window.innerWidth * canvasPixel.x/150);
+        canvas.height = Math.floor(window.innerWidth * canvasPixel.y/150);
 
-        for (let i = 0; i < canvas.width/canvasScale; i++) {
+        pixelScale = canvas.width/canvasPixel.x;
+        canvas.width = Math.floor(canvas.width - Math.floor(canvas.width % pixelScale));
+        canvas.height = Math.floor(canvas.height - Math.floor(canvas.height % pixelScale));
+
+        console.log("Canvas width: " + canvas.width);
+
+        if(Math.floor(canvas.width % pixelScale) != 0 || Math.floor(canvas.height % pixelScale) != 0) {
+            console.error('Canvas size is not divisible by scale');
+            console.error('Canvas width: ' + canvas.width + ' Canvas height: ' + canvas.height);
+            console.error('Canvas scale: ' + pixelScale);
+        }
+
+        for (let i = 0; i < canvasPixel.x; i++) {
             mapData[i] = [];
-            for (let j = 0; j < canvas.height/canvasScale; j++) {
+            for (let j = 0; j < canvasPixel.y; j++) {
                 mapData[i][j] = PerlinPixel(i, j); 
             }
         }
-        console.log("initialised zanvas with array of X:" + mapData.length + " Y:" + mapData[0].length);
+        console.log("initialised canvas with array of X:" + mapData.length + " Y:" + mapData[0].length);
     }
     /**
      * Executes a draw call on the canvas, rendering everyting
@@ -248,11 +262,11 @@ class Renderer{
         const ctx = canvas.getContext('2d');
     
         ctx.beginPath(); //Clear ctx from prev. frame
-        for (let i = 0; i < canvas.width/canvasScale; i++) {
-            for (let j = 0; j < canvas.height/canvasScale; j++) {
+        for (let i = 0; i < mapData.length; i++) {
+            for (let j = 0; j < mapData[0].length; j++) {
                 const pixel = mapData[i][j];
                 ctx.fillStyle = pixel.color.get();
-                ctx.fillRect(i*canvasScale, j*canvasScale, canvasScale, canvasScale);
+                ctx.fillRect(i*pixelScale, j*pixelScale, pixelScale-1, pixelScale-1);
 
                 //interactavle pixel gets highlighted
                 if(pixel.status == PixelStatus.interact) {
@@ -262,25 +276,25 @@ class Renderer{
                         case _Highlight.lightBorder:
                             ctx.strokeStyle = interactCol.get();
                             ctx.lineWidth = 1;
-                            ctx.strokeRect(i*canvasScale+1, j*canvasScale+1, canvasScale-2, canvasScale-2);
+                            ctx.strokeRect(i*pixelScale+1, j*pixelScale+1, pixelScale-2, pixelScale-2);
                             break;
                         case _Highlight.border:
                             ctx.strokeStyle = interactCol.get();
                             ctx.lineWidth = 2;
-                            ctx.strokeRect(i*canvasScale+1, j*canvasScale+1, canvasScale-2, canvasScale-2);
+                            ctx.strokeRect(i*pixelScale, j*pixelScale, pixelScale-1, pixelScale-1);
                             break;
                         case _Highlight.thickBorder:
                             ctx.strokeStyle = interactCol.get();
                             ctx.lineWidth = 4;
-                            ctx.strokeRect(i*canvasScale+2, j*canvasScale+2, canvasScale-4, canvasScale-4);
+                            ctx.strokeRect(i*pixelScale+2, j*pixelScale+2, pixelScale-4, pixelScale-4);
                             break;
                         case _Highlight.slash:
                             ctx.strokeStyle = interactCol.get();
                             ctx.lineWidth = 2;
-                            ctx.strokeRect(i*canvasScale+1, j*canvasScale+1, canvasScale-2, canvasScale-2);
+                            ctx.strokeRect(i*pixelScale+1, j*pixelScale+1, pixelScale-2, pixelScale-2);
                             
-                            ctx.moveTo(i*canvasScale+1, j*canvasScale+1);
-                            ctx.lineTo(i*canvasScale+canvasScale-1, j*canvasScale+canvasScale-1);
+                            ctx.moveTo(i*pixelScale+1, j*pixelScale+1);
+                            ctx.lineTo(i*pixelScale+pixelScale-1, j*pixelScale+pixelScale-1);
                             break;
                     }
                 }
@@ -291,7 +305,7 @@ class Renderer{
         
         ctx.strokeStyle = Player.borderColor.get();
         ctx.lineWidth = 2;
-        ctx.strokeRect(Player.x*canvasScale+1, Player.y*canvasScale+1, canvasScale-2, canvasScale-2);
+        ctx.strokeRect(Player.x*pixelScale+1, Player.y*pixelScale+1, pixelScale-2, pixelScale-2);
     }
     /**
      * Updates the color border of interactable pixels
@@ -301,7 +315,7 @@ class Renderer{
 
         interactPosData.forEach(interact => {
             ctx.fillStyle = interact.color.get();
-            ctx.fillRect(interact.x*canvasScale, interact.y*canvasScale, canvasScale, canvasScale);
+            ctx.fillRect(interact.x*pixelScale, interact.y*pixelScale, pixelScale, pixelScale);
         });
     }
     /**

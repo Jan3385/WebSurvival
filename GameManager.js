@@ -1,5 +1,6 @@
 const canvas = document.getElementById('gameCanvas'); 
-let canvasScale = 10;
+let pixelScale = 0;
+let canvasPixel = {x: 80, y: 60}
 let mapData = [];
 let interactPosData = [];
 
@@ -14,7 +15,7 @@ const MaxTResource = {
 }
 
 let Player = new PlayerData(new rgb(0, 0, 0), new rgb(255, 255, 255), 
-    Math.floor(canvas.width/canvasScale/2), Math.floor(canvas.height/canvasScale/2));
+    10, 10);
 let Render = new Renderer();
 let Terrain = new TerrainManipulator();
 

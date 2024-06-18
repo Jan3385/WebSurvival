@@ -8,6 +8,10 @@
     list-style: none;
 
 }
+#gameCanvas{
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
 .Game-Spacer {
     padding: 5px;
     div{
