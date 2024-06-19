@@ -75,11 +75,13 @@
             aspect-ratio: 2/1;
         }
         select{
+            user-select: none;
             margin: 5px;
             min-height: 40px;
             height: auto;
             aspect-ratio: 2/1;
             option{
+                user-select: none;
                 border: 1px solid black;
             }
         }
