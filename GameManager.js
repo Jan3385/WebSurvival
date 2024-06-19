@@ -18,9 +18,6 @@ let Player = new PlayerData(new rgb(0, 0, 0), new rgb(255, 255, 255),
 let Render = new Renderer();
 let Terrain = new TerrainManipulator();
 
-Start();
-let tickSpeed = 7;
-setInterval(Update, 1000/tickSpeed);
 setInterval(UpdateInteractionIndicator, 1000);
 
 let Resources = {
@@ -35,6 +32,8 @@ function Start(){
     for(let i = 0; i < 20; i++){
         Terrain.GenerateRandomResource();
     }
+
+    cheat();
 }
 
 let isBuilding = false;
@@ -129,3 +128,6 @@ function UpdateInteractionIndicator(){
 function GetPixelInfo(x,y){
     return mapData[x][y];
 }
+Start();
+let tickSpeed = 7;
+setInterval(Update, 1000/tickSpeed);
