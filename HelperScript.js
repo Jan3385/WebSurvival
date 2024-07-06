@@ -275,10 +275,14 @@ let Building = [
 let SelectedBuilding = Building[0];
 let buildId = 0;
 function SelectBuilding(id){
-    buildButtons.forEach(button => button.id = "Unselected");
+    //unselect previously selected building
+    buildButtons[buildId].id = "Unselected";
+    //select new building
     buildButtons[id].id = "Selected";
 
+    //update buildId variable
     buildId = id;
+
     UpdateSelectedBuilding();
 }
 function cheat(){
@@ -297,9 +301,16 @@ function GetSelectedMaterialId(){
 }
 function UpdateSelectedBuilding(){
     let id = buildId;
+
+    //for building that have selectale materials use special treatment
     if(buildId <= 2){
         const materialId = GetSelectedMaterialId();
         id = buildId * 3 + materialId;
     }
+
     SelectedBuilding = Building[id];
+
+    //update cost display
+    document.getElementById("C-Wood").innerHTML = '<img src="Icons/wood.png">: ' + SelectedBuilding.cost.wood;
+    document.getElementById("C-Stone").innerHTML = '<img src="Icons/stone.png">: ' + SelectedBuilding.cost.stone;
 }

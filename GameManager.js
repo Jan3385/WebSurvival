@@ -109,8 +109,6 @@ function Update(){
             Terrain.MovePlayer(Player, MovementVector.x, MovementVector.y);
         }
     }
-    
-    
 
     UpdateInput();
 
