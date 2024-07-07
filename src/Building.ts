@@ -45,8 +45,8 @@ let Building = [
 ];
 
 let SelectedBuilding: {build: BuildingData, cost: {wood: number, stone: number}} = Building[0];
-document.getElementById("C-Wood")!.innerHTML = '<img src="../Icons/wood.png">: ' + SelectedBuilding.cost.wood;
-document.getElementById("C-Stone")!.innerHTML = '<img src="../Icons/stone.png">: ' + SelectedBuilding.cost.stone;
+document.getElementById("C-Wood")!.innerHTML = '<img src="Icons/wood.png">: ' + SelectedBuilding.cost.wood;
+document.getElementById("C-Stone")!.innerHTML = '<img src="Icons/stone.png">: ' + SelectedBuilding.cost.stone;
 
 let buildId = 0;
 function SelectBuilding(id: number){
@@ -86,6 +86,6 @@ function UpdateSelectedBuilding(){
     SelectedBuilding = Building[id];
 
     //update cost display
-    document.getElementById("C-Wood")!.innerHTML = '<img src="../Icons/wood.png">: ' + SelectedBuilding.cost.wood;
-    document.getElementById("C-Stone")!.innerHTML = '<img src="../Icons/stone.png">: ' + SelectedBuilding.cost.stone;
+    document.getElementById("C-Wood")!.innerHTML = '<img src="Icons/wood.png">: ' + SelectedBuilding.cost.wood;
+    document.getElementById("C-Stone")!.innerHTML = '<img src="Icons/stone.png">: ' + SelectedBuilding.cost.stone;
 }
