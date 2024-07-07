@@ -37,7 +37,7 @@ function Start(){
         Terrain.GenerateRandomResource();
     }
 
-    //cheat();
+    cheat();
 }
 
 let isBuilding = false;
