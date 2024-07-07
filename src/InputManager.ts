@@ -1,6 +1,3 @@
-window.addEventListener("keydown", onKeyDown, false);
-window.addEventListener("keyup", onKeyUp, false);
-
 class Vector2{
     x: number;
     y: number;
@@ -125,3 +122,6 @@ function UpdateInput(){
         removeInputValues = [];
     } 
 }
+
+window.addEventListener("keydown", onKeyDown, false);
+window.addEventListener("keyup", onKeyUp, false);
