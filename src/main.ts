@@ -3,7 +3,7 @@
 const canvas: HTMLCanvasElement = <HTMLCanvasElement> document.getElementById('gameCanvas')!; 
 let canvasScale: number = 10;
 let mapData: PixelData[][] = [];
-let interactPosData: Vector2[] = [];
+let HighlightPosData: Vector2[] = [];
 
 
 let ResourceTerrain = {

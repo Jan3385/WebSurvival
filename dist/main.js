@@ -280,8 +280,8 @@ let Building = [
     }
 ];
 let SelectedBuilding = Building[0];
-document.getElementById("C-Wood").innerHTML = '<img src="../Icons/wood.png">: ' + SelectedBuilding.cost.wood;
-document.getElementById("C-Stone").innerHTML = '<img src="../Icons/stone.png">: ' + SelectedBuilding.cost.stone;
+document.getElementById("C-Wood").innerHTML = '<img src="Icons/wood.png">: ' + SelectedBuilding.cost.wood;
+document.getElementById("C-Stone").innerHTML = '<img src="Icons/stone.png">: ' + SelectedBuilding.cost.stone;
 let buildId = 0;
 function SelectBuilding(id) {
     //unselect previously selected building
@@ -314,8 +314,8 @@ function UpdateSelectedBuilding() {
     }
     SelectedBuilding = Building[id];
     //update cost display
-    document.getElementById("C-Wood").innerHTML = '<img src="../Icons/wood.png">: ' + SelectedBuilding.cost.wood;
-    document.getElementById("C-Stone").innerHTML = '<img src="../Icons/stone.png">: ' + SelectedBuilding.cost.stone;
+    document.getElementById("C-Wood").innerHTML = '<img src="Icons/wood.png">: ' + SelectedBuilding.cost.wood;
+    document.getElementById("C-Stone").innerHTML = '<img src="Icons/stone.png">: ' + SelectedBuilding.cost.stone;
 }
 class Vector2 {
     x;
@@ -559,13 +559,16 @@ class Renderer {
     init() {
         if (canvas.width % canvasScale != 0 || canvas.height % canvasScale != 0)
             console.error('Canvas size is not divisible by scale');
-        for (let i = 0; i < canvas.width / canvasScale; i++) {
+        // 16 : 10 resolution
+        for (let i = 0; i < 80; i++) {
             mapData[i] = [];
-            for (let j = 0; j < canvas.height / canvasScale; j++) {
+            for (let j = 0; j < 50; j++) {
                 mapData[i][j] = PerlinPixel(i, j);
             }
         }
-        console.log("initialised zanvas with array of X:" + mapData.length + " Y:" + mapData[0].length);
+        window.addEventListener('resize', this.UpdateWindowSize);
+        this.UpdateWindowSize();
+        console.log("initialised canvas with array of X:" + mapData.length + " Y:" + mapData[0].length);
     }
     /**
      * Executes a draw call on the canvas, rendering everyting
@@ -578,52 +581,51 @@ class Renderer {
                 const pixel = mapData[i][j];
                 ctx.fillStyle = pixel.color.get();
                 ctx.fillRect(i * canvasScale, j * canvasScale, canvasScale, canvasScale);
-                //interactavle pixel gets highlighted
-                if (pixel.status == PixelStatus.interact) {
-                    switch (pixel.highlight) {
-                        case _Highlight.none:
-                            break;
-                        case _Highlight.lightBorder:
-                            ctx.strokeStyle = interactCol.get();
-                            ctx.lineWidth = 1;
-                            ctx.strokeRect(i * canvasScale + 1, j * canvasScale + 1, canvasScale - 2, canvasScale - 2);
-                            break;
-                        case _Highlight.border:
-                            ctx.strokeStyle = interactCol.get();
-                            ctx.lineWidth = 2;
-                            ctx.strokeRect(i * canvasScale + 1, j * canvasScale + 1, canvasScale - 2, canvasScale - 2);
-                            break;
-                        case _Highlight.thickBorder:
-                            ctx.strokeStyle = interactCol.get();
-                            ctx.lineWidth = 4;
-                            ctx.strokeRect(i * canvasScale + 2, j * canvasScale + 2, canvasScale - 4, canvasScale - 4);
-                            break;
-                        case _Highlight.slash:
-                            ctx.strokeStyle = interactCol.get();
-                            ctx.lineWidth = 2;
-                            ctx.strokeRect(i * canvasScale + 1, j * canvasScale + 1, canvasScale - 2, canvasScale - 2);
-                            ctx.moveTo(i * canvasScale + 1, j * canvasScale + 1);
-                            ctx.lineTo(i * canvasScale + canvasScale - 1, j * canvasScale + canvasScale - 1);
-                            break;
-                    }
-                }
             }
         }
-        ctx.lineWidth = 2;
-        ctx.stroke(); //write all the diagonal lines
+        this.DrawInteractIndicator();
         ctx.strokeStyle = Player.borderColor.get();
         ctx.lineWidth = 2;
         ctx.strokeRect(Player.x * canvasScale + 1, Player.y * canvasScale + 1, canvasScale - 2, canvasScale - 2);
     }
-    /**
-     * Updates the color border of interactable pixels
-     */
-    UpdateHighlightInteraction() {
+    DrawInteractIndicator() {
+        if (canvasScale < 6)
+            return;
         const ctx = canvas.getContext('2d');
-        interactPosData.forEach(interact => {
-            ctx.fillStyle = interactCol.get();
-            ctx.fillRect(interact.x * canvasScale, interact.y * canvasScale, canvasScale, canvasScale);
+        ctx.beginPath();
+        HighlightPosData.forEach((pos) => {
+            const pixel = mapData[pos.x][pos.y];
+            if (pixel.status == PixelStatus.interact) {
+                switch (pixel.highlight) {
+                    case _Highlight.none:
+                        break;
+                    case _Highlight.lightBorder:
+                        ctx.strokeStyle = interactCol.get();
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(pos.x * canvasScale + 1, pos.y * canvasScale + 1, canvasScale - 2, canvasScale - 2);
+                        break;
+                    case _Highlight.border:
+                        ctx.strokeStyle = interactCol.get();
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(pos.x * canvasScale + 1, pos.y * canvasScale + 1, canvasScale - 2, canvasScale - 2);
+                        break;
+                    case _Highlight.thickBorder:
+                        ctx.strokeStyle = interactCol.get();
+                        ctx.lineWidth = 4;
+                        ctx.strokeRect(pos.x * canvasScale + 2, pos.y * canvasScale + 2, canvasScale - 4, canvasScale - 4);
+                        break;
+                    case _Highlight.slash:
+                        ctx.strokeStyle = interactCol.get();
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(pos.x * canvasScale + 1, pos.y * canvasScale + 1, canvasScale - 2, canvasScale - 2);
+                        ctx.moveTo(pos.x * canvasScale + 1, pos.y * canvasScale + 1);
+                        ctx.lineTo(pos.x * canvasScale + canvasScale - 1, pos.y * canvasScale + canvasScale - 1);
+                        break;
+                }
+            }
         });
+        ctx.lineWidth = 2;
+        ctx.stroke(); //write all the diagonal lines
     }
     /**
      * Updates the resource count on the screen
@@ -631,6 +633,13 @@ class Renderer {
     UpdateResourcesScreen() {
         document.getElementById("stone").innerHTML = ": " + Resources.stone;
         document.getElementById("wood").innerHTML = ": " + Resources.wood;
+    }
+    UpdateWindowSize() {
+        canvasScale = Math.floor(window.innerWidth / 120);
+        if (mapData[0].length * canvasScale > window.innerHeight * 0.8)
+            canvasScale = Math.floor(window.innerHeight * 0.8 / mapData[0].length);
+        canvas.width = mapData.length * canvasScale;
+        canvas.height = mapData[0].length * canvasScale;
     }
 }
 //Class for terrain modification
@@ -661,7 +670,7 @@ class TerrainManipulator {
      * @param {InteractData} Pixel
      */
     InsertInteractPixel(Pixel) {
-        interactPosData.push({ x: Pixel.x, y: Pixel.y });
+        HighlightPosData.push({ x: Pixel.x, y: Pixel.y });
         Terrain.ModifyMapData(Pixel.x, Pixel.y, Pixel);
         switch (Pixel.interactType) {
             case InteractType.stone:
@@ -691,9 +700,9 @@ class TerrainManipulator {
             default:
                 throw new ReferenceError("Unknown interactable type");
         }
-        for (let i = 0; i < interactPosData.length; i++) {
-            if (interactPosData[i].x == pX && interactPosData[i].y == pY) {
-                interactPosData.splice(i, 1);
+        for (let i = 0; i < HighlightPosData.length; i++) {
+            if (HighlightPosData[i].x == pX && HighlightPosData[i].y == pY) {
+                HighlightPosData.splice(i, 1);
                 break;
             }
         }
@@ -848,7 +857,7 @@ class TerrainManipulator {
 const canvas = document.getElementById('gameCanvas');
 let canvasScale = 10;
 let mapData = [];
-let interactPosData = [];
+let HighlightPosData = [];
 let ResourceTerrain = {
     stone: 0,
     wood: 0
@@ -872,7 +881,7 @@ function Start() {
     for (let i = 0; i < 20; i++) {
         Terrain.GenerateRandomResource();
     }
-    //cheat();
+    cheat();
 }
 let isBuilding = false;
 function Update() {
