@@ -593,37 +593,39 @@ class Renderer {
             return;
         const ctx = canvas.getContext('2d');
         ctx.beginPath();
-        HighlightPosData.forEach((pos) => {
-            const pixel = mapData[pos.x][pos.y];
-            if (pixel.status == PixelStatus.interact) {
-                switch (pixel.highlight) {
-                    case _Highlight.none:
-                        break;
-                    case _Highlight.lightBorder:
-                        ctx.strokeStyle = interactCol.get();
-                        ctx.lineWidth = 1;
-                        ctx.strokeRect(pos.x * canvasScale + 1, pos.y * canvasScale + 1, canvasScale - 2, canvasScale - 2);
-                        break;
-                    case _Highlight.border:
-                        ctx.strokeStyle = interactCol.get();
-                        ctx.lineWidth = 2;
-                        ctx.strokeRect(pos.x * canvasScale + 1, pos.y * canvasScale + 1, canvasScale - 2, canvasScale - 2);
-                        break;
-                    case _Highlight.thickBorder:
-                        ctx.strokeStyle = interactCol.get();
-                        ctx.lineWidth = 4;
-                        ctx.strokeRect(pos.x * canvasScale + 2, pos.y * canvasScale + 2, canvasScale - 4, canvasScale - 4);
-                        break;
-                    case _Highlight.slash:
-                        ctx.strokeStyle = interactCol.get();
-                        ctx.lineWidth = 2;
-                        ctx.strokeRect(pos.x * canvasScale + 1, pos.y * canvasScale + 1, canvasScale - 2, canvasScale - 2);
-                        ctx.moveTo(pos.x * canvasScale + 1, pos.y * canvasScale + 1);
-                        ctx.lineTo(pos.x * canvasScale + canvasScale - 1, pos.y * canvasScale + canvasScale - 1);
-                        break;
+        for (let i = 0; i < mapData.length; i++) {
+            for (let j = 0; j < mapData[0].length; j++) {
+                const pixel = mapData[i][j];
+                if (pixel.status == PixelStatus.interact) {
+                    switch (pixel.highlight) {
+                        case _Highlight.none:
+                            break;
+                        case _Highlight.lightBorder:
+                            ctx.strokeStyle = interactCol.get();
+                            ctx.lineWidth = 1;
+                            ctx.strokeRect(i * canvasScale + 1, j * canvasScale + 1, canvasScale - 2, canvasScale - 2);
+                            break;
+                        case _Highlight.border:
+                            ctx.strokeStyle = interactCol.get();
+                            ctx.lineWidth = 2;
+                            ctx.strokeRect(i * canvasScale + 1, j * canvasScale + 1, canvasScale - 2, canvasScale - 2);
+                            break;
+                        case _Highlight.thickBorder:
+                            ctx.strokeStyle = interactCol.get();
+                            ctx.lineWidth = 4;
+                            ctx.strokeRect(i * canvasScale + 2, j * canvasScale + 2, canvasScale - 4, canvasScale - 4);
+                            break;
+                        case _Highlight.slash:
+                            ctx.strokeStyle = interactCol.get();
+                            ctx.lineWidth = 2;
+                            ctx.strokeRect(i * canvasScale + 1, j * canvasScale + 1, canvasScale - 2, canvasScale - 2);
+                            ctx.moveTo(i * canvasScale + 1, j * canvasScale + 1);
+                            ctx.lineTo(i * canvasScale + canvasScale - 1, j * canvasScale + canvasScale - 1);
+                            break;
+                    }
                 }
             }
-        });
+        }
         ctx.lineWidth = 2;
         ctx.stroke(); //write all the diagonal lines
     }
@@ -857,6 +859,7 @@ class TerrainManipulator {
 const canvas = document.getElementById('gameCanvas');
 let canvasScale = 10;
 let mapData = [];
+//wall etc borders broken
 let HighlightPosData = [];
 let ResourceTerrain = {
     stone: 0,
