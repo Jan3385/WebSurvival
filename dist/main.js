@@ -547,6 +547,9 @@ class PerlinNoise {
     }
 }
 let Perlin = new PerlinNoise(Math.random() * 1000); //TODO add custom seed
+function lerp(a, b, t) {
+    return a + t * (b - a);
+}
 //Class for rendering the game
 class Renderer {
     /**
@@ -654,8 +657,9 @@ class GameTime {
      * @constructor
      */
     time = 0;
-    maxTime = 2000;
+    maxTime = 100;
     lightLevel = 100;
+    minLightLevel = 30;
     triggeredNight = false;
     triggeredDay = false;
     constructor() {
@@ -665,10 +669,9 @@ class GameTime {
      * Updates the time object
      */
     Tick() {
-        console.log(this.GetDayProgress());
         this.time++;
         if (this.GetDayProgress() < 0.2) {
-            this.lightLevel = Math.max(30, this.GetDayProgress() * 500);
+            this.lightLevel = Math.max(this.minLightLevel, this.GetDayProgress() * 500);
         }
         else if (this.GetDayProgress() < 0.3) {
             this.OnDayStart();
@@ -677,7 +680,7 @@ class GameTime {
         else if (this.GetDayProgress() > 0.8) {
             if (this.GetDayProgress() > 0.9)
                 this.OnNightStart();
-            this.lightLevel = Math.max(30, 100 - (this.GetDayProgress() - 0.8) * 500);
+            this.lightLevel = Math.max(this.minLightLevel, 100 - (this.GetDayProgress() - 0.8) * 500);
             if (this.GetDayProgress() >= 1)
                 this.time = 0;
         }
@@ -685,6 +688,10 @@ class GameTime {
             this.triggeredDay = false;
             this.triggeredNight = false;
         }
+        //from 30 - 100 to 0 - 1
+        const t = ((this.lightLevel - 30) * (100 / 70)) / 100;
+        document.body.style.background = "rgb(" + lerp(99, 255, t) + "," +
+            lerp(110, 255, t) + "," + lerp(114, 255, t) + ")";
     }
     OnNightStart() {
         if (this.triggeredNight)
