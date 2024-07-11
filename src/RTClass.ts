@@ -132,7 +132,7 @@ class GameTime{
             this.lightLevel = 100;
         }
         else if(this.GetDayProgress() > 0.8){
-            this.OnNightStart();
+            if(this.GetDayProgress() > 0.9) this.OnNightStart();
 
             this.lightLevel = Math.max(30, 100 - (this.GetDayProgress() - 0.8) * 500);
             if(this.GetDayProgress() >= 1) this.time = 0;
