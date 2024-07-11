@@ -33,6 +33,10 @@ class rgb{
     get(): string{
         return 'rgb(' + this.r + ',' + this.g + ',' + this.b + ')';
     }
+    getWithLight(light: number): string{
+        let lightShift = light / 100;
+        return 'rgb(' + Math.floor(this.r * lightShift) + ',' + Math.floor(this.g*lightShift) + ',' + Math.floor(this.b*lightShift) + ')';
+    }
     /**
      * Makes the rgb value darker by the value
      * @param {number} val 
@@ -165,7 +169,7 @@ class BuildingData extends InteractData{
     constructor(color: rgb, x: number, y: number, walkStatus: PixelStatus, hp: number = 12, highlight: _Highlight = _Highlight.border, interactionType: InteractType){
         super(color, x, y, interactionType, hp);
         this.maxHealh = hp;
-        this.defaultColor = color;
+        this.defaultColor = color.new();
         this.walkStatus = walkStatus
         this.highlight = highlight;
     }

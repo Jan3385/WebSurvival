@@ -2,6 +2,7 @@
 
 const canvas: HTMLCanvasElement = <HTMLCanvasElement> document.getElementById('gameCanvas')!; 
 let canvasScale: number = 10;
+const gTime = new GameTime();
 let mapData: PixelData[][] = [];
 let HighlightPosData: Vector2[] = [];
 
@@ -120,6 +121,8 @@ function Update(){
     if(Math.random() > 0.98){
         Terrain.GenerateRandomResource();
     }
+
+    gTime.Tick();
 
     Render.Draw();
 }

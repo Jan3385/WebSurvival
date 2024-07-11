@@ -39,13 +39,13 @@ class Renderer{
         for (let i = 0; i < canvas.width/canvasScale; i++) {
             for (let j = 0; j < canvas.height/canvasScale; j++) {
                 const pixel = mapData[i][j];
-                ctx.fillStyle = pixel.color.get();
+                ctx.fillStyle = pixel.color.getWithLight(gTime.lightLevel);
                 ctx.fillRect(i*canvasScale, j*canvasScale, canvasScale, canvasScale);
             }
         }
         this.DrawInteractIndicator();
         
-        ctx.strokeStyle = Player.borderColor.get();
+        ctx.strokeStyle = Player.borderColor.getWithLight(gTime.lightLevel);
         ctx.lineWidth = 2;
         ctx.strokeRect(Player.x*canvasScale+1, Player.y*canvasScale+1, canvasScale-2, canvasScale-2);
     }
@@ -62,22 +62,22 @@ class Renderer{
                         case _Highlight.none:
                             break;
                         case _Highlight.lightBorder:
-                            ctx.strokeStyle = interactCol.get();
+                            ctx.strokeStyle = interactCol.getWithLight(gTime.lightLevel);
                             ctx.lineWidth = 1;
                             ctx.strokeRect(i*canvasScale+1, j*canvasScale+1, canvasScale-2, canvasScale-2);
                             break;
                         case _Highlight.border:
-                            ctx.strokeStyle = interactCol.get();
+                            ctx.strokeStyle = interactCol.getWithLight(gTime.lightLevel);
                             ctx.lineWidth = 2;
                             ctx.strokeRect(i*canvasScale+1, j*canvasScale+1, canvasScale-2, canvasScale-2);
                             break;
                         case _Highlight.thickBorder:
-                            ctx.strokeStyle = interactCol.get();
+                            ctx.strokeStyle = interactCol.getWithLight(gTime.lightLevel);
                             ctx.lineWidth = 4;
                             ctx.strokeRect(i*canvasScale+2, j*canvasScale+2, canvasScale-4, canvasScale-4);
                             break;
                         case _Highlight.slash:
-                            ctx.strokeStyle = interactCol.get();
+                            ctx.strokeStyle = interactCol.getWithLight(gTime.lightLevel);
                             ctx.lineWidth = 2;
                             ctx.strokeRect(i*canvasScale+1, j*canvasScale+1, canvasScale-2, canvasScale-2);
                             
@@ -104,6 +104,65 @@ class Renderer{
 
         canvas.width = mapData.length * canvasScale;
         canvas.height = mapData[0].length * canvasScale;
+    }
+}
+class GameTime{
+    /**
+     * Creates a time object
+     * @constructor
+     */
+    time: number = 0;
+    maxTime: number = 2000;
+    lightLevel: number = 100;
+    triggeredNight: boolean = false;
+    triggeredDay: boolean = false;
+    constructor(){
+        this.time = this.maxTime * 0.4;
+    }
+    /**
+     * Updates the time object
+     */
+    Tick(){
+        console.log(this.GetDayProgress());
+        this.time++;
+        if(this.GetDayProgress() < 0.2){
+            this.lightLevel = Math.max(30, this.GetDayProgress() * 500);
+        }else if(this.GetDayProgress() < 0.3){
+            this.OnDayStart();
+            this.lightLevel = 100;
+        }
+        else if(this.GetDayProgress() > 0.8){
+            this.OnNightStart();
+
+            this.lightLevel = Math.max(30, 100 - (this.GetDayProgress() - 0.8) * 500);
+            if(this.GetDayProgress() >= 1) this.time = 0;
+        }else{
+            this.triggeredDay = false;
+            this.triggeredNight = false;
+        }
+    }
+
+    OnNightStart(){
+        if(this.triggeredNight) return;
+        //spawns enemies
+        this.triggeredNight = true;
+    }
+    OnDayStart(){
+        if(this.triggeredDay) return;
+
+        this.triggeredDay = true;
+
+        //heals buildings
+        for(let i = 0; i < mapData.length; i++){
+            for(let j = 0; j < mapData[0].length; j++){
+                if(mapData[i][j] instanceof BuildingData){
+                    (<BuildingData>mapData[i][j]).FullyHeal();
+                }
+            }
+        }
+    }
+    GetDayProgress(): number{
+        return this.time / this.maxTime;
     }
 }
 //Class for terrain modification

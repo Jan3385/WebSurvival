@@ -30,6 +30,10 @@ class rgb {
     get() {
         return 'rgb(' + this.r + ',' + this.g + ',' + this.b + ')';
     }
+    getWithLight(light) {
+        let lightShift = light / 100;
+        return 'rgb(' + Math.floor(this.r * lightShift) + ',' + Math.floor(this.g * lightShift) + ',' + Math.floor(this.b * lightShift) + ')';
+    }
     /**
      * Makes the rgb value darker by the value
      * @param {number} val
@@ -163,7 +167,7 @@ class BuildingData extends InteractData {
     constructor(color, x, y, walkStatus, hp = 12, highlight = _Highlight.border, interactionType) {
         super(color, x, y, interactionType, hp);
         this.maxHealh = hp;
-        this.defaultColor = color;
+        this.defaultColor = color.new();
         this.walkStatus = walkStatus;
         this.highlight = highlight;
     }
@@ -579,12 +583,12 @@ class Renderer {
         for (let i = 0; i < canvas.width / canvasScale; i++) {
             for (let j = 0; j < canvas.height / canvasScale; j++) {
                 const pixel = mapData[i][j];
-                ctx.fillStyle = pixel.color.get();
+                ctx.fillStyle = pixel.color.getWithLight(gTime.lightLevel);
                 ctx.fillRect(i * canvasScale, j * canvasScale, canvasScale, canvasScale);
             }
         }
         this.DrawInteractIndicator();
-        ctx.strokeStyle = Player.borderColor.get();
+        ctx.strokeStyle = Player.borderColor.getWithLight(gTime.lightLevel);
         ctx.lineWidth = 2;
         ctx.strokeRect(Player.x * canvasScale + 1, Player.y * canvasScale + 1, canvasScale - 2, canvasScale - 2);
     }
@@ -601,22 +605,22 @@ class Renderer {
                         case _Highlight.none:
                             break;
                         case _Highlight.lightBorder:
-                            ctx.strokeStyle = interactCol.get();
+                            ctx.strokeStyle = interactCol.getWithLight(gTime.lightLevel);
                             ctx.lineWidth = 1;
                             ctx.strokeRect(i * canvasScale + 1, j * canvasScale + 1, canvasScale - 2, canvasScale - 2);
                             break;
                         case _Highlight.border:
-                            ctx.strokeStyle = interactCol.get();
+                            ctx.strokeStyle = interactCol.getWithLight(gTime.lightLevel);
                             ctx.lineWidth = 2;
                             ctx.strokeRect(i * canvasScale + 1, j * canvasScale + 1, canvasScale - 2, canvasScale - 2);
                             break;
                         case _Highlight.thickBorder:
-                            ctx.strokeStyle = interactCol.get();
+                            ctx.strokeStyle = interactCol.getWithLight(gTime.lightLevel);
                             ctx.lineWidth = 4;
                             ctx.strokeRect(i * canvasScale + 2, j * canvasScale + 2, canvasScale - 4, canvasScale - 4);
                             break;
                         case _Highlight.slash:
-                            ctx.strokeStyle = interactCol.get();
+                            ctx.strokeStyle = interactCol.getWithLight(gTime.lightLevel);
                             ctx.lineWidth = 2;
                             ctx.strokeRect(i * canvasScale + 1, j * canvasScale + 1, canvasScale - 2, canvasScale - 2);
                             ctx.moveTo(i * canvasScale + 1, j * canvasScale + 1);
@@ -642,6 +646,66 @@ class Renderer {
             canvasScale = Math.floor(window.innerHeight * 0.8 / mapData[0].length);
         canvas.width = mapData.length * canvasScale;
         canvas.height = mapData[0].length * canvasScale;
+    }
+}
+class GameTime {
+    /**
+     * Creates a time object
+     * @constructor
+     */
+    time = 0;
+    maxTime = 2000;
+    lightLevel = 100;
+    triggeredNight = false;
+    triggeredDay = false;
+    constructor() {
+        this.time = this.maxTime * 0.4;
+    }
+    /**
+     * Updates the time object
+     */
+    Tick() {
+        console.log(this.GetDayProgress());
+        this.time++;
+        if (this.GetDayProgress() < 0.2) {
+            this.lightLevel = Math.max(30, this.GetDayProgress() * 500);
+        }
+        else if (this.GetDayProgress() < 0.3) {
+            this.OnDayStart();
+            this.lightLevel = 100;
+        }
+        else if (this.GetDayProgress() > 0.8) {
+            this.OnNightStart();
+            this.lightLevel = Math.max(30, 100 - (this.GetDayProgress() - 0.8) * 500);
+            if (this.GetDayProgress() >= 1)
+                this.time = 0;
+        }
+        else {
+            this.triggeredDay = false;
+            this.triggeredNight = false;
+        }
+    }
+    OnNightStart() {
+        if (this.triggeredNight)
+            return;
+        //spawns enemies
+        this.triggeredNight = true;
+    }
+    OnDayStart() {
+        if (this.triggeredDay)
+            return;
+        this.triggeredDay = true;
+        //heals buildings
+        for (let i = 0; i < mapData.length; i++) {
+            for (let j = 0; j < mapData[0].length; j++) {
+                if (mapData[i][j] instanceof BuildingData) {
+                    mapData[i][j].FullyHeal();
+                }
+            }
+        }
+    }
+    GetDayProgress() {
+        return this.time / this.maxTime;
     }
 }
 //Class for terrain modification
@@ -858,8 +922,8 @@ class TerrainManipulator {
 /// <reference path="RTClass.ts" />
 const canvas = document.getElementById('gameCanvas');
 let canvasScale = 10;
+const gTime = new GameTime();
 let mapData = [];
-//wall etc borders broken
 let HighlightPosData = [];
 let ResourceTerrain = {
     stone: 0,
@@ -965,6 +1029,7 @@ function Update() {
     if (Math.random() > 0.98) {
         Terrain.GenerateRandomResource();
     }
+    gTime.Tick();
     Render.Draw();
 }
 function UpdateInteractionIndicator() {
