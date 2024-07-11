@@ -116,7 +116,7 @@ class GameTime{
      * @constructor
      */
     time: number = 0;
-    maxTime: number = 2000;
+    maxTime: number = 1000;
     lightLevel: number = 100;
     minLightLevel: number = 30;
     triggeredNight: boolean = false;
