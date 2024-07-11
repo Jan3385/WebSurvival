@@ -1,5 +1,9 @@
 /// <reference path="RTClass.ts" />
 
+//check if user is on mobile
+const isMobile = navigator.userAgent.match(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Windows Phone|Opera Mini/i);
+document.getElementById("Mobile-Blocker")!.style.display = isMobile ? "block" : "none";
+
 const canvas: HTMLCanvasElement = <HTMLCanvasElement> document.getElementById('gameCanvas')!; 
 let canvasScale: number = 10;
 const gTime = new GameTime();
