@@ -116,7 +116,7 @@ class GameTime{
      * @constructor
      */
     time: number = 0;
-    maxTime: number = 100;
+    maxTime: number = 2000;
     lightLevel: number = 100;
     minLightLevel: number = 30;
     triggeredNight: boolean = false;
@@ -147,7 +147,7 @@ class GameTime{
 
         //from 30 - 100 to 0 - 1
         const t = ((this.lightLevel-30)*(100/70)) /100;
-        
+
         document.body.style.background = "rgb(" + lerp(99, 255, t) + "," + 
             lerp(110, 255, t) + "," + lerp(114, 255, t) + ")";
         
