@@ -68,6 +68,7 @@ class PixelData {
      */
     color;
     status;
+    Brightness = 0;
     constructor(color, status = PixelStatus.free) {
         this.color = color;
         this.status = status;
@@ -111,6 +112,7 @@ var InteractType;
     InteractType[InteractType["door"] = 2] = "door";
     InteractType[InteractType["wall"] = 3] = "wall";
     InteractType[InteractType["floor"] = 4] = "floor";
+    InteractType[InteractType["light"] = 5] = "light";
 })(InteractType || (InteractType = {}));
 ;
 class InteractData extends PixelData {
@@ -239,7 +241,134 @@ class DoorData extends BuildingData {
     }
 }
 let interactCol = new rgb(60, 60, 60);
+class GameTime {
+    /**
+     * Creates a time object
+     * @constructor
+     */
+    time = 0;
+    maxTime = 1000;
+    lightLevel = 100;
+    minLightLevel = 30;
+    triggeredNight = false;
+    triggeredDay = false;
+    constructor() {
+        this.time = this.maxTime * 0.4;
+    }
+    /**
+     * Updates the time object
+     */
+    Tick() {
+        this.time++;
+        if (this.GetDayProgress() < 0.2) {
+            this.lightLevel = Math.max(this.minLightLevel, this.GetDayProgress() * 500);
+        }
+        else if (this.GetDayProgress() < 0.3) {
+            this.OnDayStart();
+            this.lightLevel = 100;
+        }
+        else if (this.GetDayProgress() > 0.8) {
+            if (this.GetDayProgress() > 0.9)
+                this.OnNightStart();
+            this.lightLevel = Math.max(this.minLightLevel, 100 - (this.GetDayProgress() - 0.8) * 500);
+            if (this.GetDayProgress() >= 1)
+                this.time = 0;
+        }
+        else {
+            this.triggeredDay = false;
+            this.triggeredNight = false;
+        }
+        //from 30 - 100 to 0 - 1
+        const t = ((this.lightLevel - 30) * (100 / 70)) / 100;
+        document.body.style.background = "rgb(" + lerp(99, 255, t) + "," +
+            lerp(110, 255, t) + "," + lerp(114, 255, t) + ")";
+    }
+    OnNightStart() {
+        if (this.triggeredNight)
+            return;
+        //spawns enemies
+        this.triggeredNight = true;
+    }
+    OnDayStart() {
+        if (this.triggeredDay)
+            return;
+        this.triggeredDay = true;
+        //heals buildings
+        for (let i = 0; i < mapData.length; i++) {
+            for (let j = 0; j < mapData[0].length; j++) {
+                if (mapData[i][j] instanceof BuildingData) {
+                    mapData[i][j].FullyHeal();
+                }
+            }
+        }
+    }
+    GetDayProgress() {
+        return this.time / this.maxTime;
+    }
+}
+class LightData extends BuildingData {
+    intensity = 0;
+    radius = 0;
+    constructor(color, x, y, hp = 4, intensity = 2, radius = 3) {
+        super(color, x, y, PixelStatus.interact, hp, _Highlight.thickBorder, InteractType.light);
+        this.intensity = intensity;
+        this.radius = radius;
+    }
+    at(x, y) {
+        return new LightData(this.color, x, y, this.maxHealh, this.intensity, this.radius);
+    }
+}
+function castRay(sX, sY, angle, intensity, radius) {
+    let x = sX;
+    let y = sY;
+    const dx = Math.cos(angle);
+    const dy = Math.sin(angle);
+    for (let i = 0; i < radius; i++) {
+        x += dx;
+        y += dy;
+        const ix = Math.floor(x);
+        const iy = Math.floor(y);
+        if (ix < 0 || ix >= mapData.length || iy < 0 || iy >= mapData[0].length)
+            break;
+        //blocks light
+        if (mapData[ix][iy].status == PixelStatus.block)
+            break;
+        if (mapData[ix][iy].status == PixelStatus.interact) {
+            const pixel = mapData[ix][iy];
+            if (pixel.interactType == InteractType.wall)
+                break;
+            if (pixel.interactType == InteractType.stone)
+                break;
+            if (pixel.interactType == InteractType.wood)
+                break;
+            if (pixel.interactType == InteractType.door && !pixel.isOpen)
+                break;
+        }
+        const distance = Math.sqrt((ix - sX) ** 2 + (iy - sY) ** 2);
+        const lightIntensity = Math.max(0, intensity - distance);
+        mapData[ix][iy].Brightness = Math.max(mapData[ix][iy].Brightness, lightIntensity);
+    }
+}
+function CalculateLightMap() {
+    console.log("Calculating light map");
+    const numRays = 72;
+    let lightSources = [];
+    for (let i = 0; i < mapData.length; i++) {
+        for (let j = 0; j < mapData[0].length; j++) {
+            mapData[i][j].Brightness = 0;
+            if (mapData[i][j] instanceof LightData)
+                lightSources.push(mapData[i][j]);
+        }
+    }
+    for (const light of lightSources) {
+        for (let i = 0; i < numRays; i++) {
+            const angle = (Math.PI * 2 / numRays) * i;
+            castRay(light.x, light.y, angle, light.intensity, light.radius);
+        }
+    }
+}
 /// <reference path="PixelData.ts" />
+/// <reference path="Lighting.ts" />
 let buildButtons = document.getElementsByClassName("Selection-Button-Div")[0].querySelectorAll("button");
 const BuildType = {
     Wall: 0,
@@ -281,7 +410,11 @@ let Building = [
     {
         build: new DoorData(new rgb(200, 200, 200), 1, 1, PixelStatus.block, 24, _Highlight.slash, InteractType.door),
         cost: { stone: 25, wood: 2 }
-    }
+    },
+    {
+        build: new LightData(new rgb(255, 255, 0), 1, 1, 4, 5, 5),
+        cost: { stone: 2, wood: 25 }
+    },
 ];
 let SelectedBuilding = Building[0];
 document.getElementById("C-Wood").innerHTML = '<img src="Icons/wood.png">: ' + SelectedBuilding.cost.wood;
@@ -315,6 +448,9 @@ function UpdateSelectedBuilding() {
     if (buildId <= 2) {
         const materialId = GetSelectedMaterialId();
         id = buildId * 3 + materialId;
+    }
+    else {
+        id = 6 + buildId;
     }
     SelectedBuilding = Building[id];
     //update cost display
@@ -547,6 +683,9 @@ class PerlinNoise {
     }
 }
 let Perlin = new PerlinNoise(Math.random() * 1000); //TODO add custom seed
+/**
+ * Linear interpolation from a to b with t
+ */
 function lerp(a, b, t) {
     return a + t * (b - a);
 }
@@ -586,7 +725,8 @@ class Renderer {
         for (let i = 0; i < canvas.width / canvasScale; i++) {
             for (let j = 0; j < canvas.height / canvasScale; j++) {
                 const pixel = mapData[i][j];
-                ctx.fillStyle = pixel.color.getWithLight(gTime.lightLevel);
+                //ctx.fillStyle = pixel.color.getWithLight(gTime.lightLevel);
+                ctx.fillStyle = "rgb(" + pixel.Brightness * 50 + "," + pixel.Brightness * 50 + "," + pixel.Brightness * 50 + ")";
                 ctx.fillRect(i * canvasScale, j * canvasScale, canvasScale, canvasScale);
             }
         }
@@ -619,7 +759,7 @@ class Renderer {
                             break;
                         case _Highlight.thickBorder:
                             ctx.strokeStyle = interactCol.getWithLight(gTime.lightLevel);
-                            ctx.lineWidth = 4;
+                            ctx.lineWidth = 3;
                             ctx.strokeRect(i * canvasScale + 2, j * canvasScale + 2, canvasScale - 4, canvasScale - 4);
                             break;
                         case _Highlight.slash:
@@ -649,71 +789,6 @@ class Renderer {
             canvasScale = Math.floor(window.innerHeight * 0.8 / mapData[0].length);
         canvas.width = mapData.length * canvasScale;
         canvas.height = mapData[0].length * canvasScale;
-    }
-}
-class GameTime {
-    /**
-     * Creates a time object
-     * @constructor
-     */
-    time = 0;
-    maxTime = 1000;
-    lightLevel = 100;
-    minLightLevel = 30;
-    triggeredNight = false;
-    triggeredDay = false;
-    constructor() {
-        this.time = this.maxTime * 0.4;
-    }
-    /**
-     * Updates the time object
-     */
-    Tick() {
-        this.time++;
-        if (this.GetDayProgress() < 0.2) {
-            this.lightLevel = Math.max(this.minLightLevel, this.GetDayProgress() * 500);
-        }
-        else if (this.GetDayProgress() < 0.3) {
-            this.OnDayStart();
-            this.lightLevel = 100;
-        }
-        else if (this.GetDayProgress() > 0.8) {
-            if (this.GetDayProgress() > 0.9)
-                this.OnNightStart();
-            this.lightLevel = Math.max(this.minLightLevel, 100 - (this.GetDayProgress() - 0.8) * 500);
-            if (this.GetDayProgress() >= 1)
-                this.time = 0;
-        }
-        else {
-            this.triggeredDay = false;
-            this.triggeredNight = false;
-        }
-        //from 30 - 100 to 0 - 1
-        const t = ((this.lightLevel - 30) * (100 / 70)) / 100;
-        document.body.style.background = "rgb(" + lerp(99, 255, t) + "," +
-            lerp(110, 255, t) + "," + lerp(114, 255, t) + ")";
-    }
-    OnNightStart() {
-        if (this.triggeredNight)
-            return;
-        //spawns enemies
-        this.triggeredNight = true;
-    }
-    OnDayStart() {
-        if (this.triggeredDay)
-            return;
-        this.triggeredDay = true;
-        //heals buildings
-        for (let i = 0; i < mapData.length; i++) {
-            for (let j = 0; j < mapData[0].length; j++) {
-                if (mapData[i][j] instanceof BuildingData) {
-                    mapData[i][j].FullyHeal();
-                }
-            }
-        }
-    }
-    GetDayProgress() {
-        return this.time / this.maxTime;
     }
 }
 //Class for terrain modification
@@ -928,6 +1003,7 @@ class TerrainManipulator {
     }
 }
 /// <reference path="RTClass.ts" />
+/// <reference path="Lighting.ts" />
 //check if user is on mobile
 const isMobile = navigator.userAgent.match(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Windows Phone|Opera Mini/i);
 document.getElementById("Mobile-Blocker").style.display = isMobile ? "block" : "none";
@@ -986,6 +1062,7 @@ function Update() {
                 Player.OverlapPixel = PerlinPixel(Player.x, Player.y);
             }
         }
+        CalculateLightMap();
     }
     //movement interactions
     if (moveTile.status == PixelStatus.interact && moveTile instanceof InteractData) {

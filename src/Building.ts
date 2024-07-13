@@ -1,4 +1,5 @@
 /// <reference path="PixelData.ts" />
+/// <reference path="Lighting.ts" />
 
 let buildButtons: NodeListOf<HTMLElement> = document.getElementsByClassName("Selection-Button-Div")[0].querySelectorAll("button");
 const BuildType = {
@@ -41,7 +42,11 @@ let Building = [
     {   //stone door
         build: new DoorData(new rgb(200, 200, 200), 1, 1, PixelStatus.block, 24, _Highlight.slash, InteractType.door),
         cost: {stone: 25, wood: 2}
-    }
+    },
+    {   //torch
+        build: new LightData(new rgb(255, 255, 0), 1, 1, 4, 5, 5),
+        cost: {stone: 2, wood: 25}
+    },
 ];
 
 let SelectedBuilding: {build: BuildingData, cost: {wood: number, stone: number}} = Building[0];
@@ -81,6 +86,8 @@ function UpdateSelectedBuilding(){
     if(buildId <= 2){
         const materialId: number = GetSelectedMaterialId();
         id = buildId * 3 + materialId;
+    }else{
+        id = 6 + buildId;
     }
 
     SelectedBuilding = Building[id];

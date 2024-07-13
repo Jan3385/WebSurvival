@@ -1,3 +1,6 @@
+/**
+ * Linear interpolation from a to b with t
+ */
 function lerp(a: number, b: number, t: number): number {
     return a + t * (b - a);
 }
@@ -43,7 +46,8 @@ class Renderer{
         for (let i = 0; i < canvas.width/canvasScale; i++) {
             for (let j = 0; j < canvas.height/canvasScale; j++) {
                 const pixel = mapData[i][j];
-                ctx.fillStyle = pixel.color.getWithLight(gTime.lightLevel);
+                //ctx.fillStyle = pixel.color.getWithLight(gTime.lightLevel);
+                ctx.fillStyle = "rgb(" + pixel.Brightness * 50 + "," + pixel.Brightness * 50 + "," + pixel.Brightness * 50 + ")";
                 ctx.fillRect(i*canvasScale, j*canvasScale, canvasScale, canvasScale);
             }
         }
@@ -77,7 +81,7 @@ class Renderer{
                             break;
                         case _Highlight.thickBorder:
                             ctx.strokeStyle = interactCol.getWithLight(gTime.lightLevel);
-                            ctx.lineWidth = 4;
+                            ctx.lineWidth = 3;
                             ctx.strokeRect(i*canvasScale+2, j*canvasScale+2, canvasScale-4, canvasScale-4);
                             break;
                         case _Highlight.slash:
@@ -108,72 +112,6 @@ class Renderer{
 
         canvas.width = mapData.length * canvasScale;
         canvas.height = mapData[0].length * canvasScale;
-    }
-}
-class GameTime{
-    /**
-     * Creates a time object
-     * @constructor
-     */
-    time: number = 0;
-    maxTime: number = 1000;
-    lightLevel: number = 100;
-    minLightLevel: number = 30;
-    triggeredNight: boolean = false;
-    triggeredDay: boolean = false;
-    constructor(){
-        this.time = this.maxTime * 0.4;
-    }
-    /**
-     * Updates the time object
-     */
-    Tick(){
-        this.time++;
-        if(this.GetDayProgress() < 0.2){
-            this.lightLevel = Math.max(this.minLightLevel, this.GetDayProgress() * 500);
-        }else if(this.GetDayProgress() < 0.3){
-            this.OnDayStart();
-            this.lightLevel = 100;
-        }
-        else if(this.GetDayProgress() > 0.8){
-            if(this.GetDayProgress() > 0.9) this.OnNightStart();
-
-            this.lightLevel = Math.max(this.minLightLevel, 100 - (this.GetDayProgress() - 0.8) * 500);
-            if(this.GetDayProgress() >= 1) this.time = 0;
-        }else{
-            this.triggeredDay = false;
-            this.triggeredNight = false;
-        }
-
-        //from 30 - 100 to 0 - 1
-        const t = ((this.lightLevel-30)*(100/70)) /100;
-
-        document.body.style.background = "rgb(" + lerp(99, 255, t) + "," + 
-            lerp(110, 255, t) + "," + lerp(114, 255, t) + ")";
-        
-    }
-
-    OnNightStart(){
-        if(this.triggeredNight) return;
-        //spawns enemies
-        this.triggeredNight = true;
-    }
-    OnDayStart(){
-        if(this.triggeredDay) return;
-
-        this.triggeredDay = true;
-
-        //heals buildings
-        for(let i = 0; i < mapData.length; i++){
-            for(let j = 0; j < mapData[0].length; j++){
-                if(mapData[i][j] instanceof BuildingData){
-                    (<BuildingData>mapData[i][j]).FullyHeal();
-                }
-            }
-        }
-    }
-    GetDayProgress(): number{
-        return this.time / this.maxTime;
     }
 }
 //Class for terrain modification

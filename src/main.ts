@@ -1,4 +1,5 @@
 /// <reference path="RTClass.ts" />
+/// <reference path="Lighting.ts" />
 
 //check if user is on mobile
 const isMobile = navigator.userAgent.match(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Windows Phone|Opera Mini/i);
@@ -75,6 +76,8 @@ function Update(){
                 Player.OverlapPixel = PerlinPixel(Player.x, Player.y);
             }
         }
+
+        CalculateLightMap();
     }
 
     //movement interactions

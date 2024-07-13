@@ -69,6 +69,7 @@ class PixelData{
      */
     color: rgb;
     status: PixelStatus;
+    Brightness: number = 0;
     constructor(color: rgb, status: PixelStatus = PixelStatus.free){
         this.color = color;
         this.status = status;
@@ -112,6 +113,7 @@ enum InteractType{
     door,
     wall,
     floor,
+    light,
 };
 
 class InteractData extends PixelData{
