@@ -36,6 +36,7 @@ class Renderer{
 
         console.log("initialised canvas with array of X:" + mapData.length + " Y:" + mapData[0].length);
     }
+    renderLight: boolean = false;
     /**
      * Executes a draw call on the canvas, rendering everyting
      */
@@ -46,14 +47,16 @@ class Renderer{
         for (let i = 0; i < canvas.width/canvasScale; i++) {
             for (let j = 0; j < canvas.height/canvasScale; j++) {
                 const pixel = mapData[i][j];
-                //ctx.fillStyle = pixel.color.getWithLight(gTime.lightLevel);
-                ctx.fillStyle = "rgb(" + pixel.Brightness * 50 + "," + pixel.Brightness * 50 + "," + pixel.Brightness * 50 + ")";
+
+                if(!this.renderLight) ctx.fillStyle = pixel.color.getWithLight(pixel.Brightness);
+                else ctx.fillStyle = "rgb(" + pixel.Brightness * 50 + "," + pixel.Brightness * 50 + "," + pixel.Brightness * 50 + ")";
+                
                 ctx.fillRect(i*canvasScale, j*canvasScale, canvasScale, canvasScale);
             }
         }
         this.DrawInteractIndicator();
         
-        ctx.strokeStyle = Player.borderColor.getWithLight(gTime.lightLevel);
+        ctx.strokeStyle = Player.borderColor.getWithLight(Math.max(0.35,mapData[Player.x][Player.y].Brightness));
         ctx.lineWidth = 2;
         ctx.strokeRect(Player.x*canvasScale+1, Player.y*canvasScale+1, canvasScale-2, canvasScale-2);
     }
@@ -70,22 +73,22 @@ class Renderer{
                         case _Highlight.none:
                             break;
                         case _Highlight.lightBorder:
-                            ctx.strokeStyle = interactCol.getWithLight(gTime.lightLevel);
+                            ctx.strokeStyle = interactCol.getWithLight(pixel.Brightness);
                             ctx.lineWidth = 1;
                             ctx.strokeRect(i*canvasScale+1, j*canvasScale+1, canvasScale-2, canvasScale-2);
                             break;
                         case _Highlight.border:
-                            ctx.strokeStyle = interactCol.getWithLight(gTime.lightLevel);
+                            ctx.strokeStyle = interactCol.getWithLight(pixel.Brightness);
                             ctx.lineWidth = 2;
                             ctx.strokeRect(i*canvasScale+1, j*canvasScale+1, canvasScale-2, canvasScale-2);
                             break;
                         case _Highlight.thickBorder:
-                            ctx.strokeStyle = interactCol.getWithLight(gTime.lightLevel);
+                            ctx.strokeStyle = interactCol.getWithLight(pixel.Brightness);
                             ctx.lineWidth = 3;
                             ctx.strokeRect(i*canvasScale+2, j*canvasScale+2, canvasScale-4, canvasScale-4);
                             break;
                         case _Highlight.slash:
-                            ctx.strokeStyle = interactCol.getWithLight(gTime.lightLevel);
+                            ctx.strokeStyle = interactCol.getWithLight(pixel.Brightness);
                             ctx.lineWidth = 2;
                             ctx.strokeRect(i*canvasScale+1, j*canvasScale+1, canvasScale-2, canvasScale-2);
                             

@@ -31,7 +31,7 @@ class rgb {
         return 'rgb(' + this.r + ',' + this.g + ',' + this.b + ')';
     }
     getWithLight(light) {
-        let lightShift = light / 100;
+        let lightShift = Math.min(light / 5, 1.1);
         return 'rgb(' + Math.floor(this.r * lightShift) + ',' + Math.floor(this.g * lightShift) + ',' + Math.floor(this.b * lightShift) + ')';
     }
     /**
@@ -241,14 +241,17 @@ class DoorData extends BuildingData {
     }
 }
 let interactCol = new rgb(60, 60, 60);
+function clamp(min, max, value) {
+    return Math.min(max, Math.max(min, value));
+}
 class GameTime {
     /**
      * Creates a time object
      * @constructor
      */
     time = 0;
-    maxTime = 1000;
-    lightLevel = 100;
+    maxTime = 1000; //default: 1000
+    lightLevel = 5;
     minLightLevel = 30;
     triggeredNight = false;
     triggeredDay = false;
@@ -260,26 +263,36 @@ class GameTime {
      */
     Tick() {
         this.time++;
-        if (this.GetDayProgress() < 0.2) {
-            this.lightLevel = Math.max(this.minLightLevel, this.GetDayProgress() * 500);
+        if (this.time % 1 == 0)
+            CalculateLightMap();
+        if (this.GetDayProgress() <= 0.2) { //day starts (sun rises)
+            this.lightLevel = this.GetDayProgress() * 25;
         }
-        else if (this.GetDayProgress() < 0.3) {
+        else if (this.GetDayProgress() <= 0.3) { //day function triggeres and sun brightness is maxxed
             this.OnDayStart();
-            this.lightLevel = 100;
+            this.lightLevel = 5;
         }
-        else if (this.GetDayProgress() > 0.8) {
-            if (this.GetDayProgress() > 0.9)
+        else if (this.GetDayProgress() >= 0.7) { // night begins (sun sets)
+            //after 80% of the day/night cycle toggle full darkness
+            if (this.GetDayProgress() >= 0.8) {
                 this.OnNightStart();
-            this.lightLevel = Math.max(this.minLightLevel, 100 - (this.GetDayProgress() - 0.8) * 500);
-            if (this.GetDayProgress() >= 1)
-                this.time = 0;
+                this.lightLevel = 0;
+                //reset day at midnight
+                if (this.GetDayProgress() >= 1)
+                    this.time = 0;
+            }
+            else {
+                // Day progress: 0.7 -> 0.8
+                //light level: 5 -> 0
+                this.lightLevel = 5 - ((this.GetDayProgress() - 0.7) * 50);
+            }
         }
-        else {
+        else { // middle of the day
             this.triggeredDay = false;
             this.triggeredNight = false;
         }
-        //from 30 - 100 to 0 - 1
-        const t = ((this.lightLevel - 30) * (100 / 70)) / 100;
+        //from 0 - 5 to 0 - 1
+        const t = this.lightLevel / 5;
         document.body.style.background = "rgb(" + lerp(99, 255, t) + "," +
             lerp(110, 255, t) + "," + lerp(114, 255, t) + ")";
     }
@@ -306,11 +319,24 @@ class GameTime {
         return this.time / this.maxTime;
     }
 }
+function BlocksLight(pixel) {
+    if (pixel.interactType == InteractType.wall)
+        return true;
+    if (pixel.interactType == InteractType.stone)
+        return true;
+    if (pixel.interactType == InteractType.wood)
+        return true;
+    if (pixel.interactType == InteractType.door && !pixel.isOpen)
+        return true;
+    return false;
+}
 class LightData extends BuildingData {
     intensity = 0;
     radius = 0;
     constructor(color, x, y, hp = 4, intensity = 2, radius = 3) {
         super(color, x, y, PixelStatus.interact, hp, _Highlight.thickBorder, InteractType.light);
+        if (intensity > 7)
+            console.error("Light intensity is too high: " + intensity);
         this.intensity = intensity;
         this.radius = radius;
     }
@@ -330,27 +356,50 @@ function castRay(sX, sY, angle, intensity, radius) {
         const iy = Math.floor(y);
         if (ix < 0 || ix >= mapData.length || iy < 0 || iy >= mapData[0].length)
             break;
-        //blocks light
-        if (mapData[ix][iy].status == PixelStatus.block)
-            break;
-        if (mapData[ix][iy].status == PixelStatus.interact) {
-            const pixel = mapData[ix][iy];
-            if (pixel.interactType == InteractType.wall)
-                break;
-            if (pixel.interactType == InteractType.stone)
-                break;
-            if (pixel.interactType == InteractType.wood)
-                break;
-            if (pixel.interactType == InteractType.door && !pixel.isOpen)
-                break;
-        }
         const distance = Math.sqrt((ix - sX) ** 2 + (iy - sY) ** 2);
         const lightIntensity = Math.max(0, intensity - distance);
-        mapData[ix][iy].Brightness = Math.max(mapData[ix][iy].Brightness, lightIntensity);
+        mapData[ix][iy].Brightness = Math.max(lightIntensity, mapData[ix][iy].Brightness);
+        //blocks light
+        if (mapData[ix][iy].status == PixelStatus.interact) {
+            const pixel = mapData[ix][iy];
+            if (BlocksLight(pixel))
+                break;
+        }
+    }
+}
+function castSunRay(// cestuje a pokud něco najde, tak se na chvili vypne pro iluzi stinu
+sX, sY, angle, intensity) {
+    const constIntensity = intensity;
+    let ShadowTravel = 0;
+    let x = sX;
+    let y = sY;
+    const dx = Math.cos(angle);
+    const dy = Math.sin(angle);
+    for (let i = 0; true; i++) {
+        x += dx;
+        y += dy;
+        const ix = Math.floor(x);
+        const iy = Math.floor(y);
+        if (ix < 0 || ix >= mapData.length || iy < 0 || iy >= mapData[0].length)
+            break;
+        if (ShadowTravel == 0)
+            intensity = constIntensity;
+        mapData[ix][iy].Brightness = clamp(intensity, 5, mapData[ix][iy].Brightness);
+        //blocks light 
+        if (mapData[ix][iy].status == PixelStatus.interact) {
+            const pixel = mapData[ix][iy];
+            if (BlocksLight(pixel)) {
+                ShadowTravel = 4;
+                intensity = constIntensity - 2;
+            }
+            ;
+        }
+        if (ShadowTravel > 0) {
+            ShadowTravel--;
+        }
     }
 }
 function CalculateLightMap() {
-    console.log("Calculating light map");
     const numRays = 72;
     let lightSources = [];
     for (let i = 0; i < mapData.length; i++) {
@@ -365,6 +414,15 @@ function CalculateLightMap() {
             const angle = (Math.PI * 2 / numRays) * i;
             castRay(light.x, light.y, angle, light.intensity, light.radius);
         }
+    }
+    //sun
+    const sunAngle = (Math.floor(Math.PI * gTime.GetDayProgress() * 100 / 5) / 100) * 5;
+    for (let i = 0; i < mapData[0].length; i++) {
+        castSunRay(0, i, sunAngle, gTime.lightLevel);
+        castSunRay(mapData.length, i, sunAngle, gTime.lightLevel);
+    }
+    for (let i = 0; i < mapData.length; i++) {
+        castSunRay(i, 0, sunAngle, gTime.lightLevel);
     }
 }
 /// <reference path="PixelData.ts" />
@@ -716,6 +774,7 @@ class Renderer {
         this.UpdateWindowSize();
         console.log("initialised canvas with array of X:" + mapData.length + " Y:" + mapData[0].length);
     }
+    renderLight = false;
     /**
      * Executes a draw call on the canvas, rendering everyting
      */
@@ -725,13 +784,15 @@ class Renderer {
         for (let i = 0; i < canvas.width / canvasScale; i++) {
             for (let j = 0; j < canvas.height / canvasScale; j++) {
                 const pixel = mapData[i][j];
-                //ctx.fillStyle = pixel.color.getWithLight(gTime.lightLevel);
-                ctx.fillStyle = "rgb(" + pixel.Brightness * 50 + "," + pixel.Brightness * 50 + "," + pixel.Brightness * 50 + ")";
+                if (!this.renderLight)
+                    ctx.fillStyle = pixel.color.getWithLight(pixel.Brightness);
+                else
+                    ctx.fillStyle = "rgb(" + pixel.Brightness * 50 + "," + pixel.Brightness * 50 + "," + pixel.Brightness * 50 + ")";
                 ctx.fillRect(i * canvasScale, j * canvasScale, canvasScale, canvasScale);
             }
         }
         this.DrawInteractIndicator();
-        ctx.strokeStyle = Player.borderColor.getWithLight(gTime.lightLevel);
+        ctx.strokeStyle = Player.borderColor.getWithLight(Math.max(0.35, mapData[Player.x][Player.y].Brightness));
         ctx.lineWidth = 2;
         ctx.strokeRect(Player.x * canvasScale + 1, Player.y * canvasScale + 1, canvasScale - 2, canvasScale - 2);
     }
@@ -748,22 +809,22 @@ class Renderer {
                         case _Highlight.none:
                             break;
                         case _Highlight.lightBorder:
-                            ctx.strokeStyle = interactCol.getWithLight(gTime.lightLevel);
+                            ctx.strokeStyle = interactCol.getWithLight(pixel.Brightness);
                             ctx.lineWidth = 1;
                             ctx.strokeRect(i * canvasScale + 1, j * canvasScale + 1, canvasScale - 2, canvasScale - 2);
                             break;
                         case _Highlight.border:
-                            ctx.strokeStyle = interactCol.getWithLight(gTime.lightLevel);
+                            ctx.strokeStyle = interactCol.getWithLight(pixel.Brightness);
                             ctx.lineWidth = 2;
                             ctx.strokeRect(i * canvasScale + 1, j * canvasScale + 1, canvasScale - 2, canvasScale - 2);
                             break;
                         case _Highlight.thickBorder:
-                            ctx.strokeStyle = interactCol.getWithLight(gTime.lightLevel);
+                            ctx.strokeStyle = interactCol.getWithLight(pixel.Brightness);
                             ctx.lineWidth = 3;
                             ctx.strokeRect(i * canvasScale + 2, j * canvasScale + 2, canvasScale - 4, canvasScale - 4);
                             break;
                         case _Highlight.slash:
-                            ctx.strokeStyle = interactCol.getWithLight(gTime.lightLevel);
+                            ctx.strokeStyle = interactCol.getWithLight(pixel.Brightness);
                             ctx.lineWidth = 2;
                             ctx.strokeRect(i * canvasScale + 1, j * canvasScale + 1, canvasScale - 2, canvasScale - 2);
                             ctx.moveTo(i * canvasScale + 1, j * canvasScale + 1);
