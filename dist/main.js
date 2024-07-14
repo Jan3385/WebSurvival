@@ -440,46 +440,57 @@ const BuildType = {
 let Building = [
     {
         build: new BuildingData(new rgb(244, 211, 94), 1, 1, PixelStatus.block, 3, _Highlight.border, InteractType.wall),
-        cost: { stone: 0, wood: 3 }
+        cost: { stone: 0, wood: 3 },
+        label: "Cheap Wall - cheap but weak"
     },
     {
         build: new BuildingData(new rgb(127, 79, 36), 1, 1, PixelStatus.block, 12, _Highlight.border, InteractType.wall),
-        cost: { stone: 0, wood: 10 }
+        cost: { stone: 0, wood: 10 },
+        label: "Wooden Wall - stronger but more expensive"
     },
     {
         build: new BuildingData(new rgb(85, 85, 85), 1, 1, PixelStatus.block, 24, _Highlight.border, InteractType.wall),
-        cost: { stone: 15, wood: 2 }
+        cost: { stone: 15, wood: 2 },
+        label: "Stone Wall - strong but expensive"
     },
     {
         build: new BuildingData(new rgb(255, 243, 176), 1, 1, PixelStatus.taken, 1, _Highlight.none, InteractType.floor),
-        cost: { stone: 0, wood: 1 }
+        cost: { stone: 0, wood: 1 },
+        label: "Cheap Floor - not the prettiest"
     },
     {
         build: new BuildingData(new rgb(175, 164, 126), 1, 1, PixelStatus.taken, 3, _Highlight.none, InteractType.floor),
-        cost: { stone: 0, wood: 2 }
+        cost: { stone: 0, wood: 2 },
+        label: "Wooden Floor - decent looking"
     },
     {
         build: new BuildingData(new rgb(206, 212, 218), 1, 1, PixelStatus.taken, 6, _Highlight.none, InteractType.floor),
-        cost: { stone: 2, wood: 0 }
+        cost: { stone: 2, wood: 0 },
+        label: "Stone Floor - build with unforseen quality"
     },
     {
         build: new DoorData(new rgb(255, 231, 230), 1, 1, PixelStatus.block, 3, _Highlight.slash, InteractType.door),
-        cost: { stone: 0, wood: 10 }
+        cost: { stone: 0, wood: 10 },
+        label: "Cheap Door - gets you thru the night"
     },
     {
         build: new DoorData(new rgb(200, 180, 166), 1, 1, PixelStatus.block, 12, _Highlight.slash, InteractType.door),
-        cost: { stone: 0, wood: 20 }
+        cost: { stone: 0, wood: 20 },
+        label: "Wooden Door - Feels like home"
     },
     {
         build: new DoorData(new rgb(200, 200, 200), 1, 1, PixelStatus.block, 24, _Highlight.slash, InteractType.door),
-        cost: { stone: 25, wood: 2 }
+        cost: { stone: 25, wood: 2 },
+        label: "Stone Door - a door that will last"
     },
     {
         build: new LightData(new rgb(255, 255, 0), 1, 1, 4, 5, 5),
-        cost: { stone: 2, wood: 25 }
+        cost: { stone: 2, wood: 25 },
+        label: "Torch - lights up the night, burns out by sunrise"
     },
 ];
 let SelectedBuilding = Building[0];
+document.getElementById("Selected-Building-Label").innerHTML = SelectedBuilding.label;
 document.getElementById("C-Wood").innerHTML = '<img src="Icons/wood.png">: ' + SelectedBuilding.cost.wood;
 document.getElementById("C-Stone").innerHTML = '<img src="Icons/stone.png">: ' + SelectedBuilding.cost.stone;
 let buildId = 0;
@@ -516,6 +527,8 @@ function UpdateSelectedBuilding() {
         id = 6 + buildId;
     }
     SelectedBuilding = Building[id];
+    //update label
+    document.getElementById("Selected-Building-Label").innerHTML = SelectedBuilding.label;
     //update cost display
     document.getElementById("C-Wood").innerHTML = '<img src="Icons/wood.png">: ' + SelectedBuilding.cost.wood;
     document.getElementById("C-Stone").innerHTML = '<img src="Icons/stone.png">: ' + SelectedBuilding.cost.stone;
@@ -850,9 +863,9 @@ class Renderer {
         document.getElementById("wood").innerHTML = ": " + Resources.wood;
     }
     UpdateWindowSize() {
-        canvasScale = Math.floor(window.innerWidth / 120);
+        canvasScale = Math.floor(window.innerWidth / 140);
         if (mapData[0].length * canvasScale > window.innerHeight * 0.8)
-            canvasScale = Math.floor(window.innerHeight * 0.8 / mapData[0].length);
+            canvasScale = Math.floor(window.innerHeight * 0.7 / mapData[0].length);
         canvas.width = mapData.length * canvasScale;
         canvas.height = mapData[0].length * canvasScale;
     }
@@ -1109,7 +1122,8 @@ function Update() {
     const moveTile = mapData[Player.x + MovementVector.x][Player.y + MovementVector.y];
     //placement logic
     isBuilding = false;
-    if (inputPresses.includes(69) && Player.OverlapPixel.status == PixelStatus.free) {
+    if (inputPresses.includes(69) && (Player.OverlapPixel.status == PixelStatus.free ||
+        Player.OverlapPixel instanceof InteractData && Player.OverlapPixel.interactType == InteractType.floor)) {
         if (Resources.stone >= SelectedBuilding.cost.stone
             && Resources.wood >= SelectedBuilding.cost.wood) {
             Resources.stone -= SelectedBuilding.cost.stone;

@@ -110,8 +110,8 @@ class Renderer{
         document.getElementById("wood")!.innerHTML = ": "+Resources.wood;
     }
     UpdateWindowSize(){
-        canvasScale = Math.floor(window.innerWidth / 120);
-        if(mapData[0].length * canvasScale > window.innerHeight*0.8) canvasScale = Math.floor(window.innerHeight*0.8 / mapData[0].length);
+        canvasScale = Math.floor(window.innerWidth / 140);
+        if(mapData[0].length * canvasScale > window.innerHeight*0.8) canvasScale = Math.floor(window.innerHeight*0.7 / mapData[0].length);
 
         canvas.width = mapData.length * canvasScale;
         canvas.height = mapData[0].length * canvasScale;

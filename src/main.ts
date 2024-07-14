@@ -53,7 +53,9 @@ function Update(){
 
     //placement logic
     isBuilding = false;
-    if(inputPresses.includes(69) && Player.OverlapPixel.status == PixelStatus.free) {
+    if(inputPresses.includes(69) && (Player.OverlapPixel.status == PixelStatus.free || 
+        Player.OverlapPixel instanceof InteractData && Player.OverlapPixel.interactType == InteractType.floor))
+        {
         if(Resources.stone >= SelectedBuilding.cost.stone
             && Resources.wood >= SelectedBuilding.cost.wood){
                 
