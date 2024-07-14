@@ -108,6 +108,12 @@
             height: auto;
             aspect-ratio: 2/1;
         }
+        .Tooltip-Building{
+            text-align: center;
+            background-color: white;
+            border-radius: 10px;
+            font-family: sans-serif;
+        }
         select{
             user-select: none;
             margin: 5px;
@@ -124,6 +130,11 @@
         }
         li{
             list-style-type:none;
+        }
+        .Building-Material-List{
+            background-color: whitesmoke;
+            border-radius: 5px;
+            margin-top: 3px;
         }
         .Cost-List{
             display: flex;

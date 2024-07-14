@@ -145,8 +145,7 @@ class TerrainManipulator{
      * Inserts a interactable pixel at the pixel inner position
      * @param {InteractData} Pixel 
      */
-    InsertInteractPixel(Pixel: InteractData): void{
-        HighlightPosData.push({x: Pixel.x, y: Pixel.y})
+    InsertResourcePixel(Pixel: InteractData): void{
         Terrain.ModifyMapData(Pixel.x, Pixel.y, Pixel);
 
         switch(Pixel.interactType){
@@ -164,8 +163,9 @@ class TerrainManipulator{
      * @param {number} pY 
      * @throws {ReferenceError} No interactable type at that location
      */
-    DeleteInteractPixel(pX: number, pY: number): void{
-        if(mapData[pX][pY].status != PixelStatus.interact) throw new ReferenceError("No interactable type at that location");
+    DeleteResourcePixel(pX: number, pY: number): void{
+        if(mapData[pX][pY].status != PixelStatus.interact) throw new ReferenceError("No resource type at that location");
+
         switch((<InteractData>mapData[pX][pY]).interactType){
             case InteractType.stone:
                 ResourceTerrain.stone--;
@@ -174,15 +174,9 @@ class TerrainManipulator{
                 ResourceTerrain.wood--;
                 break;
             default:
-                throw new ReferenceError("Unknown interactable type");
+                throw new ReferenceError("Unknown resource type");
         }
 
-        for (let i = 0; i < HighlightPosData.length; i++) {
-            if(HighlightPosData[i].x == pX && HighlightPosData[i].y == pY) {
-                HighlightPosData.splice(i, 1);
-                break;
-            }
-        }
         this.ModifyMapData(pX, pY,PerlinPixel(pX, pY));
     }
     /**
@@ -282,16 +276,16 @@ class TerrainManipulator{
         }
 
         const tPixel: InteractData = new InteractData(new rgb(200, 70, 50), x, y, InteractType.wood);
-        Terrain.InsertInteractPixel(tPixel);
+        Terrain.InsertResourcePixel(tPixel);
         
         let lPixel = new InteractData(new rgb(49, 87, 44), x+1, y, InteractType.wood, 2);
-        Terrain.InsertInteractPixel(lPixel);
+        Terrain.InsertResourcePixel(lPixel);
         lPixel = new InteractData(new rgb(49, 87, 44), x-1, y, InteractType.wood, 2);
-        Terrain.InsertInteractPixel(lPixel);
+        Terrain.InsertResourcePixel(lPixel);
         lPixel = new InteractData(new rgb(49, 87, 44), x, y+1, InteractType.wood, 2);
-        Terrain.InsertInteractPixel(lPixel);
+        Terrain.InsertResourcePixel(lPixel);
         lPixel = new InteractData(new rgb(49, 87, 44), x, y-1, InteractType.wood, 2);
-        Terrain.InsertInteractPixel(lPixel);
+        Terrain.InsertResourcePixel(lPixel);
     }
     /**
      * Generates a stone at the given position (mainly for internal use)
@@ -311,17 +305,17 @@ class TerrainManipulator{
 
         let rPixel: InteractData;
         rPixel = new InteractData(new rgb(200, 200, 200), x, y, InteractType.stone);
-        Terrain.InsertInteractPixel(rPixel);
+        Terrain.InsertResourcePixel(rPixel);
         let sPixel = new InteractData(new rgb(200, 200, 200), x, y, InteractType.stone);
-        Terrain.InsertInteractPixel(sPixel);
+        Terrain.InsertResourcePixel(sPixel);
         sPixel = new InteractData(new rgb(200, 200, 200), x+1, y, InteractType.stone);
-        Terrain.InsertInteractPixel(sPixel);
+        Terrain.InsertResourcePixel(sPixel);
         sPixel = new InteractData(new rgb(200, 200, 200), x-1, y, InteractType.stone);
-        Terrain.InsertInteractPixel(sPixel);
+        Terrain.InsertResourcePixel(sPixel);
         sPixel = new InteractData(new rgb(200, 200, 200), x, y+1, InteractType.stone);
-        Terrain.InsertInteractPixel(sPixel);
+        Terrain.InsertResourcePixel(sPixel);
         sPixel = new InteractData(new rgb(200, 200, 200), x, y-1, InteractType.stone);
-        Terrain.InsertInteractPixel(sPixel);
+        Terrain.InsertResourcePixel(sPixel);
 
         let stoneVec = {x: 1, y: 1}
         let repeats = Math.floor(Math.random()*3)+1;
@@ -332,7 +326,7 @@ class TerrainManipulator{
             if(stoneVec.y == 0) stoneVec.y = 1;
 
             sPixel = new InteractData(new rgb(200, 200, 200), x+stoneVec.x, y+stoneVec.y, InteractType.stone);
-            Terrain.InsertInteractPixel(sPixel);
+            Terrain.InsertResourcePixel(sPixel);
         }
     }
 }

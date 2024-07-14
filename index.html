@@ -38,7 +38,7 @@
         <div class="Selectable-Material" >
             <ul>
                 <li>
-                    <p id="Selected-Building-Label"></p>
+                    <p id="Selected-Building-Label" class="Tooltip-Building"></p>
                 </li>
                 <li class="Cost-List">
                     <p class="Cost-Build">Cost:</p>
@@ -46,7 +46,7 @@
                     <p id="C-Stone"><img src="Icons/stone.png">: 20</p>
                     <!-- <p><img src="Icons/iron.png">: 20</p> -->
                 </li>
-                <li>
+                <li class="Building-Material-List">
                     <select id="Material-Select" onchange="UpdateSelectedBuilding();" onkeydown="false">
                         <option value="0">cheap wood</option>
                         <option value="1">wood</option>

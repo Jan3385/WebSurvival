@@ -145,7 +145,7 @@ class InteractData extends PixelData {
         this.health--;
         this.color.Darken(1.2);
         if (this.health <= 0) {
-            Terrain.DeleteInteractPixel(this.x, this.y);
+            Terrain.DeleteResourcePixel(this.x, this.y);
             return true;
         }
         return false;
@@ -162,12 +162,14 @@ class BuildingData extends InteractData {
      * @param {_Highlight} highlight
      * @param {InteractType} interactionType
      */
+    name;
     walkStatus;
     maxHealh;
     defaultColor;
     highlight;
-    constructor(color, x, y, walkStatus, hp = 12, highlight = _Highlight.border, interactionType) {
+    constructor(name, color, x, y, walkStatus, hp = 12, highlight = _Highlight.border, interactionType) {
         super(color, x, y, interactionType, hp);
+        this.name = name;
         this.maxHealh = hp;
         this.defaultColor = color.new();
         this.walkStatus = walkStatus;
@@ -180,7 +182,7 @@ class BuildingData extends InteractData {
      * @returns {ThisType}
      */
     at(x, y) {
-        return new BuildingData(this.defaultColor.newSlightlyRandom(30), x, y, this.walkStatus, this.maxHealh, this.highlight, this.interactType);
+        return new BuildingData(this.name, this.defaultColor.newSlightlyRandom(30), x, y, this.walkStatus, this.maxHealh, this.highlight, this.interactType);
     }
     Damage() {
         this.health--;
@@ -216,12 +218,12 @@ class DoorData extends BuildingData {
      * @param {InteractType} interactionType
      */
     isOpen;
-    constructor(color, x, y, walkStatus, hp = 12, highlight = _Highlight.border, interactionType) {
-        super(color, x, y, walkStatus, hp, highlight, interactionType);
+    constructor(name, color, x, y, walkStatus, hp = 12, highlight = _Highlight.border, interactionType) {
+        super(name, color, x, y, walkStatus, hp, highlight, interactionType);
         this.isOpen = false;
     }
     at(x, y) {
-        return new DoorData(this.defaultColor.newSlightlyRandom(30), x, y, this.walkStatus, this.maxHealh, this.highlight, this.interactType);
+        return new DoorData(this.name, this.defaultColor.newSlightlyRandom(30), x, y, this.walkStatus, this.maxHealh, this.highlight, this.interactType);
     }
     Open() {
         if (this.isOpen)
@@ -306,11 +308,14 @@ class GameTime {
         if (this.triggeredDay)
             return;
         this.triggeredDay = true;
-        //heals buildings
+        //heals buildings and deletes all torches
         for (let i = 0; i < mapData.length; i++) {
             for (let j = 0; j < mapData[0].length; j++) {
                 if (mapData[i][j] instanceof BuildingData) {
                     mapData[i][j].FullyHeal();
+                    if (mapData[i][j].name == "Torch") {
+                        mapData[i][j].BurnOut();
+                    }
                 }
             }
         }
@@ -333,15 +338,18 @@ function BlocksLight(pixel) {
 class LightData extends BuildingData {
     intensity = 0;
     radius = 0;
-    constructor(color, x, y, hp = 4, intensity = 2, radius = 3) {
-        super(color, x, y, PixelStatus.interact, hp, _Highlight.thickBorder, InteractType.light);
+    constructor(name, color, x, y, hp = 4, intensity = 2, radius = 3) {
+        super(name, color, x, y, PixelStatus.interact, hp, _Highlight.thickBorder, InteractType.light);
         if (intensity > 7)
             console.error("Light intensity is too high: " + intensity);
         this.intensity = intensity;
         this.radius = radius;
     }
     at(x, y) {
-        return new LightData(this.color, x, y, this.maxHealh, this.intensity, this.radius);
+        return new LightData(this.name, this.color, x, y, this.maxHealh, this.intensity, this.radius);
+    }
+    BurnOut() {
+        Terrain.ModifyMapData(this.x, this.y, PerlinPixel(this.x, this.y));
     }
 }
 function castRay(sX, sY, angle, intensity, radius) {
@@ -439,52 +447,52 @@ const BuildType = {
 };
 let Building = [
     {
-        build: new BuildingData(new rgb(244, 211, 94), 1, 1, PixelStatus.block, 3, _Highlight.border, InteractType.wall),
+        build: new BuildingData("Cheap Wall", new rgb(244, 211, 94), 1, 1, PixelStatus.block, 3, _Highlight.border, InteractType.wall),
         cost: { stone: 0, wood: 3 },
         label: "Cheap Wall - cheap but weak"
     },
     {
-        build: new BuildingData(new rgb(127, 79, 36), 1, 1, PixelStatus.block, 12, _Highlight.border, InteractType.wall),
+        build: new BuildingData("Wooden Wall", new rgb(127, 79, 36), 1, 1, PixelStatus.block, 12, _Highlight.border, InteractType.wall),
         cost: { stone: 0, wood: 10 },
         label: "Wooden Wall - stronger but more expensive"
     },
     {
-        build: new BuildingData(new rgb(85, 85, 85), 1, 1, PixelStatus.block, 24, _Highlight.border, InteractType.wall),
+        build: new BuildingData("Stone Wall", new rgb(85, 85, 85), 1, 1, PixelStatus.block, 24, _Highlight.border, InteractType.wall),
         cost: { stone: 15, wood: 2 },
         label: "Stone Wall - strong but expensive"
     },
     {
-        build: new BuildingData(new rgb(255, 243, 176), 1, 1, PixelStatus.taken, 1, _Highlight.none, InteractType.floor),
+        build: new BuildingData("Cheap Floor", new rgb(255, 243, 176), 1, 1, PixelStatus.taken, 1, _Highlight.none, InteractType.floor),
         cost: { stone: 0, wood: 1 },
         label: "Cheap Floor - not the prettiest"
     },
     {
-        build: new BuildingData(new rgb(175, 164, 126), 1, 1, PixelStatus.taken, 3, _Highlight.none, InteractType.floor),
+        build: new BuildingData("Wooden Floor", new rgb(175, 164, 126), 1, 1, PixelStatus.taken, 3, _Highlight.none, InteractType.floor),
         cost: { stone: 0, wood: 2 },
         label: "Wooden Floor - decent looking"
     },
     {
-        build: new BuildingData(new rgb(206, 212, 218), 1, 1, PixelStatus.taken, 6, _Highlight.none, InteractType.floor),
+        build: new BuildingData("Stone Floor", new rgb(206, 212, 218), 1, 1, PixelStatus.taken, 6, _Highlight.none, InteractType.floor),
         cost: { stone: 2, wood: 0 },
         label: "Stone Floor - build with unforseen quality"
     },
     {
-        build: new DoorData(new rgb(255, 231, 230), 1, 1, PixelStatus.block, 3, _Highlight.slash, InteractType.door),
+        build: new DoorData("Cheap Door", new rgb(255, 231, 230), 1, 1, PixelStatus.block, 3, _Highlight.slash, InteractType.door),
         cost: { stone: 0, wood: 10 },
         label: "Cheap Door - gets you thru the night"
     },
     {
-        build: new DoorData(new rgb(200, 180, 166), 1, 1, PixelStatus.block, 12, _Highlight.slash, InteractType.door),
+        build: new DoorData("Wooden Door", new rgb(200, 180, 166), 1, 1, PixelStatus.block, 12, _Highlight.slash, InteractType.door),
         cost: { stone: 0, wood: 20 },
         label: "Wooden Door - Feels like home"
     },
     {
-        build: new DoorData(new rgb(200, 200, 200), 1, 1, PixelStatus.block, 24, _Highlight.slash, InteractType.door),
+        build: new DoorData("Stone Door", new rgb(200, 200, 200), 1, 1, PixelStatus.block, 24, _Highlight.slash, InteractType.door),
         cost: { stone: 25, wood: 2 },
         label: "Stone Door - a door that will last"
     },
     {
-        build: new LightData(new rgb(255, 255, 0), 1, 1, 4, 5, 5),
+        build: new LightData("Torch", new rgb(255, 255, 0), 1, 1, 4, 5, 5),
         cost: { stone: 2, wood: 25 },
         label: "Torch - lights up the night, burns out by sunrise"
     },
@@ -532,6 +540,28 @@ function UpdateSelectedBuilding() {
     //update cost display
     document.getElementById("C-Wood").innerHTML = '<img src="Icons/wood.png">: ' + SelectedBuilding.cost.wood;
     document.getElementById("C-Stone").innerHTML = '<img src="Icons/stone.png">: ' + SelectedBuilding.cost.stone;
+}
+function canPlaceBuildingOn(pixel) {
+    if (Player.OverlapPixel.status == PixelStatus.free)
+        return true;
+    //if the pixel is interactable
+    if (Player.OverlapPixel.status == PixelStatus.interact && Player.OverlapPixel instanceof InteractData) {
+        //if the ground is a floor and the player is not attempting to place a floor return true
+        if (Player.OverlapPixel.interactType == InteractType.floor &&
+            !(SelectedBuilding.build.interactType == InteractType.floor))
+            return true;
+    }
+    return false;
+}
+function Build(Building) {
+    if (Resources.stone >= Building.cost.stone
+        && Resources.wood >= Building.cost.wood) {
+        Resources.stone -= Building.cost.stone;
+        Resources.wood -= Building.cost.wood;
+        Player.OverlapPixel = Building.build.at(Player.x, Player.y);
+        Render.UpdateResourcesScreen();
+        isBuilding = true;
+    }
 }
 class Vector2 {
     x;
@@ -897,8 +927,7 @@ class TerrainManipulator {
      * Inserts a interactable pixel at the pixel inner position
      * @param {InteractData} Pixel
      */
-    InsertInteractPixel(Pixel) {
-        HighlightPosData.push({ x: Pixel.x, y: Pixel.y });
+    InsertResourcePixel(Pixel) {
         Terrain.ModifyMapData(Pixel.x, Pixel.y, Pixel);
         switch (Pixel.interactType) {
             case InteractType.stone:
@@ -915,9 +944,9 @@ class TerrainManipulator {
      * @param {number} pY
      * @throws {ReferenceError} No interactable type at that location
      */
-    DeleteInteractPixel(pX, pY) {
+    DeleteResourcePixel(pX, pY) {
         if (mapData[pX][pY].status != PixelStatus.interact)
-            throw new ReferenceError("No interactable type at that location");
+            throw new ReferenceError("No resource type at that location");
         switch (mapData[pX][pY].interactType) {
             case InteractType.stone:
                 ResourceTerrain.stone--;
@@ -926,13 +955,7 @@ class TerrainManipulator {
                 ResourceTerrain.wood--;
                 break;
             default:
-                throw new ReferenceError("Unknown interactable type");
-        }
-        for (let i = 0; i < HighlightPosData.length; i++) {
-            if (HighlightPosData[i].x == pX && HighlightPosData[i].y == pY) {
-                HighlightPosData.splice(i, 1);
-                break;
-            }
+                throw new ReferenceError("Unknown resource type");
         }
         this.ModifyMapData(pX, pY, PerlinPixel(pX, pY));
     }
@@ -1027,15 +1050,15 @@ class TerrainManipulator {
             }
         }
         const tPixel = new InteractData(new rgb(200, 70, 50), x, y, InteractType.wood);
-        Terrain.InsertInteractPixel(tPixel);
+        Terrain.InsertResourcePixel(tPixel);
         let lPixel = new InteractData(new rgb(49, 87, 44), x + 1, y, InteractType.wood, 2);
-        Terrain.InsertInteractPixel(lPixel);
+        Terrain.InsertResourcePixel(lPixel);
         lPixel = new InteractData(new rgb(49, 87, 44), x - 1, y, InteractType.wood, 2);
-        Terrain.InsertInteractPixel(lPixel);
+        Terrain.InsertResourcePixel(lPixel);
         lPixel = new InteractData(new rgb(49, 87, 44), x, y + 1, InteractType.wood, 2);
-        Terrain.InsertInteractPixel(lPixel);
+        Terrain.InsertResourcePixel(lPixel);
         lPixel = new InteractData(new rgb(49, 87, 44), x, y - 1, InteractType.wood, 2);
-        Terrain.InsertInteractPixel(lPixel);
+        Terrain.InsertResourcePixel(lPixel);
     }
     /**
      * Generates a stone at the given position (mainly for internal use)
@@ -1056,17 +1079,17 @@ class TerrainManipulator {
         }
         let rPixel;
         rPixel = new InteractData(new rgb(200, 200, 200), x, y, InteractType.stone);
-        Terrain.InsertInteractPixel(rPixel);
+        Terrain.InsertResourcePixel(rPixel);
         let sPixel = new InteractData(new rgb(200, 200, 200), x, y, InteractType.stone);
-        Terrain.InsertInteractPixel(sPixel);
+        Terrain.InsertResourcePixel(sPixel);
         sPixel = new InteractData(new rgb(200, 200, 200), x + 1, y, InteractType.stone);
-        Terrain.InsertInteractPixel(sPixel);
+        Terrain.InsertResourcePixel(sPixel);
         sPixel = new InteractData(new rgb(200, 200, 200), x - 1, y, InteractType.stone);
-        Terrain.InsertInteractPixel(sPixel);
+        Terrain.InsertResourcePixel(sPixel);
         sPixel = new InteractData(new rgb(200, 200, 200), x, y + 1, InteractType.stone);
-        Terrain.InsertInteractPixel(sPixel);
+        Terrain.InsertResourcePixel(sPixel);
         sPixel = new InteractData(new rgb(200, 200, 200), x, y - 1, InteractType.stone);
-        Terrain.InsertInteractPixel(sPixel);
+        Terrain.InsertResourcePixel(sPixel);
         let stoneVec = { x: 1, y: 1 };
         let repeats = Math.floor(Math.random() * 3) + 1;
         for (let i = 0; i < repeats; i++) {
@@ -1077,7 +1100,7 @@ class TerrainManipulator {
             if (stoneVec.y == 0)
                 stoneVec.y = 1;
             sPixel = new InteractData(new rgb(200, 200, 200), x + stoneVec.x, y + stoneVec.y, InteractType.stone);
-            Terrain.InsertInteractPixel(sPixel);
+            Terrain.InsertResourcePixel(sPixel);
         }
     }
 }
@@ -1090,7 +1113,6 @@ const canvas = document.getElementById('gameCanvas');
 let canvasScale = 10;
 const gTime = new GameTime();
 let mapData = [];
-let HighlightPosData = [];
 let ResourceTerrain = {
     stone: 0,
     wood: 0
@@ -1122,16 +1144,8 @@ function Update() {
     const moveTile = mapData[Player.x + MovementVector.x][Player.y + MovementVector.y];
     //placement logic
     isBuilding = false;
-    if (inputPresses.includes(69) && (Player.OverlapPixel.status == PixelStatus.free ||
-        Player.OverlapPixel instanceof InteractData && Player.OverlapPixel.interactType == InteractType.floor)) {
-        if (Resources.stone >= SelectedBuilding.cost.stone
-            && Resources.wood >= SelectedBuilding.cost.wood) {
-            Resources.stone -= SelectedBuilding.cost.stone;
-            Resources.wood -= SelectedBuilding.cost.wood;
-            Player.OverlapPixel = SelectedBuilding.build.at(Player.x, Player.y);
-            Render.UpdateResourcesScreen();
-            isBuilding = true;
-        }
+    if (inputPresses.includes(69) && canPlaceBuildingOn(Player.OverlapPixel)) {
+        Build(SelectedBuilding);
     }
     //digging underneath player logic
     if (inputPresses.includes(81)) {

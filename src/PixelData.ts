@@ -146,7 +146,7 @@ class InteractData extends PixelData{
         this.health--;
         this.color.Darken(1.2);
         if(this.health <= 0) {
-            Terrain.DeleteInteractPixel(this.x, this.y);
+            Terrain.DeleteResourcePixel(this.x, this.y);
             return true;
         }
         return false;
@@ -164,12 +164,14 @@ class BuildingData extends InteractData{
      * @param {_Highlight} highlight
      * @param {InteractType} interactionType
      */
+    name: string;
     walkStatus: PixelStatus;
     maxHealh: number;
     defaultColor: rgb;
     highlight: _Highlight;
-    constructor(color: rgb, x: number, y: number, walkStatus: PixelStatus, hp: number = 12, highlight: _Highlight = _Highlight.border, interactionType: InteractType){
+    constructor(name: string, color: rgb, x: number, y: number, walkStatus: PixelStatus, hp: number = 12, highlight: _Highlight = _Highlight.border, interactionType: InteractType){
         super(color, x, y, interactionType, hp);
+        this.name = name;
         this.maxHealh = hp;
         this.defaultColor = color.new();
         this.walkStatus = walkStatus
@@ -182,7 +184,7 @@ class BuildingData extends InteractData{
      * @returns {ThisType}
      */
     at(x: number,y: number): BuildingData{
-        return new BuildingData(this.defaultColor.newSlightlyRandom(30), x, y, this.walkStatus, this.maxHealh, this.highlight, this.interactType);
+        return new BuildingData(this.name, this.defaultColor.newSlightlyRandom(30), x, y, this.walkStatus, this.maxHealh, this.highlight, this.interactType);
     }
     Damage(): boolean{
         this.health--;
@@ -218,12 +220,12 @@ class DoorData extends BuildingData{
      * @param {InteractType} interactionType
      */
     isOpen: boolean;
-    constructor(color: rgb, x: number, y: number, walkStatus: PixelStatus, hp: number = 12, highlight: _Highlight = _Highlight.border, interactionType: InteractType){
-        super(color, x, y, walkStatus, hp, highlight, interactionType);
+    constructor(name:string, color: rgb, x: number, y: number, walkStatus: PixelStatus, hp: number = 12, highlight: _Highlight = _Highlight.border, interactionType: InteractType){
+        super(name, color, x, y, walkStatus, hp, highlight, interactionType);
         this.isOpen = false;
     }
     at(x: number,y: number){
-        return new DoorData(this.defaultColor.newSlightlyRandom(30), x, y, this.walkStatus, this.maxHealh, this.highlight, this.interactType);
+        return new DoorData(this.name, this.defaultColor.newSlightlyRandom(30), x, y, this.walkStatus, this.maxHealh, this.highlight, this.interactType);
     }
     Open(){
         if(this.isOpen) return;

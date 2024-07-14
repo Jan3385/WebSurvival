@@ -68,11 +68,15 @@ class GameTime{
 
         this.triggeredDay = true;
 
-        //heals buildings
+        //heals buildings and deletes all torches
         for(let i = 0; i < mapData.length; i++){
             for(let j = 0; j < mapData[0].length; j++){
                 if(mapData[i][j] instanceof BuildingData){
                     (<BuildingData>mapData[i][j]).FullyHeal();
+
+                    if((<BuildingData>mapData[i][j]).name == "Torch"){
+                        (<LightData>mapData[i][j]).BurnOut();
+                    }
                 }
             }
         }
@@ -94,16 +98,19 @@ class LightData extends BuildingData{
     intensity: number = 0;
     radius: number = 0;
 
-    constructor(color: rgb, x: number, y: number,
+    constructor(name: string, color: rgb, x: number, y: number,
         hp: number = 4, intensity: number = 2, radius: number = 3
         ){
-        super(color, x, y, PixelStatus.interact, hp, _Highlight.thickBorder, InteractType.light);
+        super(name, color, x, y, PixelStatus.interact, hp, _Highlight.thickBorder, InteractType.light);
         if(intensity > 7) console.error("Light intensity is too high: " + intensity);
         this.intensity = intensity;
         this.radius = radius;
     }
     at(x: number,y: number){
-        return new LightData(this.color, x, y, this.maxHealh, this.intensity, this.radius);
+        return new LightData(this.name, this.color, x, y, this.maxHealh, this.intensity, this.radius);
+    }
+    BurnOut(){
+        Terrain.ModifyMapData(this.x, this.y, PerlinPixel(this.x, this.y));
     }
 }
 function castRay(

@@ -9,7 +9,6 @@ const canvas: HTMLCanvasElement = <HTMLCanvasElement> document.getElementById('g
 let canvasScale: number = 10;
 const gTime = new GameTime();
 let mapData: PixelData[][] = [];
-let HighlightPosData: Vector2[] = [];
 
 
 let ResourceTerrain = {
@@ -53,19 +52,9 @@ function Update(){
 
     //placement logic
     isBuilding = false;
-    if(inputPresses.includes(69) && (Player.OverlapPixel.status == PixelStatus.free || 
-        Player.OverlapPixel instanceof InteractData && Player.OverlapPixel.interactType == InteractType.floor))
-        {
-        if(Resources.stone >= SelectedBuilding.cost.stone
-            && Resources.wood >= SelectedBuilding.cost.wood){
-                
-                Resources.stone -= SelectedBuilding.cost.stone;
-                Resources.wood -= SelectedBuilding.cost.wood;
-
-                Player.OverlapPixel = SelectedBuilding.build.at(Player.x, Player.y);
-                Render.UpdateResourcesScreen();
-                isBuilding = true;
-        }
+    if(inputPresses.includes(69) && canPlaceBuildingOn(Player.OverlapPixel))
+    {
+        Build(SelectedBuilding);
     }
 
     //digging underneath player logic
