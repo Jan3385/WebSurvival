@@ -167,7 +167,7 @@ function castSunRay( // cestuje a pokud něco najde, tak se na chvili vypne pro 
             const pixel = <InteractData>mapData[ix][iy];
             if(BlocksLight(pixel)){
                 ShadowTravel = 4;
-                intensity = constIntensity-2;
+                intensity = constIntensity/1.4;
             };
         }
         if(ShadowTravel > 0){

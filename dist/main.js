@@ -390,7 +390,7 @@ sX, sY, angle, intensity) {
             const pixel = mapData[ix][iy];
             if (BlocksLight(pixel)) {
                 ShadowTravel = 4;
-                intensity = constIntensity - 2;
+                intensity = constIntensity / 1.4;
             }
             ;
         }
