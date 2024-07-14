@@ -424,6 +424,11 @@ function CalculateLightMap() {
     for (let i = 0; i < mapData.length; i++) {
         castSunRay(i, 0, sunAngle, gTime.lightLevel);
     }
+    //player emits a little light
+    for (let i = 0; i < numRays; i++) {
+        const angle = (Math.PI * 2 / numRays) * i;
+        castRay(Player.x, Player.y, angle, 2, 2);
+    }
 }
 /// <reference path="PixelData.ts" />
 /// <reference path="Lighting.ts" />
