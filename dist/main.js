@@ -1123,7 +1123,6 @@ function Update() {
                 Player.OverlapPixel = PerlinPixel(Player.x, Player.y);
             }
         }
-        CalculateLightMap();
     }
     //movement interactions
     if (moveTile.status == PixelStatus.interact && moveTile instanceof InteractData) {
