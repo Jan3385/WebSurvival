@@ -53,10 +53,15 @@ let Building = [
         label: "A door that will last"
     },
     {   //torch
-        build: new LightData("Torch", new rgb(255, 255, 0), 1, 1, 4, 5, 5),
-        cost: {stone: 2, wood: 25},
+        build: new LightData("Torch", new rgb(200, 185, 0), 1, 1, 4, 5, 5),
+        cost: {stone: 2, wood: 10},
         label: "Lights up the night, burns out by sunrise"
     },
+    {   //lantern
+        build: new LightData("Lantern", new rgb(255, 255, 0), 1, 1, 4, 7, 7),
+        cost: {stone: 7, wood: 30},
+        label: "Lasts a lifetime!"
+    }
 ];
 
 let SelectedBuilding = Building[0];
