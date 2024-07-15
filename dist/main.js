@@ -134,7 +134,7 @@ class ResourceData extends PixelData {
     x;
     y;
     Highlight;
-    HighlightColor = new rgb(60, 60, 60); // --------
+    HighlightColor = new rgb(60, 60, 60);
     ResourceType;
     OnResourceDestroy;
     constructor(color, status, Health, x, y, Highlight, ResourceType, OnResourceDestroy) {
@@ -167,6 +167,7 @@ class BuildingData extends PixelData {
     HighlightColor = new rgb(60, 60, 60);
     DefaultColor;
     name;
+    OverlaidPixel = new PixelData(new rgb(0, 0, 0), PixelStatus.walkable);
     constructor(name, color, status, Health, x, y, Highlight) {
         super(color, status);
         this.name = name;
@@ -181,7 +182,7 @@ class BuildingData extends PixelData {
         this.Health -= damage;
         this.color.Darken(1.07); //TODO: update the Darken method and execution
         if (this.Health <= 0) {
-            Terrain.ModifyMapData(this.x, this.y, PerlinPixel(this.x, this.y));
+            Terrain.ModifyMapData(this.x, this.y, this.OverlaidPixel);
             return true;
         }
         return false;
@@ -201,7 +202,12 @@ class BuildingData extends PixelData {
      * @returns {ThisType}
      */
     at(x, y) {
-        return new BuildingData(this.name, this.DefaultColor.newSlightlyRandom(30), this.status, this.MaxHealth, x, y, this.Highlight);
+        const build = new BuildingData(this.name, this.DefaultColor.newSlightlyRandom(30), this.status, this.MaxHealth, x, y, this.Highlight);
+        if (Player.x == x && Player.y == y)
+            build.OverlaidPixel = Player.OverlapPixel;
+        else
+            build.OverlaidPixel = mapData[x][y];
+        return build;
     }
     FullyHeal() {
         this.Health = this.MaxHealth;
@@ -219,7 +225,12 @@ class DoorData extends BuildingData {
         this.isOpen = false;
     }
     at(x, y) {
-        return new DoorData(this.name, this.DefaultColor.newSlightlyRandom(30), x, y, this.MaxHealth, this.Highlight);
+        const door = new DoorData(this.name, this.DefaultColor.newSlightlyRandom(30), x, y, this.MaxHealth, this.Highlight);
+        if (Player.x == x && Player.y == y)
+            door.OverlaidPixel = Player.OverlapPixel;
+        else
+            door.OverlaidPixel = mapData[x][y];
+        return door;
     }
     Interact() {
         if (this.isOpen)
@@ -351,7 +362,12 @@ class LightData extends BuildingData {
         this.radius = radius;
     }
     at(x, y) {
-        return new LightData(this.name, this.color, x, y, this.MaxHealth, this.intensity, this.radius);
+        const light = new LightData(this.name, this.color, x, y, this.MaxHealth, this.intensity, this.radius);
+        if (Player.x == x && Player.y == y)
+            light.OverlaidPixel = Player.OverlapPixel;
+        else
+            light.OverlaidPixel = mapData[x][y];
+        return light;
     }
     BurnOut() {
         Terrain.ModifyMapData(this.x, this.y, PerlinPixel(this.x, this.y));
@@ -1162,7 +1178,7 @@ function Update() {
         if (Player.OverlapPixel instanceof BuildingData) {
             const brokePixel = Player.OverlapPixel.DamageNoDestroy(1);
             if (brokePixel)
-                Player.OverlapPixel = PerlinPixel(Player.x, Player.y);
+                Player.OverlapPixel = Player.OverlapPixel.OverlaidPixel;
         }
     }
     //movement interactions

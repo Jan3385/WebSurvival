@@ -51,7 +51,7 @@ function Update(){
         //if standing on a building damage it
         if(Player.OverlapPixel instanceof BuildingData){
             const brokePixel = Player.OverlapPixel.DamageNoDestroy(1);
-            if(brokePixel) Player.OverlapPixel = PerlinPixel(Player.x, Player.y);
+            if(brokePixel) Player.OverlapPixel = Player.OverlapPixel.OverlaidPixel;
         }
     }
 

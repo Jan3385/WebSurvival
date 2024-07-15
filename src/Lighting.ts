@@ -110,7 +110,10 @@ class LightData extends BuildingData{
         this.radius = radius;
     }
     at(x: number,y: number){
-        return new LightData(this.name, this.color, x, y, this.MaxHealth, this.intensity, this.radius);
+        const light = new LightData(this.name, this.color, x, y, this.MaxHealth, this.intensity, this.radius);
+        if(Player.x == x && Player.y == y) light.OverlaidPixel = Player.OverlapPixel;
+        else light.OverlaidPixel = mapData[x][y];
+        return light;
     }
     BurnOut(){
         Terrain.ModifyMapData(this.x, this.y, PerlinPixel(this.x, this.y));

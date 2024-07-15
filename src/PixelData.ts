@@ -155,7 +155,7 @@ class ResourceData extends PixelData implements IDamageable, IHighlightable{
     x: number;
     y: number;
     Highlight: HighlightPixel;
-    HighlightColor: rgb = new rgb(60, 60, 60); // --------
+    HighlightColor: rgb = new rgb(60, 60, 60);
     ResourceType: ResourceType;
     OnResourceDestroy: () => void;
     constructor(
@@ -191,6 +191,7 @@ class BuildingData extends PixelData implements IDamageable, IHighlightable{
     HighlightColor: rgb = new rgb(60, 60, 60);
     DefaultColor: rgb;
     name: string;
+    OverlaidPixel: PixelData = new PixelData(new rgb(0,0,0), PixelStatus.walkable);
     constructor(
         name: string, color: rgb, status: PixelStatus, Health: number, x: number, y: number,
         Highlight: HighlightPixel
@@ -208,7 +209,7 @@ class BuildingData extends PixelData implements IDamageable, IHighlightable{
         this.Health -= damage;
         this.color.Darken(1.07); //TODO: update the Darken method and execution
         if(this.Health <= 0){
-            Terrain.ModifyMapData(this.x, this.y, PerlinPixel(this.x, this.y));
+            Terrain.ModifyMapData(this.x, this.y, this.OverlaidPixel);
             return true;
         }
         return false;
@@ -228,7 +229,10 @@ class BuildingData extends PixelData implements IDamageable, IHighlightable{
      * @returns {ThisType}
      */
     at(x: number,y: number): BuildingData{
-        return new BuildingData(this.name, this.DefaultColor.newSlightlyRandom(30), this.status, this.MaxHealth ,x, y, this.Highlight);
+        const build = new BuildingData(this.name, this.DefaultColor.newSlightlyRandom(30), this.status, this.MaxHealth ,x, y, this.Highlight);
+        if(Player.x == x && Player.y == y) build.OverlaidPixel = Player.OverlapPixel;
+        else build.OverlaidPixel = mapData[x][y];
+        return build;
     }
     FullyHeal(){
         this.Health = this.MaxHealth;
@@ -252,7 +256,10 @@ class DoorData extends BuildingData implements IInteractable{
         this.isOpen = false;
     }
     at(x: number,y: number){
-        return new DoorData(this.name, this.DefaultColor.newSlightlyRandom(30), x, y, this.MaxHealth, this.Highlight);
+        const door = new DoorData(this.name, this.DefaultColor.newSlightlyRandom(30), x, y, this.MaxHealth, this.Highlight);
+        if(Player.x == x && Player.y == y) door.OverlaidPixel = Player.OverlapPixel;
+        else door.OverlaidPixel = mapData[x][y];
+        return door;
     }
     Interact(): void {
         if(this.isOpen) this.Close();
