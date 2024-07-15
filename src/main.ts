@@ -21,8 +21,6 @@ let Player: PlayerData = new PlayerData(new rgb(0, 0, 0), new rgb(255, 255, 255)
 let Render = new Renderer();
 let Terrain = new TerrainManipulator();
 
-setInterval(UpdateBorderColor, 1000);
-
 let Resources = new ResourceList(0, 0);
 
 function Start(){
@@ -81,13 +79,6 @@ function Update(){
     gTime.Tick();
 
     Render.Draw();
-}
-/**
- * Updates the border color
- */
-function UpdateBorderColor(): void{
-    if(interactCol.get() == new rgb(60, 60, 60).get()) interactCol = new rgb(50, 50, 50);
-    else interactCol = new rgb(60, 60, 60);
 }
 function GetPixelInfo(x: number,y: number): PixelData{
     return mapData[x][y];

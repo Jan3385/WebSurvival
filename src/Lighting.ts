@@ -100,7 +100,7 @@ function BlocksLight(pixel: PixelData): boolean{
 class LightData extends BuildingData{
     intensity: number = 0;
     radius: number = 0;
-
+    HighlightColor: rgb = new rgb(253, 203, 110);
     constructor(name: string, color: rgb, x: number, y: number,
         hp: number = 4, intensity: number = 2, radius: number = 3
         ){
@@ -196,7 +196,7 @@ function CalculateLightMap(){
         for(let i = 0; i < numRays; i++){
             const angle = (Math.PI * 2 / numRays) * i;
             //send ray from the middle of the block
-            castRay(light.x+0.5, light.y+.05, angle, light.intensity, light.radius);
+            castRay(light.x, light.y, angle, light.intensity, light.radius);
         }
     }
 

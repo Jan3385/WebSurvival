@@ -83,7 +83,7 @@ function IsHighlightable(entity) {
 class EntityData extends PixelData {
     x;
     y;
-    BorderColor;
+    HighlightColor;
     Highlight = HighlightPixel.border;
     OverlapPixel;
     Health;
@@ -92,7 +92,7 @@ class EntityData extends PixelData {
         super(color, status);
         this.x = x;
         this.y = y;
-        this.BorderColor = BorderColor;
+        this.HighlightColor = BorderColor;
         this.Health = EntityHealth;
         this.OverlapPixel = PerlinPixel(x, y);
         this.MaxHealth = this.Health;
@@ -107,8 +107,8 @@ class EntityData extends PixelData {
     }
 }
 class PlayerData extends EntityData {
-    constructor(color, borderColor, x, y, Health) {
-        super(color, PixelStatus.block, x, y, borderColor, Health);
+    constructor(color, HighlightColor, x, y, Health) {
+        super(color, PixelStatus.block, x, y, HighlightColor, Health);
     }
     Die() {
         console.log('Player has died, GAME OVER');
@@ -134,6 +134,7 @@ class ResourceData extends PixelData {
     x;
     y;
     Highlight;
+    HighlightColor = new rgb(60, 60, 60); // --------
     ResourceType;
     OnResourceDestroy;
     constructor(color, status, Health, x, y, Highlight, ResourceType, OnResourceDestroy) {
@@ -163,6 +164,7 @@ class BuildingData extends PixelData {
     x;
     y;
     Highlight;
+    HighlightColor = new rgb(60, 60, 60);
     DefaultColor;
     name;
     constructor(name, color, status, Health, x, y, Highlight) {
@@ -211,6 +213,7 @@ function IsInteractable(entity) {
 }
 class DoorData extends BuildingData {
     isOpen;
+    HighlightColor = new rgb(60, 60, 60);
     constructor(name, color, x, y, hp = 12, highlight = HighlightPixel.slash) {
         super(name, color, PixelStatus.interact, hp, x, y, highlight);
         this.isOpen = false;
@@ -241,7 +244,6 @@ class DoorData extends BuildingData {
         this.isOpen = false;
     }
 }
-let interactCol = new rgb(60, 60, 60);
 function clamp(min, max, value) {
     return Math.min(max, Math.max(min, value));
 }
@@ -340,6 +342,7 @@ function BlocksLight(pixel) {
 class LightData extends BuildingData {
     intensity = 0;
     radius = 0;
+    HighlightColor = new rgb(253, 203, 110);
     constructor(name, color, x, y, hp = 4, intensity = 2, radius = 3) {
         super(name, color, PixelStatus.breakable, hp, x, y, HighlightPixel.thickBorder);
         if (intensity > 7)
@@ -417,7 +420,7 @@ function CalculateLightMap() {
         for (let i = 0; i < numRays; i++) {
             const angle = (Math.PI * 2 / numRays) * i;
             //send ray from the middle of the block
-            castRay(light.x + 0.5, light.y + .05, angle, light.intensity, light.radius);
+            castRay(light.x, light.y, angle, light.intensity, light.radius);
         }
     }
     //sun
@@ -835,12 +838,12 @@ class Renderer {
             }
         }
         this.DrawInteractIndicator();
-        ctx.strokeStyle = Player.BorderColor.getWithLight(Math.max(0.35, mapData[Player.x][Player.y].Brightness));
+        ctx.strokeStyle = Player.HighlightColor.getWithLight(Math.max(0.35, mapData[Player.x][Player.y].Brightness));
         ctx.lineWidth = 2;
         ctx.strokeRect(Player.x * canvasScale + 1, Player.y * canvasScale + 1, canvasScale - 2, canvasScale - 2);
     }
     DrawInteractIndicator() {
-        if (canvasScale < 6)
+        if (canvasScale < 6.5)
             return;
         const ctx = canvas.getContext('2d');
         ctx.beginPath();
@@ -852,22 +855,22 @@ class Renderer {
                         case HighlightPixel.none:
                             break;
                         case HighlightPixel.lightBorder:
-                            ctx.strokeStyle = interactCol.getWithLight(pixel.Brightness);
+                            ctx.strokeStyle = pixel.HighlightColor.getWithLight(pixel.Brightness);
                             ctx.lineWidth = 1;
                             ctx.strokeRect(i * canvasScale, j * canvasScale, canvasScale - 1, canvasScale - 1);
                             break;
                         case HighlightPixel.border:
-                            ctx.strokeStyle = interactCol.getWithLight(pixel.Brightness);
+                            ctx.strokeStyle = pixel.HighlightColor.getWithLight(pixel.Brightness);
                             ctx.lineWidth = 2;
                             ctx.strokeRect(i * canvasScale + 1, j * canvasScale + 1, canvasScale - 2, canvasScale - 2);
                             break;
                         case HighlightPixel.thickBorder:
-                            ctx.strokeStyle = interactCol.getWithLight(pixel.Brightness);
+                            ctx.strokeStyle = pixel.HighlightColor.getWithLight(pixel.Brightness);
                             ctx.lineWidth = 4;
                             ctx.strokeRect(i * canvasScale + 2, j * canvasScale + 2, canvasScale - 4, canvasScale - 4);
                             break;
                         case HighlightPixel.slash:
-                            ctx.strokeStyle = interactCol.getWithLight(pixel.Brightness);
+                            ctx.strokeStyle = pixel.HighlightColor.getWithLight(pixel.Brightness);
                             ctx.lineWidth = 2;
                             ctx.strokeRect(i * canvasScale + 1, j * canvasScale + 1, canvasScale - 2, canvasScale - 2);
                             ctx.moveTo(i * canvasScale + 1, j * canvasScale + 1);
@@ -1135,7 +1138,6 @@ const MaxTResource = new ResourceList(20, 30);
 let Player = new PlayerData(new rgb(0, 0, 0), new rgb(255, 255, 255), Math.floor(canvas.width / canvasScale / 2), Math.floor(canvas.height / canvasScale / 2), 5);
 let Render = new Renderer();
 let Terrain = new TerrainManipulator();
-setInterval(UpdateBorderColor, 1000);
 let Resources = new ResourceList(0, 0);
 function Start() {
     Terrain.MovePlayer(Player, 0, 0); //Draw player
@@ -1185,15 +1187,6 @@ function Update() {
     }
     gTime.Tick();
     Render.Draw();
-}
-/**
- * Updates the border color
- */
-function UpdateBorderColor() {
-    if (interactCol.get() == new rgb(60, 60, 60).get())
-        interactCol = new rgb(50, 50, 50);
-    else
-        interactCol = new rgb(60, 60, 60);
 }
 function GetPixelInfo(x, y) {
     return mapData[x][y];

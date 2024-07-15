@@ -87,6 +87,7 @@ interface IDamageable{
 }
 interface IHighlightable{
     Highlight: HighlightPixel;
+    HighlightColor: rgb;
 }
 function IsDamageable(entity: any): entity is IDamageable{
     return entity.Damage !== undefined;
@@ -98,7 +99,7 @@ function IsHighlightable(entity: any): entity is IHighlightable{
 abstract class EntityData extends PixelData implements IDamageable, IHighlightable{
     x: number;
     y: number;
-    BorderColor: rgb;
+    HighlightColor: rgb;
     Highlight: HighlightPixel = HighlightPixel.border;
     OverlapPixel: PixelData;
     Health: number;
@@ -110,7 +111,7 @@ abstract class EntityData extends PixelData implements IDamageable, IHighlightab
         super(color, status);
         this.x = x;
         this.y = y;
-        this.BorderColor = BorderColor;
+        this.HighlightColor = BorderColor;
         this.Health = EntityHealth;
         this.OverlapPixel = PerlinPixel(x, y);
         this.MaxHealth = this.Health;
@@ -128,8 +129,8 @@ abstract class EntityData extends PixelData implements IDamageable, IHighlightab
 }
 
 class PlayerData extends EntityData{
-    constructor(color: rgb, borderColor: rgb, x: number, y: number, Health:number){
-        super(color, PixelStatus.block, x, y, borderColor, Health);
+    constructor(color: rgb, HighlightColor: rgb, x: number, y: number, Health:number){
+        super(color, PixelStatus.block, x, y, HighlightColor, Health);
     }
     Die(): void{
         console.log('Player has died, GAME OVER');
@@ -154,6 +155,7 @@ class ResourceData extends PixelData implements IDamageable, IHighlightable{
     x: number;
     y: number;
     Highlight: HighlightPixel;
+    HighlightColor: rgb = new rgb(60, 60, 60); // --------
     ResourceType: ResourceType;
     OnResourceDestroy: () => void;
     constructor(
@@ -186,6 +188,7 @@ class BuildingData extends PixelData implements IDamageable, IHighlightable{
     x: number;
     y: number;
     Highlight: HighlightPixel;
+    HighlightColor: rgb = new rgb(60, 60, 60);
     DefaultColor: rgb;
     name: string;
     constructor(
@@ -240,6 +243,7 @@ function IsInteractable(entity: any): entity is IInteractable{
 }
 class DoorData extends BuildingData implements IInteractable{
     isOpen: boolean;
+    HighlightColor: rgb = new rgb(60, 60, 60);
     constructor(
         name:string, color: rgb, x: number, y: number, hp: number = 12, 
         highlight: HighlightPixel = HighlightPixel.slash
@@ -271,4 +275,3 @@ class DoorData extends BuildingData implements IInteractable{
         this.isOpen = false;
     }
 }
-let interactCol = new rgb(60, 60, 60);
