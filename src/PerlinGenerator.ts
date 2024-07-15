@@ -1,7 +1,7 @@
 function RandomUsingSeed(seed: number) {
-    let m: number = 0x80000000; // 2**31
-    let a: number = 1103515245;
-    let c: number = 12345;
+    const m: number = 0x80000000; // 2**31
+    const a: number = 1103515245;
+    const c: number = 12345;
 
     let state: number = seed;
 
