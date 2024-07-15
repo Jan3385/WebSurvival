@@ -116,7 +116,7 @@ class LightData extends BuildingData{
         return light;
     }
     BurnOut(){
-        Terrain.ModifyMapData(this.x, this.y, PerlinPixel(this.x, this.y));
+        Terrain.ModifyMapData(this.x, this.y, this.OverlaidPixel);
     }
 }
 function castRay(

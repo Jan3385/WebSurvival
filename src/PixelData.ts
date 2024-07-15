@@ -157,10 +157,11 @@ class ResourceData extends PixelData implements IDamageable, IHighlightable{
     Highlight: HighlightPixel;
     HighlightColor: rgb = new rgb(60, 60, 60);
     ResourceType: ResourceType;
+    OverlaidPixel: PixelData = new PixelData(new rgb(0,0,0), PixelStatus.walkable);
     OnResourceDestroy: () => void;
     constructor(
         color: rgb, status: PixelStatus, Health: number, x: number, y: number,
-        Highlight: HighlightPixel, ResourceType: ResourceType ,OnResourceDestroy: () => void
+        Highlight: HighlightPixel, ResourceType: ResourceType, OverlaidPixel: PixelData ,OnResourceDestroy: () => void
     ){
         super(color, status);
         this.Health = Health;
@@ -169,13 +170,14 @@ class ResourceData extends PixelData implements IDamageable, IHighlightable{
         this.y = y;
         this.Highlight = Highlight;
         this.ResourceType = ResourceType;
+        this.OverlaidPixel = OverlaidPixel;
         this.OnResourceDestroy = OnResourceDestroy;
     }
     Damage(damage: number): boolean{
         this.Health -= damage;
         this.color.Darken(1.2);
         if(this.Health <= 0){
-            Terrain.DeleteResourcePixel(this.x, this.y);
+            Terrain.DeleteResourcePixel(this.x, this.y, this.OverlaidPixel);
             this.OnResourceDestroy();
             return true;
         }

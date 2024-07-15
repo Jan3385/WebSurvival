@@ -136,8 +136,9 @@ class ResourceData extends PixelData {
     Highlight;
     HighlightColor = new rgb(60, 60, 60);
     ResourceType;
+    OverlaidPixel = new PixelData(new rgb(0, 0, 0), PixelStatus.walkable);
     OnResourceDestroy;
-    constructor(color, status, Health, x, y, Highlight, ResourceType, OnResourceDestroy) {
+    constructor(color, status, Health, x, y, Highlight, ResourceType, OverlaidPixel, OnResourceDestroy) {
         super(color, status);
         this.Health = Health;
         this.MaxHealth = Health;
@@ -145,13 +146,14 @@ class ResourceData extends PixelData {
         this.y = y;
         this.Highlight = Highlight;
         this.ResourceType = ResourceType;
+        this.OverlaidPixel = OverlaidPixel;
         this.OnResourceDestroy = OnResourceDestroy;
     }
     Damage(damage) {
         this.Health -= damage;
         this.color.Darken(1.2);
         if (this.Health <= 0) {
-            Terrain.DeleteResourcePixel(this.x, this.y);
+            Terrain.DeleteResourcePixel(this.x, this.y, this.OverlaidPixel);
             this.OnResourceDestroy();
             return true;
         }
@@ -370,7 +372,7 @@ class LightData extends BuildingData {
         return light;
     }
     BurnOut() {
-        Terrain.ModifyMapData(this.x, this.y, PerlinPixel(this.x, this.y));
+        Terrain.ModifyMapData(this.x, this.y, this.OverlaidPixel);
     }
 }
 function castRay(sX, sY, angle, intensity, radius) {
@@ -966,7 +968,7 @@ class TerrainManipulator {
      * @param {number} pY
      * @throws {ReferenceError} No interactable type at that location
      */
-    DeleteResourcePixel(pX, pY) {
+    DeleteResourcePixel(pX, pY, replacement) {
         switch (mapData[pX][pY].ResourceType) {
             case ResourceType.stone:
                 ResourceTerrain.stone--;
@@ -977,7 +979,7 @@ class TerrainManipulator {
             default:
                 throw new ReferenceError("Unknown resource type");
         }
-        this.ModifyMapData(pX, pY, PerlinPixel(pX, pY));
+        this.ModifyMapData(pX, pY, replacement);
     }
     /**
      * Clears the map and fills it with perlin noise
@@ -1084,16 +1086,16 @@ class TerrainManipulator {
             }
         }
         let OnBreak = () => { Resources.wood += Math.floor(1 + Math.random() * 4); }; // 1 - 4
-        const tPixel = new ResourceData(new rgb(200, 70, 50), PixelStatus.breakable, 6, x, y, HighlightPixel.border, ResourceType.wood, OnBreak);
+        const tPixel = new ResourceData(new rgb(200, 70, 50), PixelStatus.breakable, 6, x, y, HighlightPixel.border, ResourceType.wood, mapData[x][y], OnBreak);
         Terrain.InsertResourcePixel(tPixel);
         OnBreak = () => { Resources.wood += Math.floor(Math.random() * 1.7); }; // 0 - 1
-        let lPixel = new ResourceData(new rgb(49, 87, 44), PixelStatus.breakable, 2, x + 1, y, HighlightPixel.border, ResourceType.wood, OnBreak);
+        let lPixel = new ResourceData(new rgb(49, 87, 44), PixelStatus.breakable, 2, x + 1, y, HighlightPixel.border, ResourceType.wood, mapData[x + 1][y], OnBreak);
         Terrain.InsertResourcePixel(lPixel);
-        lPixel = new ResourceData(new rgb(49, 87, 44), PixelStatus.breakable, 2, x - 1, y, HighlightPixel.border, ResourceType.wood, OnBreak);
+        lPixel = new ResourceData(new rgb(49, 87, 44), PixelStatus.breakable, 2, x - 1, y, HighlightPixel.border, ResourceType.wood, mapData[x - 1][y], OnBreak);
         Terrain.InsertResourcePixel(lPixel);
-        lPixel = new ResourceData(new rgb(49, 87, 44), PixelStatus.breakable, 2, x, y + 1, HighlightPixel.border, ResourceType.wood, OnBreak);
+        lPixel = new ResourceData(new rgb(49, 87, 44), PixelStatus.breakable, 2, x, y + 1, HighlightPixel.border, ResourceType.wood, mapData[x][y + 1], OnBreak);
         Terrain.InsertResourcePixel(lPixel);
-        lPixel = new ResourceData(new rgb(49, 87, 44), PixelStatus.breakable, 2, x, y - 1, HighlightPixel.border, ResourceType.wood, OnBreak);
+        lPixel = new ResourceData(new rgb(49, 87, 44), PixelStatus.breakable, 2, x, y - 1, HighlightPixel.border, ResourceType.wood, mapData[x][y - 1], OnBreak);
         Terrain.InsertResourcePixel(lPixel);
     }
     /**
@@ -1115,15 +1117,15 @@ class TerrainManipulator {
         }
         const OnBreak = () => { Resources.stone += Math.floor(1 + Math.random() * 3); }; // 1 - 3
         let sPixel;
-        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x, y, HighlightPixel.border, ResourceType.stone, OnBreak);
+        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x, y, HighlightPixel.border, ResourceType.stone, mapData[x][y], OnBreak);
         Terrain.InsertResourcePixel(sPixel);
-        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x + 1, y, HighlightPixel.border, ResourceType.stone, OnBreak);
+        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x + 1, y, HighlightPixel.border, ResourceType.stone, mapData[x + 1][y], OnBreak);
         Terrain.InsertResourcePixel(sPixel);
-        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x - 1, y, HighlightPixel.border, ResourceType.stone, OnBreak);
+        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x - 1, y, HighlightPixel.border, ResourceType.stone, mapData[x - 1][y], OnBreak);
         Terrain.InsertResourcePixel(sPixel);
-        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x, y + 1, HighlightPixel.border, ResourceType.stone, OnBreak);
+        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x, y + 1, HighlightPixel.border, ResourceType.stone, mapData[x][y + 1], OnBreak);
         Terrain.InsertResourcePixel(sPixel);
-        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x, y - 1, HighlightPixel.border, ResourceType.stone, OnBreak);
+        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x, y - 1, HighlightPixel.border, ResourceType.stone, mapData[x][y - 1], OnBreak);
         Terrain.InsertResourcePixel(sPixel);
         let stoneVec = { x: 1, y: 1 };
         let repeats = Math.floor(Math.random() * 3) + 1;
@@ -1134,7 +1136,7 @@ class TerrainManipulator {
                 stoneVec.x = 1;
             if (stoneVec.y == 0)
                 stoneVec.y = 1;
-            sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x + stoneVec.x, y + stoneVec.y, HighlightPixel.border, ResourceType.stone, OnBreak);
+            sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x + stoneVec.x, y + stoneVec.y, HighlightPixel.border, ResourceType.stone, mapData[x + stoneVec.x][y + stoneVec.y], OnBreak);
             Terrain.InsertResourcePixel(sPixel);
         }
     }
