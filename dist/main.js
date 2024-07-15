@@ -869,7 +869,7 @@ class Renderer {
                         case _Highlight.thickBorder:
                             ctx.strokeStyle = interactCol.getWithLight(pixel.Brightness);
                             ctx.lineWidth = 3;
-                            ctx.strokeRect(i * canvasScale + 2, j * canvasScale + 2, canvasScale - 4, canvasScale - 4);
+                            ctx.strokeRect(i * canvasScale + 1, j * canvasScale + 1, canvasScale - 2, canvasScale - 2);
                             break;
                         case _Highlight.slash:
                             ctx.strokeStyle = interactCol.getWithLight(pixel.Brightness);
