@@ -46,134 +46,151 @@ class rgb {
 }
 var PixelStatus;
 (function (PixelStatus) {
-    PixelStatus[PixelStatus["free"] = 0] = "free";
-    PixelStatus[PixelStatus["taken"] = 1] = "taken";
+    PixelStatus[PixelStatus["walkable"] = 0] = "walkable";
+    PixelStatus[PixelStatus["breakable"] = 1] = "breakable";
     PixelStatus[PixelStatus["block"] = 2] = "block";
     PixelStatus[PixelStatus["interact"] = 3] = "interact";
 })(PixelStatus || (PixelStatus = {}));
 ;
-var _Highlight;
-(function (_Highlight) {
-    _Highlight[_Highlight["none"] = 0] = "none";
-    _Highlight[_Highlight["lightBorder"] = 1] = "lightBorder";
-    _Highlight[_Highlight["border"] = 2] = "border";
-    _Highlight[_Highlight["thickBorder"] = 3] = "thickBorder";
-    _Highlight[_Highlight["slash"] = 4] = "slash";
-})(_Highlight || (_Highlight = {}));
+var HighlightPixel;
+(function (HighlightPixel) {
+    HighlightPixel[HighlightPixel["none"] = 0] = "none";
+    HighlightPixel[HighlightPixel["lightBorder"] = 1] = "lightBorder";
+    HighlightPixel[HighlightPixel["border"] = 2] = "border";
+    HighlightPixel[HighlightPixel["thickBorder"] = 3] = "thickBorder";
+    HighlightPixel[HighlightPixel["slash"] = 4] = "slash";
+})(HighlightPixel || (HighlightPixel = {}));
+;
 class PixelData {
-    /**
-     * Stores data about the given pixel
-     * @param {number} color
-     * @param {PixelStatus} status
-     */
     color;
     status;
     Brightness = 0;
-    constructor(color, status = PixelStatus.free) {
+    constructor(color, status = PixelStatus.walkable) {
         this.color = color;
         this.status = status;
     }
 }
-/**
- * Given a X and Y position returns a predictable pixel using perlin noise
- * @param {number} x
- * @param {number} y
- * @returns {PixelData}
- */
 function PerlinPixel(x, y) {
     const pColor = Perlin.perlinColorTerrain(x / 9, y / 9);
     return new PixelData(new rgb(pColor.r, pColor.g, pColor.b), pColor.s);
 }
-const EmptyPixel = new PixelData(new rgb(147, 200, 0));
-class PlayerData extends PixelData {
-    /**
-     * Creates a player object with the given colors at the given position
-     * @param {rgb} color
-     * @param {rgb} borderColor
-     * @param {number} x
-     * @param {number} y
-     */
-    borderColor;
-    x;
-    y;
-    OverlapPixel;
-    constructor(color, borderColor, x, y) {
-        super(color, PixelStatus.block);
-        this.borderColor = borderColor;
-        this.x = x;
-        this.y = y;
-        this.OverlapPixel = PerlinPixel(x, y);
-    }
+function IsDamageable(entity) {
+    return entity.Damage !== undefined;
 }
-var InteractType;
-(function (InteractType) {
-    InteractType[InteractType["stone"] = 0] = "stone";
-    InteractType[InteractType["wood"] = 1] = "wood";
-    InteractType[InteractType["door"] = 2] = "door";
-    InteractType[InteractType["wall"] = 3] = "wall";
-    InteractType[InteractType["floor"] = 4] = "floor";
-    InteractType[InteractType["light"] = 5] = "light";
-})(InteractType || (InteractType = {}));
-;
-class InteractData extends PixelData {
-    /**
-     * Construct a interactable pixel with the given color at the given position
-     * @param {rgb} color
-     * @param {number} x
-     * @param {number} y
-     * @param {InteractType} type
-     * @param {number} [hp=6]
-     */
+function IsHighlightable(entity) {
+    return entity.Highlight !== undefined;
+}
+class EntityData extends PixelData {
     x;
     y;
-    interactType;
-    health;
-    highlight;
-    constructor(color, x, y, type, hp = 6, highlight = _Highlight.border) {
-        super(color, PixelStatus.interact);
+    BorderColor;
+    Highlight = HighlightPixel.border;
+    OverlapPixel;
+    Health;
+    MaxHealth;
+    constructor(color, status = PixelStatus.walkable, x, y, BorderColor, EntityHealth) {
+        super(color, status);
         this.x = x;
         this.y = y;
-        this.interactType = type;
-        this.health = hp;
-        this.highlight = highlight;
+        this.BorderColor = BorderColor;
+        this.Health = EntityHealth;
+        this.OverlapPixel = PerlinPixel(x, y);
+        this.MaxHealth = this.Health;
     }
-    /**
-     * Damages the interactable pixel, return true if it was destroyed (on final hit)
-     * @returns {boolean}
-     */
-    Damage() {
-        this.health--;
-        this.color.Darken(1.2);
-        if (this.health <= 0) {
-            Terrain.DeleteResourcePixel(this.x, this.y);
+    Damage(damage) {
+        this.Health -= damage;
+        if (this.Health <= 0) {
+            this.Die();
             return true;
         }
         return false;
     }
 }
-class BuildingData extends InteractData {
-    /**
-     * @constructor
-     * @param {rgb} color
-     * @param {number} x
-     * @param {number} y
-     * @param {PixelStatus} walkStatus
-     * @param {number} hp
-     * @param {_Highlight} highlight
-     * @param {InteractType} interactionType
-     */
+class PlayerData extends EntityData {
+    constructor(color, borderColor, x, y, Health) {
+        super(color, PixelStatus.block, x, y, borderColor, Health);
+    }
+    Die() {
+        console.log('Player has died, GAME OVER');
+    }
+}
+class EnemyData extends EntityData {
+    constructor(color, borderColor, x, y, EntityHealth) {
+        super(color, PixelStatus.breakable, x, y, borderColor, EntityHealth);
+    }
+    Die() {
+        console.log('Enemy has died');
+        mapData[this.x][this.y] = this.OverlapPixel;
+    }
+}
+var ResourceType;
+(function (ResourceType) {
+    ResourceType[ResourceType["wood"] = 0] = "wood";
+    ResourceType[ResourceType["stone"] = 1] = "stone";
+})(ResourceType || (ResourceType = {}));
+class ResourceData extends PixelData {
+    Health;
+    MaxHealth;
+    x;
+    y;
+    Highlight;
+    ResourceType;
+    OnResourceDestroy;
+    constructor(color, status, Health, x, y, Highlight, ResourceType, OnResourceDestroy) {
+        super(color, status);
+        this.Health = Health;
+        this.MaxHealth = Health;
+        this.x = x;
+        this.y = y;
+        this.Highlight = Highlight;
+        this.ResourceType = ResourceType;
+        this.OnResourceDestroy = OnResourceDestroy;
+    }
+    Damage(damage) {
+        this.Health -= damage;
+        this.color.Darken(1.2);
+        if (this.Health <= 0) {
+            Terrain.DeleteResourcePixel(this.x, this.y);
+            this.OnResourceDestroy();
+            return true;
+        }
+        return false;
+    }
+}
+class BuildingData extends PixelData {
+    Health;
+    MaxHealth;
+    x;
+    y;
+    Highlight;
+    DefaultColor;
     name;
-    walkStatus;
-    maxHealh;
-    defaultColor;
-    highlight;
-    constructor(name, color, x, y, walkStatus, hp = 12, highlight = _Highlight.border, interactionType) {
-        super(color, x, y, interactionType, hp);
+    constructor(name, color, status, Health, x, y, Highlight) {
+        super(color, status);
         this.name = name;
-        this.maxHealh = hp;
-        this.defaultColor = color.new();
-        this.walkStatus = walkStatus;
-        this.highlight = highlight;
+        this.Health = Health;
+        this.MaxHealth = Health;
+        this.x = x;
+        this.y = y;
+        this.Highlight = Highlight;
+        this.DefaultColor = color.new();
+    }
+    Damage(damage) {
+        this.Health -= damage;
+        this.color.Darken(1.07); //TODO: update the Darken method and execution
+        if (this.Health <= 0) {
+            Terrain.ModifyMapData(this.x, this.y, PerlinPixel(this.x, this.y));
+            return true;
+        }
+        return false;
+    }
+    DamageNoDestroy(damage) {
+        this.Health -= damage;
+        this.color.Darken(1.07);
+        if (this.Health <= 0) {
+            return true;
+        }
+        return false;
     }
     /**
      * Returns this object at the specified coordinates
@@ -182,63 +199,45 @@ class BuildingData extends InteractData {
      * @returns {ThisType}
      */
     at(x, y) {
-        return new BuildingData(this.name, this.defaultColor.newSlightlyRandom(30), x, y, this.walkStatus, this.maxHealh, this.highlight, this.interactType);
-    }
-    Damage() {
-        this.health--;
-        this.color.Darken(1.07);
-        if (this.health <= 0) {
-            Terrain.ModifyMapData(this.x, this.y, PerlinPixel(this.x, this.y));
-            return true;
-        }
-        return false;
-    }
-    DamageNoDelete() {
-        this.health--;
-        this.color.Darken(1.07);
-        if (this.health <= 0) {
-            return true;
-        }
-        return false;
+        return new BuildingData(this.name, this.DefaultColor.newSlightlyRandom(30), this.status, this.MaxHealth, x, y, this.Highlight);
     }
     FullyHeal() {
-        this.health = this.maxHealh;
-        this.color = this.defaultColor;
+        this.Health = this.MaxHealth;
+        this.color = this.DefaultColor.new();
     }
 }
+function IsInteractable(entity) {
+    return entity.Interact !== undefined;
+}
 class DoorData extends BuildingData {
-    /**
-     * @constructor
-     * @param {rgb} color
-     * @param {number} x
-     * @param {number} y
-     * @param {PixelStatus} walkStatus
-     * @param {number} hp
-     * @param {_Highlight} highlight
-     * @param {InteractType} interactionType
-     */
     isOpen;
-    constructor(name, color, x, y, walkStatus, hp = 12, highlight = _Highlight.border, interactionType) {
-        super(name, color, x, y, walkStatus, hp, highlight, interactionType);
+    constructor(name, color, x, y, hp = 12, highlight = HighlightPixel.slash) {
+        super(name, color, PixelStatus.interact, hp, x, y, highlight);
         this.isOpen = false;
     }
     at(x, y) {
-        return new DoorData(this.name, this.defaultColor.newSlightlyRandom(30), x, y, this.walkStatus, this.maxHealh, this.highlight, this.interactType);
+        return new DoorData(this.name, this.DefaultColor.newSlightlyRandom(30), x, y, this.MaxHealth, this.Highlight);
+    }
+    Interact() {
+        if (this.isOpen)
+            this.Close();
+        else
+            this.Open();
     }
     Open() {
         if (this.isOpen)
             return;
-        this.walkStatus = PixelStatus.taken;
+        this.status = PixelStatus.walkable;
         this.color = this.color.changeBy(-30);
-        this.highlight = _Highlight.lightBorder;
+        this.Highlight = HighlightPixel.lightBorder;
         this.isOpen = true;
     }
     Close() {
         if (!this.isOpen)
             return;
-        this.walkStatus = PixelStatus.block;
+        this.status = PixelStatus.interact;
         this.color = this.color.changeBy(+30);
-        this.highlight = _Highlight.slash;
+        this.Highlight = HighlightPixel.slash;
         this.isOpen = false;
     }
 }
@@ -258,15 +257,13 @@ class GameTime {
     triggeredNight = false;
     triggeredDay = false;
     constructor() {
-        this.time = this.maxTime * 0.4;
+        this.time = this.maxTime * 0.25;
     }
     /**
      * Updates the time object
      */
     Tick() {
         this.time++;
-        if (this.time % 1 == 0)
-            CalculateLightMap();
         if (this.GetDayProgress() <= 0.2) { //day starts (sun rises)
             this.lightLevel = this.GetDayProgress() * 25;
         }
@@ -297,6 +294,7 @@ class GameTime {
         const t = this.lightLevel / 5;
         document.body.style.background = "rgb(" + lerp(99, 255, t) + "," +
             lerp(110, 255, t) + "," + lerp(114, 255, t) + ")";
+        CalculateLightMap();
     }
     OnNightStart() {
         if (this.triggeredNight)
@@ -325,13 +323,17 @@ class GameTime {
     }
 }
 function BlocksLight(pixel) {
-    if (pixel.interactType == InteractType.wall)
-        return true;
-    if (pixel.interactType == InteractType.stone)
-        return true;
-    if (pixel.interactType == InteractType.wood)
-        return true;
-    if (pixel.interactType == InteractType.door && !pixel.isOpen)
+    if (pixel instanceof BuildingData) {
+        if (pixel instanceof LightData)
+            return false;
+        if (pixel.status == PixelStatus.block)
+            return true;
+        if (pixel.status == PixelStatus.breakable)
+            return true;
+        if (pixel.status == PixelStatus.interact)
+            return true;
+    }
+    if (pixel instanceof ResourceData)
         return true;
     return false;
 }
@@ -339,14 +341,14 @@ class LightData extends BuildingData {
     intensity = 0;
     radius = 0;
     constructor(name, color, x, y, hp = 4, intensity = 2, radius = 3) {
-        super(name, color, x, y, PixelStatus.interact, hp, _Highlight.thickBorder, InteractType.light);
+        super(name, color, PixelStatus.breakable, hp, x, y, HighlightPixel.thickBorder);
         if (intensity > 7)
             console.error("Light intensity is too high: " + intensity);
         this.intensity = intensity;
         this.radius = radius;
     }
     at(x, y) {
-        return new LightData(this.name, this.color, x, y, this.maxHealh, this.intensity, this.radius);
+        return new LightData(this.name, this.color, x, y, this.MaxHealth, this.intensity, this.radius);
     }
     BurnOut() {
         Terrain.ModifyMapData(this.x, this.y, PerlinPixel(this.x, this.y));
@@ -368,11 +370,8 @@ function castRay(sX, sY, angle, intensity, radius) {
         const lightIntensity = Math.max(0, intensity - distance);
         mapData[ix][iy].Brightness = Math.max(lightIntensity, mapData[ix][iy].Brightness);
         //blocks light
-        if (mapData[ix][iy].status == PixelStatus.interact) {
-            const pixel = mapData[ix][iy];
-            if (BlocksLight(pixel))
-                break;
-        }
+        if (BlocksLight(mapData[ix][iy]))
+            break;
     }
 }
 function castSunRay(// cestuje a pokud něco najde, tak se na chvili vypne pro iluzi stinu
@@ -394,14 +393,11 @@ sX, sY, angle, intensity) {
             intensity = constIntensity;
         mapData[ix][iy].Brightness = clamp(intensity, 5, mapData[ix][iy].Brightness);
         //blocks light 
-        if (mapData[ix][iy].status == PixelStatus.interact) {
-            const pixel = mapData[ix][iy];
-            if (BlocksLight(pixel)) {
-                ShadowTravel = 4;
-                intensity = constIntensity / 1.4;
-            }
-            ;
+        if (BlocksLight(mapData[ix][iy])) {
+            ShadowTravel = 4;
+            intensity = constIntensity / 1.4;
         }
+        ;
         if (ShadowTravel > 0) {
             ShadowTravel--;
         }
@@ -420,7 +416,8 @@ function CalculateLightMap() {
     for (const light of lightSources) {
         for (let i = 0; i < numRays; i++) {
             const angle = (Math.PI * 2 / numRays) * i;
-            castRay(light.x, light.y, angle, light.intensity, light.radius);
+            //send ray from the middle of the block
+            castRay(light.x + 0.5, light.y + .05, angle, light.intensity, light.radius);
         }
     }
     //sun
@@ -447,47 +444,47 @@ const BuildType = {
 };
 let Building = [
     {
-        build: new BuildingData("Cheap Wall", new rgb(244, 211, 94), 1, 1, PixelStatus.block, 3, _Highlight.border, InteractType.wall),
+        build: new BuildingData("Cheap Wall", new rgb(244, 211, 94), PixelStatus.breakable, 3, 1, 1, HighlightPixel.border),
         cost: { stone: 0, wood: 3 },
         label: "Cheap but weak"
     },
     {
-        build: new BuildingData("Wooden Wall", new rgb(127, 79, 36), 1, 1, PixelStatus.block, 12, _Highlight.border, InteractType.wall),
+        build: new BuildingData("Wooden Wall", new rgb(127, 79, 36), PixelStatus.breakable, 3, 1, 1, HighlightPixel.border),
         cost: { stone: 0, wood: 10 },
         label: "Stronger but more expensive"
     },
     {
-        build: new BuildingData("Stone Wall", new rgb(85, 85, 85), 1, 1, PixelStatus.block, 24, _Highlight.border, InteractType.wall),
+        build: new BuildingData("Stone Wall", new rgb(85, 85, 85), PixelStatus.breakable, 3, 1, 1, HighlightPixel.border),
         cost: { stone: 15, wood: 2 },
         label: "Strong but expensive"
     },
     {
-        build: new BuildingData("Cheap Floor", new rgb(255, 243, 176), 1, 1, PixelStatus.taken, 1, _Highlight.none, InteractType.floor),
+        build: new BuildingData("Cheap Floor", new rgb(255, 243, 176), PixelStatus.walkable, 3, 1, 1, HighlightPixel.none),
         cost: { stone: 0, wood: 1 },
         label: "Not the prettiest"
     },
     {
-        build: new BuildingData("Wooden Floor", new rgb(175, 164, 126), 1, 1, PixelStatus.taken, 3, _Highlight.none, InteractType.floor),
+        build: new BuildingData("Wooden Floor", new rgb(175, 164, 126), PixelStatus.walkable, 3, 1, 1, HighlightPixel.none),
         cost: { stone: 0, wood: 2 },
         label: "Decent looking"
     },
     {
-        build: new BuildingData("Stone Floor", new rgb(206, 212, 218), 1, 1, PixelStatus.taken, 6, _Highlight.none, InteractType.floor),
+        build: new BuildingData("Stone Floor", new rgb(206, 212, 218), PixelStatus.walkable, 3, 1, 1, HighlightPixel.none),
         cost: { stone: 2, wood: 0 },
         label: "Build with unforseen quality"
     },
     {
-        build: new DoorData("Cheap Door", new rgb(255, 231, 230), 1, 1, PixelStatus.block, 3, _Highlight.slash, InteractType.door),
+        build: new DoorData("Cheap Door", new rgb(255, 231, 230), 1, 1, 3),
         cost: { stone: 0, wood: 10 },
         label: "Gets you thru the night"
     },
     {
-        build: new DoorData("Wooden Door", new rgb(200, 180, 166), 1, 1, PixelStatus.block, 12, _Highlight.slash, InteractType.door),
+        build: new DoorData("Wooden Door", new rgb(200, 180, 166), 1, 1, 12),
         cost: { stone: 0, wood: 20 },
         label: "Feels like home"
     },
     {
-        build: new DoorData("Stone Door", new rgb(200, 200, 200), 1, 1, PixelStatus.block, 24, _Highlight.slash, InteractType.door),
+        build: new DoorData("Stone Door", new rgb(200, 200, 200), 1, 1, 24),
         cost: { stone: 25, wood: 2 },
         label: "A door that will last"
     },
@@ -542,15 +539,13 @@ function UpdateSelectedBuilding() {
     document.getElementById("C-Stone").innerHTML = '<img src="Icons/stone.png">: ' + SelectedBuilding.cost.stone;
 }
 function canPlaceBuildingOn(pixel) {
-    if (Player.OverlapPixel.status == PixelStatus.free)
-        return true;
-    //if the pixel is interactable
-    if (Player.OverlapPixel.status == PixelStatus.interact && Player.OverlapPixel instanceof InteractData) {
-        //if the ground is a floor and the player is not attempting to place a floor return true
-        if (Player.OverlapPixel.interactType == InteractType.floor &&
-            !(SelectedBuilding.build.interactType == InteractType.floor))
-            return true;
+    //cannot place floor on floor
+    if (pixel instanceof BuildingData && pixel.status == PixelStatus.walkable) {
+        if (SelectedBuilding.build.status == PixelStatus.walkable)
+            return false;
     }
+    if (Player.OverlapPixel.status == PixelStatus.walkable)
+        return true;
     return false;
 }
 function Build(Building) {
@@ -772,7 +767,7 @@ class PerlinNoise {
                 r: value * 255 + 30,
                 g: value * 255 + 30,
                 b: value * 10,
-                s: PixelStatus.free
+                s: PixelStatus.walkable
             };
         //hills or rock (probably delete later)
         //if(value < 0.25) return `rgb(${255 - value * 170}, ${255 - value * 170}, ${255 - value * 170})`;
@@ -781,7 +776,7 @@ class PerlinNoise {
             r: value * 50,
             g: 240 - value * 90,
             b: value * 50,
-            s: PixelStatus.free
+            s: PixelStatus.walkable
         };
     }
     pixel(x, y) {
@@ -840,7 +835,7 @@ class Renderer {
             }
         }
         this.DrawInteractIndicator();
-        ctx.strokeStyle = Player.borderColor.getWithLight(Math.max(0.35, mapData[Player.x][Player.y].Brightness));
+        ctx.strokeStyle = Player.BorderColor.getWithLight(Math.max(0.35, mapData[Player.x][Player.y].Brightness));
         ctx.lineWidth = 2;
         ctx.strokeRect(Player.x * canvasScale + 1, Player.y * canvasScale + 1, canvasScale - 2, canvasScale - 2);
     }
@@ -852,26 +847,26 @@ class Renderer {
         for (let i = 0; i < mapData.length; i++) {
             for (let j = 0; j < mapData[0].length; j++) {
                 const pixel = mapData[i][j];
-                if (pixel.status == PixelStatus.interact) {
-                    switch (pixel.highlight) {
-                        case _Highlight.none:
+                if (IsHighlightable(pixel)) {
+                    switch (pixel.Highlight) {
+                        case HighlightPixel.none:
                             break;
-                        case _Highlight.lightBorder:
+                        case HighlightPixel.lightBorder:
                             ctx.strokeStyle = interactCol.getWithLight(pixel.Brightness);
                             ctx.lineWidth = 1;
                             ctx.strokeRect(i * canvasScale, j * canvasScale, canvasScale - 1, canvasScale - 1);
                             break;
-                        case _Highlight.border:
+                        case HighlightPixel.border:
                             ctx.strokeStyle = interactCol.getWithLight(pixel.Brightness);
                             ctx.lineWidth = 2;
                             ctx.strokeRect(i * canvasScale + 1, j * canvasScale + 1, canvasScale - 2, canvasScale - 2);
                             break;
-                        case _Highlight.thickBorder:
+                        case HighlightPixel.thickBorder:
                             ctx.strokeStyle = interactCol.getWithLight(pixel.Brightness);
                             ctx.lineWidth = 4;
                             ctx.strokeRect(i * canvasScale + 2, j * canvasScale + 2, canvasScale - 4, canvasScale - 4);
                             break;
-                        case _Highlight.slash:
+                        case HighlightPixel.slash:
                             ctx.strokeStyle = interactCol.getWithLight(pixel.Brightness);
                             ctx.lineWidth = 2;
                             ctx.strokeRect(i * canvasScale + 1, j * canvasScale + 1, canvasScale - 2, canvasScale - 2);
@@ -898,6 +893,14 @@ class Renderer {
             canvasScale = Math.floor(window.innerHeight * 0.7 / mapData[0].length);
         canvas.width = mapData.length * canvasScale;
         canvas.height = mapData[0].length * canvasScale;
+    }
+}
+class ResourceList {
+    stone = 0;
+    wood = 0;
+    constructor(stone, wood) {
+        this.stone = stone;
+        this.wood = wood;
     }
 }
 //Class for terrain modification
@@ -929,11 +932,11 @@ class TerrainManipulator {
      */
     InsertResourcePixel(Pixel) {
         Terrain.ModifyMapData(Pixel.x, Pixel.y, Pixel);
-        switch (Pixel.interactType) {
-            case InteractType.stone:
+        switch (Pixel.ResourceType) {
+            case ResourceType.stone:
                 ResourceTerrain.stone++;
                 break;
-            case InteractType.wood:
+            case ResourceType.wood:
                 ResourceTerrain.wood++;
                 break;
         }
@@ -945,13 +948,11 @@ class TerrainManipulator {
      * @throws {ReferenceError} No interactable type at that location
      */
     DeleteResourcePixel(pX, pY) {
-        if (mapData[pX][pY].status != PixelStatus.interact)
-            throw new ReferenceError("No resource type at that location");
-        switch (mapData[pX][pY].interactType) {
-            case InteractType.stone:
+        switch (mapData[pX][pY].ResourceType) {
+            case ResourceType.stone:
                 ResourceTerrain.stone--;
                 break;
-            case InteractType.wood:
+            case ResourceType.wood:
                 ResourceTerrain.wood--;
                 break;
             default:
@@ -997,21 +998,17 @@ class TerrainManipulator {
     MovePlayerRaw(Player, x, y) {
         let mPixel = mapData[Player.x + x][Player.y + y];
         //check if the player can move to the given position
-        if (mPixel.status == PixelStatus.free || mPixel.status == PixelStatus.taken ||
-            (mPixel.status == PixelStatus.interact && mPixel.walkStatus == PixelStatus.taken)) { // ??
-            //move the player
+        if (mPixel.status == PixelStatus.walkable) {
             //if is player exiting a door, lock it
-            if (Player.OverlapPixel.status == PixelStatus.interact &&
-                Player.OverlapPixel.interactType == InteractType.door && (x != 0 || y != 0)) {
-                Player.OverlapPixel.Close();
-            }
+            if (mPixel instanceof DoorData)
+                mPixel.Close();
             this.ModifyMapData(Player.x, Player.y, Player.OverlapPixel);
             Player.x += x;
             Player.y += y;
             Player.OverlapPixel = mapData[Player.x][Player.y];
             this.ModifyMapData(Player.x, Player.y, new PixelData(Player.color));
         }
-        else if (mPixel.status == PixelStatus.interact && mPixel.interactType == InteractType.door) {
+        else if (mPixel.status == PixelStatus.interact && mPixel instanceof DoorData) {
             mPixel.Open();
         }
     }
@@ -1063,19 +1060,21 @@ class TerrainManipulator {
             if (i < 0 || i > mapData.length)
                 return;
             for (let j = y - 1; j <= y + 1; j++) {
-                if (j < 0 || j > mapData[0].length || mapData[i][j].status != PixelStatus.free)
+                if (j < 0 || j > mapData[0].length || mapData[i][j].status != PixelStatus.walkable)
                     return;
             }
         }
-        const tPixel = new InteractData(new rgb(200, 70, 50), x, y, InteractType.wood);
+        let OnBreak = () => { Resources.wood += Math.floor(1 + Math.random() * 4); }; // 1 - 4
+        const tPixel = new ResourceData(new rgb(200, 70, 50), PixelStatus.breakable, 6, x, y, HighlightPixel.border, ResourceType.wood, OnBreak);
         Terrain.InsertResourcePixel(tPixel);
-        let lPixel = new InteractData(new rgb(49, 87, 44), x + 1, y, InteractType.wood, 2);
+        OnBreak = () => { Resources.wood += Math.floor(Math.random() * 1.7); }; // 0 - 1
+        let lPixel = new ResourceData(new rgb(49, 87, 44), PixelStatus.breakable, 2, x + 1, y, HighlightPixel.border, ResourceType.wood, OnBreak);
         Terrain.InsertResourcePixel(lPixel);
-        lPixel = new InteractData(new rgb(49, 87, 44), x - 1, y, InteractType.wood, 2);
+        lPixel = new ResourceData(new rgb(49, 87, 44), PixelStatus.breakable, 2, x - 1, y, HighlightPixel.border, ResourceType.wood, OnBreak);
         Terrain.InsertResourcePixel(lPixel);
-        lPixel = new InteractData(new rgb(49, 87, 44), x, y + 1, InteractType.wood, 2);
+        lPixel = new ResourceData(new rgb(49, 87, 44), PixelStatus.breakable, 2, x, y + 1, HighlightPixel.border, ResourceType.wood, OnBreak);
         Terrain.InsertResourcePixel(lPixel);
-        lPixel = new InteractData(new rgb(49, 87, 44), x, y - 1, InteractType.wood, 2);
+        lPixel = new ResourceData(new rgb(49, 87, 44), PixelStatus.breakable, 2, x, y - 1, HighlightPixel.border, ResourceType.wood, OnBreak);
         Terrain.InsertResourcePixel(lPixel);
     }
     /**
@@ -1091,22 +1090,21 @@ class TerrainManipulator {
             if (i < 0 || i > mapData.length)
                 return;
             for (let j = y - 1; j <= y + 1; j++) {
-                if (j < 0 || j > mapData[0].length || mapData[i][j].status != PixelStatus.free)
+                if (j < 0 || j > mapData[0].length || mapData[i][j].status != PixelStatus.walkable)
                     return;
             }
         }
-        let rPixel;
-        rPixel = new InteractData(new rgb(200, 200, 200), x, y, InteractType.stone);
-        Terrain.InsertResourcePixel(rPixel);
-        let sPixel = new InteractData(new rgb(200, 200, 200), x, y, InteractType.stone);
+        const OnBreak = () => { Resources.stone += Math.floor(1 + Math.random() * 3); }; // 1 - 3
+        let sPixel;
+        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x, y, HighlightPixel.border, ResourceType.stone, OnBreak);
         Terrain.InsertResourcePixel(sPixel);
-        sPixel = new InteractData(new rgb(200, 200, 200), x + 1, y, InteractType.stone);
+        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x + 1, y, HighlightPixel.border, ResourceType.stone, OnBreak);
         Terrain.InsertResourcePixel(sPixel);
-        sPixel = new InteractData(new rgb(200, 200, 200), x - 1, y, InteractType.stone);
+        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x - 1, y, HighlightPixel.border, ResourceType.stone, OnBreak);
         Terrain.InsertResourcePixel(sPixel);
-        sPixel = new InteractData(new rgb(200, 200, 200), x, y + 1, InteractType.stone);
+        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x, y + 1, HighlightPixel.border, ResourceType.stone, OnBreak);
         Terrain.InsertResourcePixel(sPixel);
-        sPixel = new InteractData(new rgb(200, 200, 200), x, y - 1, InteractType.stone);
+        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x, y - 1, HighlightPixel.border, ResourceType.stone, OnBreak);
         Terrain.InsertResourcePixel(sPixel);
         let stoneVec = { x: 1, y: 1 };
         let repeats = Math.floor(Math.random() * 3) + 1;
@@ -1117,7 +1115,7 @@ class TerrainManipulator {
                 stoneVec.x = 1;
             if (stoneVec.y == 0)
                 stoneVec.y = 1;
-            sPixel = new InteractData(new rgb(200, 200, 200), x + stoneVec.x, y + stoneVec.y, InteractType.stone);
+            sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x + stoneVec.x, y + stoneVec.y, HighlightPixel.border, ResourceType.stone, OnBreak);
             Terrain.InsertResourcePixel(sPixel);
         }
     }
@@ -1131,23 +1129,14 @@ const canvas = document.getElementById('gameCanvas');
 let canvasScale = 10;
 const gTime = new GameTime();
 let mapData = [];
-let ResourceTerrain = {
-    stone: 0,
-    wood: 0
-};
-const MaxTResource = {
-    stone: 20,
-    wood: 30
-};
+let ResourceTerrain = new ResourceList(0, 0);
+const MaxTResource = new ResourceList(20, 30);
 //sets player position in the middle of the map
-let Player = new PlayerData(new rgb(0, 0, 0), new rgb(255, 255, 255), Math.floor(canvas.width / canvasScale / 2), Math.floor(canvas.height / canvasScale / 2));
+let Player = new PlayerData(new rgb(0, 0, 0), new rgb(255, 255, 255), Math.floor(canvas.width / canvasScale / 2), Math.floor(canvas.height / canvasScale / 2), 5);
 let Render = new Renderer();
 let Terrain = new TerrainManipulator();
-setInterval(UpdateInteractionIndicator, 1000);
-let Resources = {
-    stone: 0,
-    wood: 0,
-};
+setInterval(UpdateBorderColor, 1000);
+let Resources = new ResourceList(0, 0);
 function Start() {
     Terrain.MovePlayer(Player, 0, 0); //Draw player
     Render.Draw();
@@ -1169,39 +1158,23 @@ function Update() {
     if (inputPresses.includes(81)) {
         //if standing on a building damage it
         if (Player.OverlapPixel instanceof BuildingData) {
-            let brokePixel = Player.OverlapPixel.DamageNoDelete();
-            if (brokePixel) {
+            const brokePixel = Player.OverlapPixel.DamageNoDestroy(1);
+            if (brokePixel)
                 Player.OverlapPixel = PerlinPixel(Player.x, Player.y);
-            }
         }
     }
     //movement interactions
-    if (moveTile.status == PixelStatus.interact && moveTile instanceof InteractData) {
-        let brokePixel;
-        switch (moveTile.interactType) {
-            case InteractType.stone:
-                brokePixel = moveTile.Damage();
-                if (brokePixel)
-                    Resources.stone += Math.floor(1 + Math.random() * 2);
-                break;
-            case InteractType.wood:
-                brokePixel = moveTile.Damage();
-                if (brokePixel)
-                    Resources.wood += Math.floor(1 + Math.random() * 2);
-                break;
-            case InteractType.wall:
-                moveTile.Damage();
-                break;
-            case InteractType.floor:
-            case InteractType.door:
-                if (MovementVector.x == 0 && MovementVector.y == 0)
-                    break;
-                //ignore door and floor
-                Terrain.MovePlayer(Player, MovementVector.x, MovementVector.y);
-                break;
-        }
+    if (moveTile instanceof ResourceData) {
+        moveTile.Damage(1);
         Render.UpdateResourcesScreen();
     }
+    else if (moveTile instanceof BuildingData && moveTile.status == PixelStatus.breakable) {
+        if (IsDamageable(moveTile))
+            moveTile.Damage(1);
+        Render.UpdateResourcesScreen();
+    }
+    else if (IsInteractable(moveTile) && moveTile.status == PixelStatus.interact)
+        moveTile.Interact();
     else if (!(MovementVector.x == 0 && MovementVector.y == 0)) {
         Terrain.MovePlayer(Player, MovementVector.x, MovementVector.y);
     }
@@ -1213,7 +1186,10 @@ function Update() {
     gTime.Tick();
     Render.Draw();
 }
-function UpdateInteractionIndicator() {
+/**
+ * Updates the border color
+ */
+function UpdateBorderColor() {
     if (interactCol.get() == new rgb(60, 60, 60).get())
         interactCol = new rgb(50, 50, 50);
     else

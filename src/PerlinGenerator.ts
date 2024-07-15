@@ -90,7 +90,7 @@ class PerlinNoise {
             r: value*255 + 30,
             g: value * 255 + 30,
             b: value*10,
-            s: PixelStatus.free
+            s: PixelStatus.walkable
         }
         //hills or rock (probably delete later)
         //if(value < 0.25) return `rgb(${255 - value * 170}, ${255 - value * 170}, ${255 - value * 170})`;
@@ -99,7 +99,7 @@ class PerlinNoise {
             r: value*50,
             g: 240 - value*90,
             b: value*50,
-            s: PixelStatus.free
+            s: PixelStatus.walkable
         };
     }
     pixel(x: number,y: number){

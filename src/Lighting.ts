@@ -14,14 +14,13 @@ class GameTime{
     triggeredNight: boolean = false;
     triggeredDay: boolean = false;
     constructor(){
-        this.time = this.maxTime * 0.4;
+        this.time = this.maxTime * 0.25;
     }
     /**
      * Updates the time object
      */
     Tick(){
         this.time++;
-        if(this.time % 1 == 0) CalculateLightMap();
 
         if(this.GetDayProgress() <= 0.2){ //day starts (sun rises)
             this.lightLevel = this.GetDayProgress() * 25;
@@ -55,7 +54,8 @@ class GameTime{
 
         document.body.style.background = "rgb(" + lerp(99, 255, t) + "," + 
             lerp(110, 255, t) + "," + lerp(114, 255, t) + ")";
-        
+
+        CalculateLightMap();
     }
 
     OnNightStart(){
@@ -86,11 +86,14 @@ class GameTime{
     }
 }
 
-function BlocksLight(pixel: InteractData): boolean{
-    if(pixel.interactType == InteractType.wall) return true;
-    if(pixel.interactType == InteractType.stone) return true;
-    if(pixel.interactType == InteractType.wood) return true;
-    if(pixel.interactType == InteractType.door && !(<DoorData>pixel).isOpen) return true;
+function BlocksLight(pixel: PixelData): boolean{
+    if(pixel instanceof BuildingData){
+        if(pixel instanceof LightData) return false;
+        if(pixel.status == PixelStatus.block) return true;
+        if(pixel.status == PixelStatus.breakable) return true;
+        if(pixel.status == PixelStatus.interact) return true;
+    }
+    if(pixel instanceof ResourceData) return true;
 
     return false;
 }
@@ -101,13 +104,13 @@ class LightData extends BuildingData{
     constructor(name: string, color: rgb, x: number, y: number,
         hp: number = 4, intensity: number = 2, radius: number = 3
         ){
-        super(name, color, x, y, PixelStatus.interact, hp, _Highlight.thickBorder, InteractType.light);
+        super(name, color, PixelStatus.breakable, hp, x, y, HighlightPixel.thickBorder);
         if(intensity > 7) console.error("Light intensity is too high: " + intensity);
         this.intensity = intensity;
         this.radius = radius;
     }
     at(x: number,y: number){
-        return new LightData(this.name, this.color, x, y, this.maxHealh, this.intensity, this.radius);
+        return new LightData(this.name, this.color, x, y, this.MaxHealth, this.intensity, this.radius);
     }
     BurnOut(){
         Terrain.ModifyMapData(this.x, this.y, PerlinPixel(this.x, this.y));
@@ -138,10 +141,7 @@ function castRay(
         mapData[ix][iy].Brightness = Math.max(lightIntensity, mapData[ix][iy].Brightness);
 
         //blocks light
-        if(mapData[ix][iy].status == PixelStatus.interact){
-            const pixel = <InteractData>mapData[ix][iy];
-            if(BlocksLight(pixel)) break;
-        }
+        if(BlocksLight(mapData[ix][iy])) break;
     }
 }
 function castSunRay( // cestuje a pokud něco najde, tak se na chvili vypne pro iluzi stinu
@@ -170,13 +170,10 @@ function castSunRay( // cestuje a pokud něco najde, tak se na chvili vypne pro 
         mapData[ix][iy].Brightness = clamp(intensity, 5, mapData[ix][iy].Brightness);
 
         //blocks light 
-        if(mapData[ix][iy].status == PixelStatus.interact){
-            const pixel = <InteractData>mapData[ix][iy];
-            if(BlocksLight(pixel)){
-                ShadowTravel = 4;
-                intensity = constIntensity/1.4;
-            };
-        }
+        if(BlocksLight(mapData[ix][iy])){
+            ShadowTravel = 4;
+            intensity = constIntensity/1.4;
+        };
         if(ShadowTravel > 0){
             ShadowTravel--;
         }
@@ -198,7 +195,8 @@ function CalculateLightMap(){
     for(const light of lightSources){
         for(let i = 0; i < numRays; i++){
             const angle = (Math.PI * 2 / numRays) * i;
-            castRay(light.x, light.y, angle, light.intensity, light.radius);
+            //send ray from the middle of the block
+            castRay(light.x+0.5, light.y+.05, angle, light.intensity, light.radius);
         }
     }
 

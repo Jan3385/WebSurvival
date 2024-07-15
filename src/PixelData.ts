@@ -49,133 +49,174 @@ class rgb{
 }
 
 enum PixelStatus{
-    free,
-    taken,
+    walkable,
+    breakable,
     block,
     interact,
 };
-enum _Highlight{
+enum HighlightPixel{
     none,
     lightBorder,
     border,
     thickBorder,
     slash,
-}
+};
+
 class PixelData{
-    /**
-     * Stores data about the given pixel
-     * @param {number} color 
-     * @param {PixelStatus} status 
-     */
     color: rgb;
     status: PixelStatus;
     Brightness: number = 0;
-    constructor(color: rgb, status: PixelStatus = PixelStatus.free){
+    constructor(color: rgb, status: PixelStatus = PixelStatus.walkable){
         this.color = color;
         this.status = status;
     }
 }
-/**
- * Given a X and Y position returns a predictable pixel using perlin noise
- * @param {number} x 
- * @param {number} y 
- * @returns {PixelData} 
- */
+
 function PerlinPixel(x: number,y: number): PixelData{
     const pColor = Perlin.perlinColorTerrain(x/9,y/9);
     return new PixelData(new rgb(pColor.r, pColor.g, pColor.b), pColor.s);
 }
-const EmptyPixel: PixelData = new PixelData(new rgb(147, 200, 0));
 
-class PlayerData extends PixelData{
+interface IDamageable{
+    Health: number;
+    MaxHealth: number;
     /**
-     * Creates a player object with the given colors at the given position
-     * @param {rgb} color 
-     * @param {rgb} borderColor 
-     * @param {number} x 
-     * @param {number} y 
+     * Damaged the Pixel, returns true if the pixel is destroyed
      */
-    borderColor: rgb;
-    x: number;
-    y: number;
-    OverlapPixel: PixelData;
-    constructor(color: rgb, borderColor: rgb, x: number, y: number){
-        super(color, PixelStatus.block);
-        this.borderColor = borderColor;
-        this.x = x;
-        this.y = y;
-        this.OverlapPixel = PerlinPixel(x, y);
-    }
+    Damage(damage: number): boolean;
 }
-enum InteractType{
-    stone,
-    wood,
-    door,
-    wall,
-    floor,
-    light,
-};
+interface IHighlightable{
+    Highlight: HighlightPixel;
+}
+function IsDamageable(entity: any): entity is IDamageable{
+    return entity.Damage !== undefined;
+}
+function IsHighlightable(entity: any): entity is IHighlightable{
+    return entity.Highlight !== undefined;
+}
 
-class InteractData extends PixelData{
-    /**
-     * Construct a interactable pixel with the given color at the given position
-     * @param {rgb} color 
-     * @param {number} x 
-     * @param {number} y 
-     * @param {InteractType} type 
-     * @param {number} [hp=6]
-     */
+abstract class EntityData extends PixelData implements IDamageable, IHighlightable{
     x: number;
     y: number;
-    interactType: InteractType;
-    health: number;
-    highlight: _Highlight;
-    constructor(color: rgb, x: number, y: number, type: InteractType, hp: number = 6, highlight: _Highlight = _Highlight.border){
-        super(color, PixelStatus.interact);
+    BorderColor: rgb;
+    Highlight: HighlightPixel = HighlightPixel.border;
+    OverlapPixel: PixelData;
+    Health: number;
+    MaxHealth: number;
+    constructor(
+        color: rgb, status: PixelStatus = PixelStatus.walkable,
+        x: number, y: number, BorderColor: rgb, EntityHealth: number
+    ){
+        super(color, status);
         this.x = x;
         this.y = y;
-        this.interactType = type;
-        this.health = hp;
-        this.highlight = highlight;
+        this.BorderColor = BorderColor;
+        this.Health = EntityHealth;
+        this.OverlapPixel = PerlinPixel(x, y);
+        this.MaxHealth = this.Health;
     }
-    /**
-     * Damages the interactable pixel, return true if it was destroyed (on final hit)
-     * @returns {boolean} 
-     */
-    Damage(): boolean{
-        this.health--;
-        this.color.Darken(1.2);
-        if(this.health <= 0) {
-            Terrain.DeleteResourcePixel(this.x, this.y);
+    abstract Die(): void;
+
+    Damage(damage: number): boolean{
+        this.Health -= damage;
+        if(this.Health <= 0){
+            this.Die();
             return true;
         }
         return false;
     }
 }
 
-class BuildingData extends InteractData{
-    /**
-     * @constructor
-     * @param {rgb} color 
-     * @param {number} x 
-     * @param {number} y 
-     * @param {PixelStatus} walkStatus 
-     * @param {number} hp 
-     * @param {_Highlight} highlight
-     * @param {InteractType} interactionType
-     */
+class PlayerData extends EntityData{
+    constructor(color: rgb, borderColor: rgb, x: number, y: number, Health:number){
+        super(color, PixelStatus.block, x, y, borderColor, Health);
+    }
+    Die(): void{
+        console.log('Player has died, GAME OVER');
+    }
+}
+class EnemyData extends EntityData{
+    constructor(color: rgb, borderColor: rgb, x: number, y: number, EntityHealth:number){
+        super(color, PixelStatus.breakable, x, y, borderColor, EntityHealth);
+    }
+    Die(): void{
+        console.log('Enemy has died');
+        mapData[this.x][this.y] = this.OverlapPixel;
+    }
+}
+enum ResourceType{
+    wood,
+    stone,
+}
+class ResourceData extends PixelData implements IDamageable, IHighlightable{
+    Health: number;
+    MaxHealth: number;
+    x: number;
+    y: number;
+    Highlight: HighlightPixel;
+    ResourceType: ResourceType;
+    OnResourceDestroy: () => void;
+    constructor(
+        color: rgb, status: PixelStatus, Health: number, x: number, y: number,
+        Highlight: HighlightPixel, ResourceType: ResourceType ,OnResourceDestroy: () => void
+    ){
+        super(color, status);
+        this.Health = Health;
+        this.MaxHealth = Health;
+        this.x = x;
+        this.y = y;
+        this.Highlight = Highlight;
+        this.ResourceType = ResourceType;
+        this.OnResourceDestroy = OnResourceDestroy;
+    }
+    Damage(damage: number): boolean{
+        this.Health -= damage;
+        this.color.Darken(1.2);
+        if(this.Health <= 0){
+            Terrain.DeleteResourcePixel(this.x, this.y);
+            this.OnResourceDestroy();
+            return true;
+        }
+        return false;
+    }
+}
+class BuildingData extends PixelData implements IDamageable, IHighlightable{
+    Health: number;
+    MaxHealth: number;
+    x: number;
+    y: number;
+    Highlight: HighlightPixel;
+    DefaultColor: rgb;
     name: string;
-    walkStatus: PixelStatus;
-    maxHealh: number;
-    defaultColor: rgb;
-    highlight: _Highlight;
-    constructor(name: string, color: rgb, x: number, y: number, walkStatus: PixelStatus, hp: number = 12, highlight: _Highlight = _Highlight.border, interactionType: InteractType){
-        super(color, x, y, interactionType, hp);
+    constructor(
+        name: string, color: rgb, status: PixelStatus, Health: number, x: number, y: number,
+        Highlight: HighlightPixel
+    ){
+        super(color, status);
         this.name = name;
-        this.maxHealh = hp;
-        this.defaultColor = color.new();
-        this.walkStatus = walkStatus
-        this.highlight = highlight;
+        this.Health = Health;
+        this.MaxHealth = Health;
+        this.x = x;
+        this.y = y;
+        this.Highlight = Highlight;
+        this.DefaultColor = color.new();
+    }
+    Damage(damage: number): boolean{
+        this.Health -= damage;
+        this.color.Darken(1.07); //TODO: update the Darken method and execution
+        if(this.Health <= 0){
+            Terrain.ModifyMapData(this.x, this.y, PerlinPixel(this.x, this.y));
+            return true;
+        }
+        return false;
+    }
+    DamageNoDestroy(damage: number): boolean{
+        this.Health -= damage;
+        this.color.Darken(1.07);
+        if(this.Health <= 0){
+            return true;
+        }
+        return false;
     }
     /**
      * Returns this object at the specified coordinates
@@ -184,63 +225,49 @@ class BuildingData extends InteractData{
      * @returns {ThisType}
      */
     at(x: number,y: number): BuildingData{
-        return new BuildingData(this.name, this.defaultColor.newSlightlyRandom(30), x, y, this.walkStatus, this.maxHealh, this.highlight, this.interactType);
-    }
-    Damage(): boolean{
-        this.health--;
-        this.color.Darken(1.07);
-        if(this.health <= 0) {
-            Terrain.ModifyMapData(this.x, this.y, PerlinPixel(this.x, this.y));
-            return true;
-        }
-        return false;
-    }
-    DamageNoDelete(){
-        this.health--;
-        this.color.Darken(1.07);
-        if(this.health <= 0) {
-            return true;
-        }
-        return false;
+        return new BuildingData(this.name, this.DefaultColor.newSlightlyRandom(30), this.status, this.MaxHealth ,x, y, this.Highlight);
     }
     FullyHeal(){
-        this.health = this.maxHealh;
-        this.color = this.defaultColor;
+        this.Health = this.MaxHealth;
+        this.color = this.DefaultColor.new();
     }
 }
-class DoorData extends BuildingData{
-    /**
-     * @constructor
-     * @param {rgb} color 
-     * @param {number} x 
-     * @param {number} y 
-     * @param {PixelStatus} walkStatus 
-     * @param {number} hp 
-     * @param {_Highlight} highlight
-     * @param {InteractType} interactionType
-     */
+interface IInteractable{
+    Interact(): void;
+}
+function IsInteractable(entity: any): entity is IInteractable{
+    return entity.Interact !== undefined;
+}
+class DoorData extends BuildingData implements IInteractable{
     isOpen: boolean;
-    constructor(name:string, color: rgb, x: number, y: number, walkStatus: PixelStatus, hp: number = 12, highlight: _Highlight = _Highlight.border, interactionType: InteractType){
-        super(name, color, x, y, walkStatus, hp, highlight, interactionType);
+    constructor(
+        name:string, color: rgb, x: number, y: number, hp: number = 12, 
+        highlight: HighlightPixel = HighlightPixel.slash
+    ){
+        super(name, color, PixelStatus.interact, hp, x, y, highlight);
         this.isOpen = false;
     }
     at(x: number,y: number){
-        return new DoorData(this.name, this.defaultColor.newSlightlyRandom(30), x, y, this.walkStatus, this.maxHealh, this.highlight, this.interactType);
+        return new DoorData(this.name, this.DefaultColor.newSlightlyRandom(30), x, y, this.MaxHealth, this.Highlight);
+    }
+    Interact(): void {
+        if(this.isOpen) this.Close();
+        else this.Open();
     }
     Open(){
         if(this.isOpen) return;
 
-        this.walkStatus = PixelStatus.taken;
+        this.status = PixelStatus.walkable;
         this.color = this.color.changeBy(-30);
-        this.highlight = _Highlight.lightBorder;
+        this.Highlight = HighlightPixel.lightBorder;
         this.isOpen = true;
     }
     Close(){
         if(!this.isOpen) return;
 
-        this.walkStatus = PixelStatus.block;
+        this.status = PixelStatus.interact;
         this.color = this.color.changeBy(+30);
-        this.highlight = _Highlight.slash;
+        this.Highlight = HighlightPixel.slash;
         this.isOpen = false;
     }
 }

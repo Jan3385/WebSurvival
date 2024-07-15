@@ -56,7 +56,7 @@ class Renderer{
         }
         this.DrawInteractIndicator();
         
-        ctx.strokeStyle = Player.borderColor.getWithLight(Math.max(0.35,mapData[Player.x][Player.y].Brightness));
+        ctx.strokeStyle = Player.BorderColor.getWithLight(Math.max(0.35,mapData[Player.x][Player.y].Brightness));
         ctx.lineWidth = 2;
         ctx.strokeRect(Player.x*canvasScale+1, Player.y*canvasScale+1, canvasScale-2, canvasScale-2);
     }
@@ -68,26 +68,26 @@ class Renderer{
         for(let i = 0; i < mapData.length; i++){
             for(let j = 0; j < mapData[0].length; j++){
                 const pixel = mapData[i][j];
-                if(pixel.status == PixelStatus.interact) {
-                    switch((<InteractData>pixel).highlight){
-                        case _Highlight.none:
+                if(IsHighlightable(pixel)){
+                    switch((<IHighlightable>pixel).Highlight){
+                        case HighlightPixel.none:
                             break;
-                        case _Highlight.lightBorder:
+                        case HighlightPixel.lightBorder:
                             ctx.strokeStyle = interactCol.getWithLight(pixel.Brightness);
                             ctx.lineWidth = 1;
                             ctx.strokeRect(i*canvasScale, j*canvasScale, canvasScale-1, canvasScale-1);
                             break;
-                        case _Highlight.border:
+                        case HighlightPixel.border:
                             ctx.strokeStyle = interactCol.getWithLight(pixel.Brightness);
                             ctx.lineWidth = 2;
                             ctx.strokeRect(i*canvasScale+1, j*canvasScale+1, canvasScale-2, canvasScale-2);
                             break;
-                        case _Highlight.thickBorder:
+                        case HighlightPixel.thickBorder:
                             ctx.strokeStyle = interactCol.getWithLight(pixel.Brightness);
                             ctx.lineWidth = 4;
                             ctx.strokeRect(i*canvasScale+2, j*canvasScale+2, canvasScale-4, canvasScale-4);
                             break;
-                        case _Highlight.slash:
+                        case HighlightPixel.slash:
                             ctx.strokeStyle = interactCol.getWithLight(pixel.Brightness);
                             ctx.lineWidth = 2;
                             ctx.strokeRect(i*canvasScale+1, j*canvasScale+1, canvasScale-2, canvasScale-2);
@@ -115,6 +115,14 @@ class Renderer{
 
         canvas.width = mapData.length * canvasScale;
         canvas.height = mapData[0].length * canvasScale;
+    }
+}
+class ResourceList{
+    stone: number = 0;
+    wood: number = 0;
+    constructor(stone: number, wood: number){
+        this.stone = stone;
+        this.wood = wood;
     }
 }
 //Class for terrain modification
@@ -145,14 +153,14 @@ class TerrainManipulator{
      * Inserts a interactable pixel at the pixel inner position
      * @param {InteractData} Pixel 
      */
-    InsertResourcePixel(Pixel: InteractData): void{
+    InsertResourcePixel(Pixel: ResourceData): void{
         Terrain.ModifyMapData(Pixel.x, Pixel.y, Pixel);
 
-        switch(Pixel.interactType){
-            case InteractType.stone:
+        switch(Pixel.ResourceType){
+            case ResourceType.stone:
                 ResourceTerrain.stone++;
                 break;
-            case InteractType.wood:
+            case ResourceType.wood:
                 ResourceTerrain.wood++;
                 break;
         }
@@ -164,13 +172,11 @@ class TerrainManipulator{
      * @throws {ReferenceError} No interactable type at that location
      */
     DeleteResourcePixel(pX: number, pY: number): void{
-        if(mapData[pX][pY].status != PixelStatus.interact) throw new ReferenceError("No resource type at that location");
-
-        switch((<InteractData>mapData[pX][pY]).interactType){
-            case InteractType.stone:
+        switch((<ResourceData>mapData[pX][pY]).ResourceType){
+            case ResourceType.stone:
                 ResourceTerrain.stone--;
                 break;
-            case InteractType.wood:
+            case ResourceType.wood:
                 ResourceTerrain.wood--;
                 break;
             default:
@@ -216,17 +222,10 @@ class TerrainManipulator{
     MovePlayerRaw(Player: PlayerData, x: number, y: number): void{
         let mPixel: PixelData = mapData[Player.x + x][Player.y + y];
         //check if the player can move to the given position
-        if(mPixel.status == PixelStatus.free || mPixel.status == PixelStatus.taken || 
-         (mPixel.status == PixelStatus.interact && (<any>mPixel).walkStatus == PixelStatus.taken)){ // ??
-
-            //move the player
+        if(mPixel.status == PixelStatus.walkable){
 
             //if is player exiting a door, lock it
-            if(Player.OverlapPixel.status == PixelStatus.interact && 
-              (<InteractData>Player.OverlapPixel).interactType == InteractType.door && (x != 0 || y != 0)) {
-
-                (<DoorData>Player.OverlapPixel).Close();
-            }
+            if(mPixel instanceof DoorData) mPixel.Close();
 
             this.ModifyMapData(Player.x, Player.y, Player.OverlapPixel);
             Player.x += x;
@@ -234,8 +233,8 @@ class TerrainManipulator{
             Player.OverlapPixel = mapData[Player.x][Player.y];
             this.ModifyMapData(Player.x, Player.y, new PixelData(Player.color));
 
-        }else if(mPixel.status == PixelStatus.interact && (<InteractData>mPixel).interactType == InteractType.door){
-            (<DoorData>mPixel).Open();
+        }else if(mPixel.status == PixelStatus.interact && mPixel instanceof DoorData){
+            mPixel.Open();
         }
     }
     /**
@@ -287,20 +286,23 @@ class TerrainManipulator{
         for(let i = x-1; i <= x+1; i++){
             if(i < 0 || i > mapData.length) return;
             for(let j = y-1; j<=y+1; j++){
-                if(j < 0 || j > mapData[0].length || mapData[i][j].status != PixelStatus.free) return;
+                if(j < 0 || j > mapData[0].length || mapData[i][j].status != PixelStatus.walkable) return;
             }
         }
 
-        const tPixel: InteractData = new InteractData(new rgb(200, 70, 50), x, y, InteractType.wood);
+        let OnBreak = () =>{ Resources.wood+= Math.floor(1 + Math.random()*4); }; // 1 - 4
+        const tPixel: ResourceData = new ResourceData(new rgb(200, 70, 50), PixelStatus.breakable, 
+            6, x, y, HighlightPixel.border, ResourceType.wood, OnBreak);
         Terrain.InsertResourcePixel(tPixel);
         
-        let lPixel = new InteractData(new rgb(49, 87, 44), x+1, y, InteractType.wood, 2);
+        OnBreak = () =>{ Resources.wood+= Math.floor(Math.random()*1.7); }; // 0 - 1
+        let lPixel = new ResourceData(new rgb(49, 87, 44),PixelStatus.breakable, 2, x+1, y, HighlightPixel.border, ResourceType.wood, OnBreak);
         Terrain.InsertResourcePixel(lPixel);
-        lPixel = new InteractData(new rgb(49, 87, 44), x-1, y, InteractType.wood, 2);
+        lPixel = new ResourceData(new rgb(49, 87, 44),PixelStatus.breakable, 2, x-1, y, HighlightPixel.border, ResourceType.wood, OnBreak);
         Terrain.InsertResourcePixel(lPixel);
-        lPixel = new InteractData(new rgb(49, 87, 44), x, y+1, InteractType.wood, 2);
+        lPixel = new ResourceData(new rgb(49, 87, 44),PixelStatus.breakable, 2, x, y+1, HighlightPixel.border, ResourceType.wood, OnBreak);
         Terrain.InsertResourcePixel(lPixel);
-        lPixel = new InteractData(new rgb(49, 87, 44), x, y-1, InteractType.wood, 2);
+        lPixel = new ResourceData(new rgb(49, 87, 44),PixelStatus.breakable, 2, x, y-1, HighlightPixel.border, ResourceType.wood, OnBreak);
         Terrain.InsertResourcePixel(lPixel);
     }
     /**
@@ -315,22 +317,21 @@ class TerrainManipulator{
         for(let i = x-1; i <= x+1; i++){
             if(i < 0 || i > mapData.length) return;
             for(let j = y-1; j<=y+1; j++){
-                if(j < 0 || j > mapData[0].length || mapData[i][j].status != PixelStatus.free) return;
+                if(j < 0 || j > mapData[0].length || mapData[i][j].status != PixelStatus.walkable) return;
             }
         }
 
-        let rPixel: InteractData;
-        rPixel = new InteractData(new rgb(200, 200, 200), x, y, InteractType.stone);
-        Terrain.InsertResourcePixel(rPixel);
-        let sPixel = new InteractData(new rgb(200, 200, 200), x, y, InteractType.stone);
+        const OnBreak = () =>{ Resources.stone+= Math.floor(1 + Math.random()*3); }; // 1 - 3
+        let sPixel: ResourceData;
+        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x, y,HighlightPixel.border, ResourceType.stone, OnBreak);
         Terrain.InsertResourcePixel(sPixel);
-        sPixel = new InteractData(new rgb(200, 200, 200), x+1, y, InteractType.stone);
+        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x+1, y,HighlightPixel.border, ResourceType.stone, OnBreak);
         Terrain.InsertResourcePixel(sPixel);
-        sPixel = new InteractData(new rgb(200, 200, 200), x-1, y, InteractType.stone);
+        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x-1, y,HighlightPixel.border, ResourceType.stone, OnBreak);
         Terrain.InsertResourcePixel(sPixel);
-        sPixel = new InteractData(new rgb(200, 200, 200), x, y+1, InteractType.stone);
+        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x, y+1,HighlightPixel.border, ResourceType.stone, OnBreak);
         Terrain.InsertResourcePixel(sPixel);
-        sPixel = new InteractData(new rgb(200, 200, 200), x, y-1, InteractType.stone);
+        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x, y-1,HighlightPixel.border, ResourceType.stone, OnBreak);
         Terrain.InsertResourcePixel(sPixel);
 
         let stoneVec = {x: 1, y: 1}
@@ -341,7 +342,7 @@ class TerrainManipulator{
             if(stoneVec.x == 0) stoneVec.x = 1;
             if(stoneVec.y == 0) stoneVec.y = 1;
 
-            sPixel = new InteractData(new rgb(200, 200, 200), x+stoneVec.x, y+stoneVec.y, InteractType.stone);
+            sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x+stoneVec.x, y+stoneVec.y,HighlightPixel.border, ResourceType.stone, OnBreak);
             Terrain.InsertResourcePixel(sPixel);
         }
     }
