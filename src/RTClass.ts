@@ -192,12 +192,28 @@ class TerrainManipulator{
         }
     }
     /**
-     * Moves the given player by the X and Y amount
+     * Hadles safe player movement
      * @param {PlayerData} Player 
      * @param {Number} x 
      * @param {Number} y 
      */
     MovePlayer(Player: PlayerData, x: number, y: number): void{
+        //if player is not building allow diagonal movement else only move non-diagonaly
+        if(!isBuilding){
+            Terrain.MovePlayerRaw(Player, MovementVector.x, 0);
+            Terrain.MovePlayerRaw(Player, 0, MovementVector.y);
+        }else{
+            if(MovementVector.x != 0) MovementVector.y = 0;
+            Terrain.MovePlayerRaw(Player, MovementVector.x, MovementVector.y);
+        }
+    }
+    /**
+     * Moves the given player by the X and Y amount
+     * @param {PlayerData} Player 
+     * @param {Number} x 
+     * @param {Number} y 
+     */
+    MovePlayerRaw(Player: PlayerData, x: number, y: number): void{
         let mPixel: PixelData = mapData[Player.x + x][Player.y + y];
         //check if the player can move to the given position
         if(mPixel.status == PixelStatus.free || mPixel.status == PixelStatus.taken || 

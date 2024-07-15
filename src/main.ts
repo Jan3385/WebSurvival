@@ -88,27 +88,13 @@ function Update(){
             case InteractType.door:
                 if(MovementVector.x == 0 && MovementVector.y == 0) break;
                 //ignore door and floor
-                if(!isBuilding){
-                    Terrain.MovePlayer(Player, MovementVector.x, 0);
-                    Terrain.MovePlayer(Player, 0, MovementVector.y);
-                }else{
-                    if(MovementVector.x != 0) MovementVector.y = 0;
-                    Terrain.MovePlayer(Player, MovementVector.x, MovementVector.y);
-                }
+                Terrain.MovePlayer(Player, MovementVector.x, MovementVector.y);
                 break;
         }
         Render.UpdateResourcesScreen();
     } 
     else if(!(MovementVector.x == 0 && MovementVector.y == 0)){
-        //moves player
-        //if player is not building allow diagonal movement else only move non-diagonaly
-        if(!isBuilding){
-            Terrain.MovePlayer(Player, MovementVector.x, 0);
-            Terrain.MovePlayer(Player, 0, MovementVector.y);
-        }else{
-            if(MovementVector.x != 0) MovementVector.y = 0;
-            Terrain.MovePlayer(Player, MovementVector.x, MovementVector.y);
-        }
+        Terrain.MovePlayer(Player, MovementVector.x, MovementVector.y);
     }
 
     UpdateInput();

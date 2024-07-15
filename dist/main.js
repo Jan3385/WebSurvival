@@ -971,12 +971,30 @@ class TerrainManipulator {
         }
     }
     /**
-     * Moves the given player by the X and Y amount
+     * Hadles safe player movement
      * @param {PlayerData} Player
      * @param {Number} x
      * @param {Number} y
      */
     MovePlayer(Player, x, y) {
+        //if player is not building allow diagonal movement else only move non-diagonaly
+        if (!isBuilding) {
+            Terrain.MovePlayerRaw(Player, MovementVector.x, 0);
+            Terrain.MovePlayerRaw(Player, 0, MovementVector.y);
+        }
+        else {
+            if (MovementVector.x != 0)
+                MovementVector.y = 0;
+            Terrain.MovePlayerRaw(Player, MovementVector.x, MovementVector.y);
+        }
+    }
+    /**
+     * Moves the given player by the X and Y amount
+     * @param {PlayerData} Player
+     * @param {Number} x
+     * @param {Number} y
+     */
+    MovePlayerRaw(Player, x, y) {
         let mPixel = mapData[Player.x + x][Player.y + y];
         //check if the player can move to the given position
         if (mPixel.status == PixelStatus.free || mPixel.status == PixelStatus.taken ||
@@ -1179,31 +1197,13 @@ function Update() {
                 if (MovementVector.x == 0 && MovementVector.y == 0)
                     break;
                 //ignore door and floor
-                if (!isBuilding) {
-                    Terrain.MovePlayer(Player, MovementVector.x, 0);
-                    Terrain.MovePlayer(Player, 0, MovementVector.y);
-                }
-                else {
-                    if (MovementVector.x != 0)
-                        MovementVector.y = 0;
-                    Terrain.MovePlayer(Player, MovementVector.x, MovementVector.y);
-                }
+                Terrain.MovePlayer(Player, MovementVector.x, MovementVector.y);
                 break;
         }
         Render.UpdateResourcesScreen();
     }
     else if (!(MovementVector.x == 0 && MovementVector.y == 0)) {
-        //moves player
-        //if player is not building allow diagonal movement else only move non-diagonaly
-        if (!isBuilding) {
-            Terrain.MovePlayer(Player, MovementVector.x, 0);
-            Terrain.MovePlayer(Player, 0, MovementVector.y);
-        }
-        else {
-            if (MovementVector.x != 0)
-                MovementVector.y = 0;
-            Terrain.MovePlayer(Player, MovementVector.x, MovementVector.y);
-        }
+        Terrain.MovePlayer(Player, MovementVector.x, MovementVector.y);
     }
     UpdateInput();
     //Resource spawner
