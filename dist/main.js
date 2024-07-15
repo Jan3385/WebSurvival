@@ -385,6 +385,7 @@ function castRay(sX, sY, angle, intensity, radius) {
         y += dy;
         const ix = Math.floor(x);
         const iy = Math.floor(y);
+        //stop the light out of bounds
         if (ix < 0 || ix >= mapData.length || iy < 0 || iy >= mapData[0].length)
             break;
         const distance = Math.sqrt((ix - sX) ** 2 + (iy - sY) ** 2);
