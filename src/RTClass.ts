@@ -75,7 +75,7 @@ class Renderer{
                         case _Highlight.lightBorder:
                             ctx.strokeStyle = interactCol.getWithLight(pixel.Brightness);
                             ctx.lineWidth = 1;
-                            ctx.strokeRect(i*canvasScale+1, j*canvasScale+1, canvasScale-2, canvasScale-2);
+                            ctx.strokeRect(i*canvasScale, j*canvasScale, canvasScale-1, canvasScale-1);
                             break;
                         case _Highlight.border:
                             ctx.strokeStyle = interactCol.getWithLight(pixel.Brightness);
@@ -84,8 +84,8 @@ class Renderer{
                             break;
                         case _Highlight.thickBorder:
                             ctx.strokeStyle = interactCol.getWithLight(pixel.Brightness);
-                            ctx.lineWidth = 3;
-                            ctx.strokeRect(i*canvasScale+1, j*canvasScale+1, canvasScale-2, canvasScale-2);
+                            ctx.lineWidth = 4;
+                            ctx.strokeRect(i*canvasScale+2, j*canvasScale+2, canvasScale-4, canvasScale-4);
                             break;
                         case _Highlight.slash:
                             ctx.strokeStyle = interactCol.getWithLight(pixel.Brightness);
