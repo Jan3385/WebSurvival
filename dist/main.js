@@ -519,7 +519,12 @@ let Building = [
         build: new LightData("Lantern", new rgb(255, 255, 0), 1, 1, 4, 7, 7),
         cost: { stone: 7, wood: 30 },
         label: "Lasts a lifetime!"
-    }
+    },
+    {
+        build: new BuildingData("Landfill", new rgb(109, 76, 65), PixelStatus.walkable, 3, 1, 1, HighlightPixel.none),
+        cost: { stone: 1, wood: 10 },
+        label: "Fills in the gaps"
+    },
 ];
 let SelectedBuilding = Building[0];
 document.getElementById("Selected-Building-Label").innerHTML = SelectedBuilding.build.name + " - " + SelectedBuilding.label;
@@ -580,10 +585,23 @@ function Build(Building) {
         && Resources.wood >= Building.cost.wood) {
         Resources.stone -= Building.cost.stone;
         Resources.wood -= Building.cost.wood;
+        //if placing landfill
+        if (Building.build.name == "Landfill") {
+            BuildLandfillAround(Player.x, Player.y);
+            Player.OverlapPixel = new PixelData(new rgb(109, 76, 65), PixelStatus.walkable);
+            Render.UpdateResourcesScreen();
+            return;
+        }
         Player.OverlapPixel = Building.build.at(Player.x, Player.y);
         Render.UpdateResourcesScreen();
         isBuilding = true;
     }
+}
+function BuildLandfillAround(x, y) {
+    mapData[x + 1][y] = new PixelData(new rgb(109, 76, 65), PixelStatus.walkable);
+    mapData[x - 1][y] = new PixelData(new rgb(109, 76, 65), PixelStatus.walkable);
+    mapData[x][y + 1] = new PixelData(new rgb(109, 76, 65), PixelStatus.walkable);
+    mapData[x][y - 1] = new PixelData(new rgb(109, 76, 65), PixelStatus.walkable);
 }
 class Vector2 {
     x;
