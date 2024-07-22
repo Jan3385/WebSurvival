@@ -128,7 +128,7 @@ function canPlaceBuildingOn(pixel: PixelData): boolean{
     return false;
 }
 function Build(
-    Building: {
+    BuildedBuilding: {
         build: BuildingData;
         cost: {
             stone: number;
@@ -137,28 +137,41 @@ function Build(
         label: string;
     }): void{
 
-    if(Resources.stone >= Building.cost.stone
-        && Resources.wood >= Building.cost.wood){
-            
-            Resources.stone -= Building.cost.stone;
-            Resources.wood -= Building.cost.wood;
-
+    if(Resources.stone >= BuildedBuilding.cost.stone
+        && Resources.wood >= BuildedBuilding.cost.wood){
             //if placing landfill
-            if(Building.build.name == "Landfill"){
-                BuildLandfillAround(Player.x, Player.y);
-                Player.OverlapPixel = new PixelData(new rgb(109, 76, 65), PixelStatus.walkable);
+            if(BuildedBuilding.build.name == "Landfill"){
+                BuildLandfill(Player.x, Player.y);
                 Render.UpdateResourcesScreen();
                 return;
             }
+            
+            Resources.stone -= BuildedBuilding.cost.stone;
+            Resources.wood -= BuildedBuilding.cost.wood;
 
-            Player.OverlapPixel = Building.build.at(Player.x, Player.y);
+            Player.OverlapPixel = BuildedBuilding.build.at(Player.x, Player.y);
             Render.UpdateResourcesScreen();
             isBuilding = true;
     }
 }
-function BuildLandfillAround(x: number, y: number): void{
-    mapData[x+1][y] = new PixelData(new rgb(109, 76, 65), PixelStatus.walkable);
-    mapData[x-1][y] = new PixelData(new rgb(109, 76, 65), PixelStatus.walkable);
-    mapData[x][y+1] = new PixelData(new rgb(109, 76, 65), PixelStatus.walkable);
-    mapData[x][y-1] = new PixelData(new rgb(109, 76, 65), PixelStatus.walkable);
+function BuildLandfill(x: number, y: number): void{
+    let didBuild: boolean = false;
+    let BuildVectors: Vector2[] = [
+        new Vector2(1, 0),
+        new Vector2(0, 1),
+        new Vector2(-1, 0),
+        new Vector2(0, -1)
+    ];
+
+    for(let i = 0; i < BuildVectors.length; i++){
+        if(mapData[x+BuildVectors[i].x][y+BuildVectors[i].y] instanceof TerrainData && (<TerrainData>mapData[x][y]).type == TerrainType.water){
+            mapData[x+BuildVectors[i].x][y+BuildVectors[i].y] = new TerrainData(new rgb(109, 76, 65), PixelStatus.walkable, TerrainType.ground);
+            didBuild = true;
+        }
+    }
+
+    if(didBuild){
+        Resources.stone -= Building[11].cost.stone;
+        Resources.wood -= Building[11].cost.wood;
+    }
 }

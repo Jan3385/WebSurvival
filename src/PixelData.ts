@@ -71,10 +71,22 @@ class PixelData{
         this.status = status;
     }
 }
+enum TerrainType{
+    ground,
+    sand,
+    water,
+}
+class TerrainData extends PixelData{
+    type: TerrainType;
+    constructor(color: rgb, status: PixelStatus, type: TerrainType){
+        super(color, status);
+        this.type = type;
+    }
 
+}
 function PerlinPixel(x: number,y: number): PixelData{
     const pColor = Perlin.perlinColorTerrain(x/9,y/9);
-    return new PixelData(new rgb(pColor.r, pColor.g, pColor.b), pColor.s);
+    return new TerrainData(new rgb(pColor.r, pColor.g, pColor.b), pColor.s, pColor.t);
 }
 
 interface IDamageable{
