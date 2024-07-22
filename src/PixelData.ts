@@ -62,7 +62,7 @@ enum HighlightPixel{
     slash,
 };
 
-class PixelData{
+abstract class PixelData{
     color: rgb;
     status: PixelStatus;
     Brightness: number = 0;
@@ -169,7 +169,7 @@ class ResourceData extends PixelData implements IDamageable, IHighlightable{
     Highlight: HighlightPixel;
     HighlightColor: rgb = new rgb(60, 60, 60);
     ResourceType: ResourceType;
-    OverlaidPixel: PixelData = new PixelData(new rgb(0,0,0), PixelStatus.walkable);
+    OverlaidPixel: PixelData;
     OnResourceDestroy: () => void;
     constructor(
         color: rgb, status: PixelStatus, Health: number, x: number, y: number,
@@ -205,7 +205,7 @@ class BuildingData extends PixelData implements IDamageable, IHighlightable{
     HighlightColor: rgb = new rgb(60, 60, 60);
     DefaultColor: rgb;
     name: string;
-    OverlaidPixel: PixelData = new PixelData(new rgb(0,0,0), PixelStatus.walkable);
+    OverlaidPixel: PixelData = new TerrainData(new rgb(0,0,0), PixelStatus.walkable, TerrainType.ground);
     constructor(
         name: string, color: rgb, status: PixelStatus, Health: number, x: number, y: number,
         Highlight: HighlightPixel

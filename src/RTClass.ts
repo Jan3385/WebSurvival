@@ -231,7 +231,7 @@ class TerrainManipulator{
             Player.x += x;
             Player.y += y;
             Player.OverlapPixel = mapData[Player.x][Player.y];
-            this.ModifyMapData(Player.x, Player.y, new PixelData(Player.color));
+            this.ModifyMapData(Player.x, Player.y, new PlayerData(Player.color, Player.HighlightColor, Player.x, Player.y, Player.Health));
 
         }else if(mPixel.status == PixelStatus.interact && mPixel instanceof DoorData){
             mPixel.Open();
@@ -248,7 +248,7 @@ class TerrainManipulator{
         Player.x += x;
         Player.y += y;
         Player.OverlapPixel = mapData[Player.x][Player.y];
-        this.ModifyMapData(Player.x, Player.y, new PixelData(Player.color));
+        this.ModifyMapData(Player.x, Player.y, new PlayerData(Player.color, Player.HighlightColor, Player.x, Player.y, Player.Health));
     }
 
     /**

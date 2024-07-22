@@ -149,7 +149,7 @@ class ResourceData extends PixelData {
     Highlight;
     HighlightColor = new rgb(60, 60, 60);
     ResourceType;
-    OverlaidPixel = new PixelData(new rgb(0, 0, 0), PixelStatus.walkable);
+    OverlaidPixel;
     OnResourceDestroy;
     constructor(color, status, Health, x, y, Highlight, ResourceType, OverlaidPixel, OnResourceDestroy) {
         super(color, status);
@@ -182,7 +182,7 @@ class BuildingData extends PixelData {
     HighlightColor = new rgb(60, 60, 60);
     DefaultColor;
     name;
-    OverlaidPixel = new PixelData(new rgb(0, 0, 0), PixelStatus.walkable);
+    OverlaidPixel = new TerrainData(new rgb(0, 0, 0), PixelStatus.walkable, TerrainType.ground);
     constructor(name, color, status, Health, x, y, Highlight) {
         super(color, status);
         this.name = name;
@@ -1080,7 +1080,7 @@ class TerrainManipulator {
             Player.x += x;
             Player.y += y;
             Player.OverlapPixel = mapData[Player.x][Player.y];
-            this.ModifyMapData(Player.x, Player.y, new PixelData(Player.color));
+            this.ModifyMapData(Player.x, Player.y, new PlayerData(Player.color, Player.HighlightColor, Player.x, Player.y, Player.Health));
         }
         else if (mPixel.status == PixelStatus.interact && mPixel instanceof DoorData) {
             mPixel.Open();
@@ -1097,7 +1097,7 @@ class TerrainManipulator {
         Player.x += x;
         Player.y += y;
         Player.OverlapPixel = mapData[Player.x][Player.y];
-        this.ModifyMapData(Player.x, Player.y, new PixelData(Player.color));
+        this.ModifyMapData(Player.x, Player.y, new PlayerData(Player.color, Player.HighlightColor, Player.x, Player.y, Player.Health));
     }
     /**
      * Tries to generate a random resource on the map
