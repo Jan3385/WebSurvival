@@ -70,9 +70,22 @@ class PixelData {
         this.status = status;
     }
 }
+var TerrainType;
+(function (TerrainType) {
+    TerrainType[TerrainType["ground"] = 0] = "ground";
+    TerrainType[TerrainType["sand"] = 1] = "sand";
+    TerrainType[TerrainType["water"] = 2] = "water";
+})(TerrainType || (TerrainType = {}));
+class TerrainData extends PixelData {
+    type;
+    constructor(color, status, type) {
+        super(color, status);
+        this.type = type;
+    }
+}
 function PerlinPixel(x, y) {
     const pColor = Perlin.perlinColorTerrain(x / 9, y / 9);
-    return new PixelData(new rgb(pColor.r, pColor.g, pColor.b), pColor.s);
+    return new TerrainData(new rgb(pColor.r, pColor.g, pColor.b), pColor.s, pColor.t);
 }
 function IsDamageable(entity) {
     return entity.Damage !== undefined;
@@ -580,28 +593,40 @@ function canPlaceBuildingOn(pixel) {
         return true;
     return false;
 }
-function Build(Building) {
-    if (Resources.stone >= Building.cost.stone
-        && Resources.wood >= Building.cost.wood) {
-        Resources.stone -= Building.cost.stone;
-        Resources.wood -= Building.cost.wood;
+function Build(BuildedBuilding) {
+    if (Resources.stone >= BuildedBuilding.cost.stone
+        && Resources.wood >= BuildedBuilding.cost.wood) {
         //if placing landfill
-        if (Building.build.name == "Landfill") {
-            BuildLandfillAround(Player.x, Player.y);
-            Player.OverlapPixel = new PixelData(new rgb(109, 76, 65), PixelStatus.walkable);
+        if (BuildedBuilding.build.name == "Landfill") {
+            BuildLandfill(Player.x, Player.y);
             Render.UpdateResourcesScreen();
             return;
         }
-        Player.OverlapPixel = Building.build.at(Player.x, Player.y);
+        Resources.stone -= BuildedBuilding.cost.stone;
+        Resources.wood -= BuildedBuilding.cost.wood;
+        Player.OverlapPixel = BuildedBuilding.build.at(Player.x, Player.y);
         Render.UpdateResourcesScreen();
         isBuilding = true;
     }
 }
-function BuildLandfillAround(x, y) {
-    mapData[x + 1][y] = new PixelData(new rgb(109, 76, 65), PixelStatus.walkable);
-    mapData[x - 1][y] = new PixelData(new rgb(109, 76, 65), PixelStatus.walkable);
-    mapData[x][y + 1] = new PixelData(new rgb(109, 76, 65), PixelStatus.walkable);
-    mapData[x][y - 1] = new PixelData(new rgb(109, 76, 65), PixelStatus.walkable);
+function BuildLandfill(x, y) {
+    let didBuild = false;
+    let BuildVectors = [
+        new Vector2(1, 0),
+        new Vector2(0, 1),
+        new Vector2(-1, 0),
+        new Vector2(0, -1)
+    ];
+    for (let i = 0; i < BuildVectors.length; i++) {
+        if (mapData[x + BuildVectors[i].x][y + BuildVectors[i].y] instanceof TerrainData && mapData[x][y].type == TerrainType.water) {
+            mapData[x + BuildVectors[i].x][y + BuildVectors[i].y] = new TerrainData(new rgb(109, 76, 65), PixelStatus.walkable, TerrainType.ground);
+            didBuild = true;
+        }
+    }
+    if (didBuild) {
+        Resources.stone -= Building[11].cost.stone;
+        Resources.wood -= Building[11].cost.wood;
+    }
 }
 class Vector2 {
     x;
@@ -804,7 +829,8 @@ class PerlinNoise {
                 r: value * 10,
                 g: value * 10,
                 b: value * 400,
-                s: PixelStatus.block
+                s: PixelStatus.block,
+                t: TerrainType.water
             };
         //sand
         if (value > 0.62)
@@ -812,7 +838,8 @@ class PerlinNoise {
                 r: value * 255 + 30,
                 g: value * 255 + 30,
                 b: value * 10,
-                s: PixelStatus.walkable
+                s: PixelStatus.walkable,
+                t: TerrainType.sand
             };
         //hills or rock (probably delete later)
         //if(value < 0.25) return `rgb(${255 - value * 170}, ${255 - value * 170}, ${255 - value * 170})`;
@@ -821,7 +848,8 @@ class PerlinNoise {
             r: value * 50,
             g: 240 - value * 90,
             b: value * 50,
-            s: PixelStatus.walkable
+            s: PixelStatus.walkable,
+            t: TerrainType.ground
         };
     }
     pixel(x, y) {
