@@ -599,7 +599,6 @@ function Build(BuildedBuilding) {
         //if placing landfill
         if (BuildedBuilding.build.name == "Landfill") {
             BuildLandfill(Player.x, Player.y);
-            Render.UpdateResourcesScreen();
             return;
         }
         Resources.stone -= BuildedBuilding.cost.stone;
@@ -618,14 +617,16 @@ function BuildLandfill(x, y) {
         new Vector2(0, -1)
     ];
     for (let i = 0; i < BuildVectors.length; i++) {
-        if (mapData[x + BuildVectors[i].x][y + BuildVectors[i].y] instanceof TerrainData && mapData[x][y].type == TerrainType.water) {
-            mapData[x + BuildVectors[i].x][y + BuildVectors[i].y] = new TerrainData(new rgb(109, 76, 65), PixelStatus.walkable, TerrainType.ground);
+        if (mapData[x + BuildVectors[i].x][y + BuildVectors[i].y] instanceof TerrainData &&
+            mapData[x + BuildVectors[i].x][y + BuildVectors[i].y].type == TerrainType.water) {
+            mapData[x + BuildVectors[i].x][y + BuildVectors[i].y] = new TerrainData(Building[11].build.color.newSlightlyRandom(10), PixelStatus.walkable, TerrainType.ground);
             didBuild = true;
         }
     }
     if (didBuild) {
         Resources.stone -= Building[11].cost.stone;
         Resources.wood -= Building[11].cost.wood;
+        Render.UpdateResourcesScreen();
     }
 }
 class Vector2 {

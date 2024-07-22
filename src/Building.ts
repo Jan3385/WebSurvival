@@ -142,7 +142,6 @@ function Build(
             //if placing landfill
             if(BuildedBuilding.build.name == "Landfill"){
                 BuildLandfill(Player.x, Player.y);
-                Render.UpdateResourcesScreen();
                 return;
             }
             
@@ -164,8 +163,11 @@ function BuildLandfill(x: number, y: number): void{
     ];
 
     for(let i = 0; i < BuildVectors.length; i++){
-        if(mapData[x+BuildVectors[i].x][y+BuildVectors[i].y] instanceof TerrainData && (<TerrainData>mapData[x][y]).type == TerrainType.water){
-            mapData[x+BuildVectors[i].x][y+BuildVectors[i].y] = new TerrainData(new rgb(109, 76, 65), PixelStatus.walkable, TerrainType.ground);
+        if(
+            mapData[x+BuildVectors[i].x][y+BuildVectors[i].y] instanceof TerrainData && 
+            (<TerrainData>mapData[x+BuildVectors[i].x][y+BuildVectors[i].y]).type == TerrainType.water
+        ){
+            mapData[x+BuildVectors[i].x][y+BuildVectors[i].y] = new TerrainData(Building[11].build.color.newSlightlyRandom(10), PixelStatus.walkable, TerrainType.ground);
             didBuild = true;
         }
     }
@@ -173,5 +175,6 @@ function BuildLandfill(x: number, y: number): void{
     if(didBuild){
         Resources.stone -= Building[11].cost.stone;
         Resources.wood -= Building[11].cost.wood;
+        Render.UpdateResourcesScreen();
     }
 }
