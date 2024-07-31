@@ -362,8 +362,12 @@ class GameTime {
         return this.time / this.maxTime;
     }
     GetDayTime() {
-        const hours = Math.floor(this.GetDayProgress() * 24);
+        let hours = Math.floor(this.GetDayProgress() * 24);
         const minutes = Math.floor((this.GetDayProgress() * 24 - hours) * 60);
+        //3 hours offset
+        hours = hours + 3;
+        if (hours >= 24)
+            hours -= 24;
         return hours.toString().padStart(2, "0") + ":" + minutes.toString().padStart(2, "0");
     }
 }
@@ -634,6 +638,10 @@ function BuildLandfill(x, y) {
         new Vector2(0, -1)
     ];
     for (let i = 0; i < BuildVectors.length; i++) {
+        if (x + BuildVectors[i].x < 0 || x + BuildVectors[i].x >= mapData.length)
+            continue;
+        if (y + BuildVectors[i].y < 0 || y + BuildVectors[i].y >= mapData[0].length)
+            continue;
         if (mapData[x + BuildVectors[i].x][y + BuildVectors[i].y] instanceof TerrainData &&
             mapData[x + BuildVectors[i].x][y + BuildVectors[i].y].type == TerrainType.water) {
             mapData[x + BuildVectors[i].x][y + BuildVectors[i].y] = new TerrainData(Building[11].build.color.newSlightlyRandom(10), PixelStatus.walkable, TerrainType.ground);

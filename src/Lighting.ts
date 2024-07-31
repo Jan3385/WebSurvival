@@ -85,8 +85,13 @@ class GameTime{
         return this.time / this.maxTime;
     }
     GetDayTime(): string{
-        const hours = Math.floor(this.GetDayProgress() * 24);
+        let hours = Math.floor(this.GetDayProgress() * 24);
         const minutes = Math.floor((this.GetDayProgress() * 24 - hours) * 60);
+
+        //3 hours offset
+        hours = hours + 3;
+        if(hours >= 24) hours -= 24;
+
         return hours.toString().padStart(2, "0") + ":" + minutes.toString().padStart(2, "0");
     }
 }

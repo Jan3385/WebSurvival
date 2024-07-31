@@ -163,6 +163,9 @@ function BuildLandfill(x: number, y: number): void{
     ];
 
     for(let i = 0; i < BuildVectors.length; i++){
+        if(x+BuildVectors[i].x < 0 || x+BuildVectors[i].x >= mapData.length) continue;
+        if(y+BuildVectors[i].y < 0 || y+BuildVectors[i].y >= mapData[0].length) continue;
+        
         if(
             mapData[x+BuildVectors[i].x][y+BuildVectors[i].y] instanceof TerrainData && 
             (<TerrainData>mapData[x+BuildVectors[i].x][y+BuildVectors[i].y]).type == TerrainType.water
