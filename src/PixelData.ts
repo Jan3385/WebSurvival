@@ -131,7 +131,7 @@ abstract class EntityData extends PixelData implements IDamageable, IHighlightab
     abstract Die(): void;
 
     Damage(damage: number): boolean{
-        this.Health -= damage;
+        this.Health -= Math.min(damage, this.Health);
         if(this.Health <= 0){
             this.Die();
             return true;
@@ -144,8 +144,23 @@ class PlayerData extends EntityData{
     constructor(color: rgb, HighlightColor: rgb, x: number, y: number, Health:number){
         super(color, PixelStatus.block, x, y, HighlightColor, Health);
     }
+    override Damage(damage: number): boolean {
+        this.Health -= Math.min(damage, this.Health);
+
+        document.getElementById("Health")!.innerHTML = "HP: " + this.Health.toString().padStart(2, "0");
+
+        if(this.Health <= 0){
+            this.Die();
+            return true;
+        }
+        return false;
+    }
     Die(): void{
         console.log('Player has died, GAME OVER');
+
+        //have to change both colors
+        this.color = new rgb(255, 0, 0);
+        mapData[this.x][this.y].color = new rgb(255, 0, 0);
     }
 }
 class EnemyData extends EntityData{

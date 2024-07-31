@@ -67,6 +67,33 @@
             }
         }
     }
+    .Info-Bar{
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        background-color: rgb(230, 230, 230);
+        border-radius: 5px;
+        padding: 5px;
+        margin: 5px;
+        width: 100%;
+        font-family: monospace;
+        p{
+            user-select: none;
+            margin: 0;
+            padding: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            width: auto;
+            background-color: white;
+            border-radius: 10px;
+        }
+        .divider{
+            margin-left: 10px;
+            margin-right: 10px;
+            background-color: transparent;
+        }
+    }
 }
 .tutorial{
     background-color: rgb(230, 230, 230);

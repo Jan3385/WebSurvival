@@ -18,7 +18,7 @@ const MaxTResource = new ResourceList(20, 30);
 
 //sets player position in the middle of the map
 let Player: PlayerData = new PlayerData(new rgb(0, 0, 0), new rgb(255, 255, 255), 
-    Math.floor(canvas.width/canvasScale/2), Math.floor(canvas.height/canvasScale/2), 5);
+    Math.floor(canvas.width/canvasScale/2), Math.floor(canvas.height/canvasScale/2), 10);
 
 let Render = new Renderer();
 let Terrain = new TerrainManipulator();
@@ -72,6 +72,8 @@ function Update(){
     }
 
     UpdateInput();
+
+    document.getElementById("Time")!.innerHTML = gTime.GetDayTime(); //shows time
 
     //Resource spawner
     if(Math.random() > 0.98){

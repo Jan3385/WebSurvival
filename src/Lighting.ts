@@ -84,6 +84,11 @@ class GameTime{
     GetDayProgress(): number{
         return this.time / this.maxTime;
     }
+    GetDayTime(): string{
+        const hours = Math.floor(this.GetDayProgress() * 24);
+        const minutes = Math.floor((this.GetDayProgress() * 24 - hours) * 60);
+        return hours.toString().padStart(2, "0") + ":" + minutes.toString().padStart(2, "0");
+    }
 }
 
 function BlocksLight(pixel: PixelData): boolean{

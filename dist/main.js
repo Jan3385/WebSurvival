@@ -111,7 +111,7 @@ class EntityData extends PixelData {
         this.MaxHealth = this.Health;
     }
     Damage(damage) {
-        this.Health -= damage;
+        this.Health -= Math.min(damage, this.Health);
         if (this.Health <= 0) {
             this.Die();
             return true;
@@ -123,8 +123,20 @@ class PlayerData extends EntityData {
     constructor(color, HighlightColor, x, y, Health) {
         super(color, PixelStatus.block, x, y, HighlightColor, Health);
     }
+    Damage(damage) {
+        this.Health -= Math.min(damage, this.Health);
+        document.getElementById("Health").innerHTML = "HP: " + this.Health.toString().padStart(2, "0");
+        if (this.Health <= 0) {
+            this.Die();
+            return true;
+        }
+        return false;
+    }
     Die() {
         console.log('Player has died, GAME OVER');
+        //have to change both colors
+        this.color = new rgb(255, 0, 0);
+        mapData[this.x][this.y].color = new rgb(255, 0, 0);
     }
 }
 class EnemyData extends EntityData {
@@ -348,6 +360,11 @@ class GameTime {
     }
     GetDayProgress() {
         return this.time / this.maxTime;
+    }
+    GetDayTime() {
+        const hours = Math.floor(this.GetDayProgress() * 24);
+        const minutes = Math.floor((this.GetDayProgress() * 24 - hours) * 60);
+        return hours.toString().padStart(2, "0") + ":" + minutes.toString().padStart(2, "0");
     }
 }
 function BlocksLight(pixel) {
@@ -1204,7 +1221,7 @@ let mapData = [];
 let ResourceTerrain = new ResourceList(0, 0);
 const MaxTResource = new ResourceList(20, 30);
 //sets player position in the middle of the map
-let Player = new PlayerData(new rgb(0, 0, 0), new rgb(255, 255, 255), Math.floor(canvas.width / canvasScale / 2), Math.floor(canvas.height / canvasScale / 2), 5);
+let Player = new PlayerData(new rgb(0, 0, 0), new rgb(255, 255, 255), Math.floor(canvas.width / canvasScale / 2), Math.floor(canvas.height / canvasScale / 2), 10);
 let Render = new Renderer();
 let Terrain = new TerrainManipulator();
 let Resources = new ResourceList(0, 0);
@@ -1250,6 +1267,7 @@ function Update() {
         Terrain.MovePlayer(Player, MovementVector.x, MovementVector.y);
     }
     UpdateInput();
+    document.getElementById("Time").innerHTML = gTime.GetDayTime(); //shows time
     //Resource spawner
     if (Math.random() > 0.98) {
         Terrain.GenerateRandomResource();
