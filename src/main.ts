@@ -6,6 +6,8 @@ const isMobile = navigator.userAgent.match(/Android|webOS|iPhone|iPad|iPod|Black
 document.getElementById("Mobile-Blocker")!.style.display = isMobile ? "block" : "none";
 
 const canvas: HTMLCanvasElement = <HTMLCanvasElement> document.getElementById('gameCanvas')!; 
+const ctx = canvas.getContext('2d', { alpha: false })!;
+
 let canvasScale: number = 10;
 const gTime = new GameTime();
 let mapData: PixelData[][] = [];

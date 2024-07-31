@@ -41,8 +41,6 @@ class Renderer{
      * Executes a draw call on the canvas, rendering everyting
      */
     Draw() {
-        const ctx: CanvasRenderingContext2D = canvas.getContext('2d', { alpha: false })!;
-    
         ctx.beginPath(); //Clear ctx from prev. frame
         for (let i = 0; i < canvas.width/canvasScale; i++) {
             for (let j = 0; j < canvas.height/canvasScale; j++) {
@@ -63,7 +61,6 @@ class Renderer{
     DrawInteractIndicator(){
         if(canvasScale < 6.5) return;
 
-        const ctx = canvas.getContext('2d', { alpha: false })!;
         ctx.beginPath();
         for(let i = 0; i < mapData.length; i++){
             for(let j = 0; j < mapData[0].length; j++){
@@ -189,7 +186,6 @@ class TerrainManipulator{
      * Clears the map and fills it with perlin noise
      */
     Clear(): void{
-        const ctx = canvas.getContext('2d', { alpha: false })!;
 
         for (let i = 0; i < mapData.length; i++) {
             for (let j = 0; j < mapData[0].length; j++) {
