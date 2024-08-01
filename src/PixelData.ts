@@ -34,8 +34,8 @@ class rgb{
         return 'rgb(' + this.r + ',' + this.g + ',' + this.b + ')';
     }
     getWithLight(light: number): string{
-        let lightShift = Math.min(light / 5, 1.1);
-        return 'rgb(' + Math.floor(this.r * lightShift) + ',' + Math.floor(this.g*lightShift) + ',' + Math.floor(this.b*lightShift) + ')';
+        const lightShift = Math.min(light / 5, 1.1);
+        return `rgb(${Math.floor(this.r * lightShift)},${Math.floor(this.g*lightShift)},${this.b*lightShift})`;
     }
     /**
      * Makes the rgb value darker by the value
