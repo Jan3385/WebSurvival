@@ -384,7 +384,7 @@ class GameTime {
     }
     GetDayTime() {
         let hours = Math.floor(this.GetDayProgress() * 24);
-        const minutes = Math.floor((this.GetDayProgress() * 24 - hours) * 60);
+        const minutes = Math.floor(((this.GetDayProgress() * 24 - hours) * 60) / 15) * 15;
         //3 hours offset
         hours = hours + 3;
         if (hours >= 24)
