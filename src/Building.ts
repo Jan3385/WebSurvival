@@ -66,7 +66,7 @@ let Building = [
     {   //LandFill
         build: new BuildingData("Landfill", new rgb(109, 76, 65), PixelStatus.walkable, 3, 1,1, HighlightPixel.none),
         cost: {stone: 1, wood: 10},
-        label: "Fills in the gaps"
+        label: "Fills the ocean!"
     },
 ];
 
