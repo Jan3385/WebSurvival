@@ -222,7 +222,6 @@ function GetEnclosedSpacesAround(x: number, y: number): Vector2[] {
                 }
             }
         }
-        console.log("Enclosed space found at: " + x + ", " + y);
         return true;
     }
 
@@ -269,7 +268,7 @@ async function fillInterior(x: number, y:number): Promise<void>{
             FillPixel.color = FillPixel.color.Lerp(InteriorFillColor, i);
             await sleep(5);
         }
-        await sleep(800);
+        await sleep(400);
         for(let i = 0; i < 1; i+= .05){
             FillPixel.color = FillPixel.color.Lerp(OriginalColor, i);
             await sleep(200);
