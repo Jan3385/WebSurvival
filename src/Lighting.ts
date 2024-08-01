@@ -181,7 +181,9 @@ function castSunRay( // cestuje a pokud něco najde, tak se na chvili vypne pro 
 
         if(ShadowTravel == 0) intensity = constIntensity;
 
-        mapData[ix][iy].Brightness = clamp(intensity, 5, mapData[ix][iy].Brightness);
+        //indoor light is very dim
+        if(!mapData[ix][iy].Indoors) mapData[ix][iy].Brightness = clamp(intensity, 5, mapData[ix][iy].Brightness);
+        else mapData[ix][iy].Brightness = clamp(mapData[ix][iy].Brightness, 3, constIntensity/1.5);
 
         //blocks light 
         if(BlocksLight(mapData[ix][iy])){

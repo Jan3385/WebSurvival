@@ -46,6 +46,20 @@ class rgb{
         this.g /= val;
         this.b /= val;
     }
+    Lerp(other: rgb, t: number): rgb{
+        return new rgb(
+            Math.floor(lerp(this.r, other.r, t)),
+            Math.floor(lerp(this.g, other.g, t)),
+            Math.floor(lerp(this.b, other.b, t))
+        );
+    }
+    MixWith(other: rgb, t: number): rgb{
+        return new rgb(
+            Math.floor(lerp(this.r, other.r, t)),
+            Math.floor(lerp(this.g, other.g, t)),
+            Math.floor(lerp(this.b, other.b, t))
+        );
+    }
 }
 
 enum PixelStatus{
@@ -66,6 +80,7 @@ abstract class PixelData{
     color: rgb;
     status: PixelStatus;
     Brightness: number = 0;
+    Indoors: boolean = false;
     constructor(color: rgb, status: PixelStatus = PixelStatus.walkable){
         this.color = color;
         this.status = status;
@@ -96,6 +111,7 @@ interface IDamageable{
      * Damaged the Pixel, returns true if the pixel is destroyed
      */
     Damage(damage: number): boolean;
+    Destroy(): void;
 }
 interface IHighlightable{
     Highlight: HighlightPixel;
@@ -133,10 +149,13 @@ abstract class EntityData extends PixelData implements IDamageable, IHighlightab
     Damage(damage: number): boolean{
         this.Health -= Math.min(damage, this.Health);
         if(this.Health <= 0){
-            this.Die();
+            this.Destroy();
             return true;
         }
         return false;
+    }
+    Destroy(): void {
+        this.Die();
     }
 }
 
@@ -204,11 +223,16 @@ class ResourceData extends PixelData implements IDamageable, IHighlightable{
         this.Health -= damage;
         this.color.Darken(1.2);
         if(this.Health <= 0){
-            Terrain.DeleteResourcePixel(this.x, this.y, this.OverlaidPixel);
-            this.OnResourceDestroy();
+            this.Destroy();
             return true;
         }
         return false;
+    }
+    Destroy(): void {
+        Terrain.DeleteResourcePixel(this.x, this.y, this.OverlaidPixel);
+        this.OnResourceDestroy();
+
+        CheckDeleteInterior(this.x, this.y);
     }
 }
 class BuildingData extends PixelData implements IDamageable, IHighlightable{
@@ -238,10 +262,14 @@ class BuildingData extends PixelData implements IDamageable, IHighlightable{
         this.Health -= damage;
         this.color.Darken(1.07); //TODO: update the Darken method and execution
         if(this.Health <= 0){
-            Terrain.ModifyMapData(this.x, this.y, this.OverlaidPixel);
+            this.Destroy();
             return true;
         }
         return false;
+    }
+    Destroy(): void {
+        Terrain.ModifyMapData(this.x, this.y, this.OverlaidPixel);
+        CheckDeleteInterior(this.x, this.y);
     }
     DamageNoDestroy(damage: number): boolean{
         this.Health -= damage;
@@ -310,4 +338,7 @@ class DoorData extends BuildingData implements IInteractable{
         this.Highlight = HighlightPixel.slash;
         this.isOpen = false;
     }
+}
+function sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }

@@ -1,5 +1,6 @@
 /// <reference path="PixelData.ts" />
 /// <reference path="Lighting.ts" />
+/// <reference path="InputManager.ts" />
 
 let buildButtons: NodeListOf<HTMLElement> = document.getElementsByClassName("Selection-Button-Div")[0].querySelectorAll("button");
 const BuildType = {
@@ -151,6 +152,11 @@ function Build(
             Player.OverlapPixel = BuildedBuilding.build.at(Player.x, Player.y);
             Render.UpdateResourcesScreen();
             isBuilding = true;
+
+            //check if build is enclosed
+            GetEnclosedSpacesAround(Player.x, Player.y).forEach((vec: Vector2) => {
+                fillInterior(vec.x, vec.y);
+            });
     }
 }
 function BuildLandfill(x: number, y: number): void{
@@ -179,5 +185,119 @@ function BuildLandfill(x: number, y: number): void{
         Resources.stone -= Building[11].cost.stone;
         Resources.wood -= Building[11].cost.wood;
         Render.UpdateResourcesScreen();
+    }
+}
+
+const AroundDir: Vector2[] = [
+    new Vector2(0, 1), new Vector2(-1, 0), new Vector2(1, 0), new Vector2(0, -1)
+];
+/**
+ * Returns an array of positions that are inside an enclosed space
+ * @param x 
+ * @param y 
+ */
+function GetEnclosedSpacesAround(x: number, y: number): Vector2[] {
+    function checkEnclosedSpace(x: number, y: number): boolean{
+        const CheckedPixel = mapData[x][y] instanceof PlayerData ? Player.OverlapPixel : mapData[x][y];
+        if(CheckedPixel.status != PixelStatus.walkable) return false;
+
+        const queue: Vector2[] = [new Vector2(x, y)];
+        const visited: boolean[][] = Array.from({ length: rows }, () => Array(cols).fill(false));
+        visited[x][y] = true;
+
+        while (queue.length > 0) {
+            const sVec: Vector2 = queue.shift()!;
+
+            for (const dVec of AroundDir) {
+                const nx = sVec.x + dVec.x;
+                const ny = sVec.y + dVec.y;
+
+                const NextCheckPixel = mapData[nx][ny] instanceof PlayerData ? Player.OverlapPixel : mapData[nx][ny];
+
+                if (nx < 0 || ny < 0 || nx >= rows || ny >= cols) {
+                    return false; // Found border of the map -> not enclosed
+                } else if (NextCheckPixel.status == PixelStatus.walkable && !visited[nx][ny]) {
+                    visited[nx][ny] = true;
+                    queue.push(new Vector2(nx, ny));
+                }
+            }
+        }
+        console.log("Enclosed space found at: " + x + ", " + y);
+        return true;
+    }
+
+    const rows = mapData.length;
+    const cols = mapData[0].length;
+
+    const EnclosedVectors: Vector2[] = [];
+
+    for(const dVec of AroundDir){
+        const nx = x + dVec.x;
+        const ny = y + dVec.y;
+
+        const CheckedPixel = mapData[nx][ny] instanceof PlayerData ? Player.OverlapPixel : mapData[nx][ny];
+
+        if(nx >= 0 && ny >= 0 && nx < rows && ny < cols && CheckedPixel.status == PixelStatus.walkable) {
+            if(checkEnclosedSpace(nx, ny)){
+                EnclosedVectors.push(new Vector2(nx, ny));
+            }
+        }
+    }
+
+    return EnclosedVectors;
+}
+const InteriorFillColor: rgb = new rgb(109, 76, 65);
+async function fillInterior(x: number, y:number): Promise<void>{
+    if(mapData[x][y].Indoors) return;
+    if(mapData[x][y].status != PixelStatus.walkable) return;
+
+    mapData[x][y].Indoors = true;
+    InteriorFillVisual(x,y);
+
+    await sleep(40);
+    
+    for(const dVec of AroundDir){
+        fillInterior(x+dVec.x, y+dVec.y);
+    }
+
+    async function InteriorFillVisual(x: number, y:number): Promise<void>{
+        const OriginalColor: rgb = mapData[x][y].color.new();
+
+        const FillPixel = mapData[x][y] instanceof PlayerData ? Player.OverlapPixel : mapData[x][y];
+
+        for(let i = 0; i < 1; i+= .1){
+            FillPixel.color = FillPixel.color.Lerp(InteriorFillColor, i);
+            await sleep(5);
+        }
+        await sleep(800);
+        for(let i = 0; i < 1; i+= .05){
+            FillPixel.color = FillPixel.color.Lerp(OriginalColor, i);
+            await sleep(200);
+        }
+    }
+}
+function CheckDeleteInterior(x: number, y: number): void{
+    const EnclosedSpaces: Vector2[] = GetEnclosedSpacesAround(x, y);
+
+    for(const vec of AroundDir){
+        if(EnclosedSpaces.find((v: Vector2) => v.x == x+vec.x && v.y == y+vec.y) == undefined){
+            console.log(EnclosedSpaces, x+vec.x, y+vec.y);
+            deleteInterior(x+vec.x, y+vec.y);
+        }
+    }
+}
+function deleteInterior(x: number,y: number): void{
+    const InteriorPixel: PixelData = mapData[x][y] instanceof PlayerData ? Player.OverlapPixel : mapData[x][y];
+
+    if(!InteriorPixel.Indoors) return;
+
+    InteriorPixel.Indoors = false;
+
+    let p: PixelData;
+    for(const dVec of AroundDir){
+        p = mapData[x+dVec.x][y+dVec.y] instanceof PlayerData ? Player.OverlapPixel : mapData[x+dVec.x][y+dVec.y];
+        if(p .Indoors){
+            deleteInterior(x+dVec.x, y+dVec.y);
+        }
     }
 }

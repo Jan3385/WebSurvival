@@ -43,6 +43,12 @@ class rgb {
         this.g /= val;
         this.b /= val;
     }
+    Lerp(other, t) {
+        return new rgb(Math.floor(lerp(this.r, other.r, t)), Math.floor(lerp(this.g, other.g, t)), Math.floor(lerp(this.b, other.b, t)));
+    }
+    MixWith(other, t) {
+        return new rgb(Math.floor(lerp(this.r, other.r, t)), Math.floor(lerp(this.g, other.g, t)), Math.floor(lerp(this.b, other.b, t)));
+    }
 }
 var PixelStatus;
 (function (PixelStatus) {
@@ -65,6 +71,7 @@ class PixelData {
     color;
     status;
     Brightness = 0;
+    Indoors = false;
     constructor(color, status = PixelStatus.walkable) {
         this.color = color;
         this.status = status;
@@ -113,10 +120,13 @@ class EntityData extends PixelData {
     Damage(damage) {
         this.Health -= Math.min(damage, this.Health);
         if (this.Health <= 0) {
-            this.Die();
+            this.Destroy();
             return true;
         }
         return false;
+    }
+    Destroy() {
+        this.Die();
     }
 }
 class PlayerData extends EntityData {
@@ -178,11 +188,15 @@ class ResourceData extends PixelData {
         this.Health -= damage;
         this.color.Darken(1.2);
         if (this.Health <= 0) {
-            Terrain.DeleteResourcePixel(this.x, this.y, this.OverlaidPixel);
-            this.OnResourceDestroy();
+            this.Destroy();
             return true;
         }
         return false;
+    }
+    Destroy() {
+        Terrain.DeleteResourcePixel(this.x, this.y, this.OverlaidPixel);
+        this.OnResourceDestroy();
+        CheckDeleteInterior(this.x, this.y);
     }
 }
 class BuildingData extends PixelData {
@@ -209,10 +223,14 @@ class BuildingData extends PixelData {
         this.Health -= damage;
         this.color.Darken(1.07); //TODO: update the Darken method and execution
         if (this.Health <= 0) {
-            Terrain.ModifyMapData(this.x, this.y, this.OverlaidPixel);
+            this.Destroy();
             return true;
         }
         return false;
+    }
+    Destroy() {
+        Terrain.ModifyMapData(this.x, this.y, this.OverlaidPixel);
+        CheckDeleteInterior(this.x, this.y);
     }
     DamageNoDestroy(damage) {
         this.Health -= damage;
@@ -281,6 +299,9 @@ class DoorData extends BuildingData {
         this.Highlight = HighlightPixel.slash;
         this.isOpen = false;
     }
+}
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 function clamp(min, max, value) {
     return Math.min(max, Math.max(min, value));
@@ -447,7 +468,11 @@ sX, sY, angle, intensity) {
             break;
         if (ShadowTravel == 0)
             intensity = constIntensity;
-        mapData[ix][iy].Brightness = clamp(intensity, 5, mapData[ix][iy].Brightness);
+        //indoor light is very dim
+        if (!mapData[ix][iy].Indoors)
+            mapData[ix][iy].Brightness = clamp(intensity, 5, mapData[ix][iy].Brightness);
+        else
+            mapData[ix][iy].Brightness = clamp(mapData[ix][iy].Brightness, 3, constIntensity / 1.5);
         //blocks light 
         if (BlocksLight(mapData[ix][iy])) {
             ShadowTravel = 4;
@@ -491,8 +516,139 @@ function CalculateLightMap() {
         castRay(Player.x, Player.y, angle, 2, 2);
     }
 }
+class Vector2 {
+    x;
+    y;
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+}
+let MovementVector = new Vector2(0, 0);
+let usedInput = false;
+let inputPresses = [];
+let removeInputValues = [];
+//calls repeatedly on key hold
+function onKeyDown(event) {
+    switch (event.keyCode) {
+        case 87: //W
+            if (MovementVector.y != -1) {
+                MovementVector.y = -1;
+                usedInput = false;
+            }
+            break;
+        case 65: //A
+            if (MovementVector.x != -1) {
+                MovementVector.x = -1;
+                usedInput = false;
+            }
+            break;
+        case 83: //S
+            if (MovementVector.y != 1) {
+                MovementVector.y = 1;
+                usedInput = false;
+            }
+            break;
+        case 68: //D
+            if (MovementVector.x != 1) {
+                MovementVector.x = 1;
+                usedInput = false;
+            }
+            break;
+        default:
+            //for other keys add to input presses array
+            if (!inputPresses.includes(event.keyCode)) {
+                inputPresses.push(event.keyCode);
+                usedInput = false;
+            }
+            break;
+    }
+    //if(event.keyCode >= 49 && event.keyCode <= 57) SelectBuilding(event.keyCode - 49);
+}
+let clearMap = { xMinus: false, xPlus: false, yMinus: false, yPlus: false };
+//calls once on key release
+function onKeyUp(event) {
+    //clear movement vector if it was registered ingame
+    if (usedInput) {
+        switch (event.keyCode) {
+            case 87:
+                if (MovementVector.y == -1)
+                    MovementVector.y = 0;
+                break;
+            case 68:
+                if (MovementVector.x == 1)
+                    MovementVector.x = 0;
+                break;
+            case 83:
+                if (MovementVector.y == 1)
+                    MovementVector.y = 0;
+                break;
+            case 65:
+                if (MovementVector.x == -1)
+                    MovementVector.x = 0;
+                break;
+            default:
+                if (inputPresses.includes(event.keyCode))
+                    inputPresses.splice(inputPresses.indexOf(event.keyCode), 1);
+                break;
+        }
+        return;
+    }
+    //if the key was not registered ingame, designate for later removal
+    switch (event.keyCode) {
+        case 87:
+            clearMap.yMinus = true;
+            break;
+        case 68:
+            clearMap.xPlus = true;
+            break;
+        case 83:
+            clearMap.yPlus = true;
+            break;
+        case 65:
+            clearMap.xMinus = true;
+            break;
+    }
+    removeInputValues.push(event.keyCode);
+}
+//inputs have been used and can be cleared now
+function UpdateInput() {
+    usedInput = true;
+    //clears any movement vector if its designated for clearing
+    if (clearMap.xMinus) {
+        if (MovementVector.x == -1)
+            MovementVector.x = 0;
+        clearMap.xMinus = false;
+    }
+    if (clearMap.xPlus) {
+        if (MovementVector.x == 1)
+            MovementVector.x = 0;
+        clearMap.xPlus = false;
+    }
+    if (clearMap.yMinus) {
+        if (MovementVector.y == -1)
+            MovementVector.y = 0;
+        clearMap.yMinus = false;
+    }
+    if (clearMap.yPlus) {
+        if (MovementVector.y == 1)
+            MovementVector.y = 0;
+        clearMap.yPlus = false;
+    }
+    //removes any keys that were designated for removal
+    if (removeInputValues.length > 0) {
+        removeInputValues.forEach(value => {
+            if (inputPresses.includes(value))
+                inputPresses.splice(inputPresses.indexOf(value), 1);
+        });
+        removeInputValues = [];
+    }
+}
+window.addEventListener("keydown", onKeyDown, false);
+window.addEventListener("keyup", onKeyUp, false);
 /// <reference path="PixelData.ts" />
 /// <reference path="Lighting.ts" />
+/// <reference path="InputManager.ts" />
 let buildButtons = document.getElementsByClassName("Selection-Button-Div")[0].querySelectorAll("button");
 const BuildType = {
     Wall: 0,
@@ -627,6 +783,10 @@ function Build(BuildedBuilding) {
         Player.OverlapPixel = BuildedBuilding.build.at(Player.x, Player.y);
         Render.UpdateResourcesScreen();
         isBuilding = true;
+        //check if build is enclosed
+        GetEnclosedSpacesAround(Player.x, Player.y).forEach((vec) => {
+            fillInterior(vec.x, vec.y);
+        });
     }
 }
 function BuildLandfill(x, y) {
@@ -654,136 +814,103 @@ function BuildLandfill(x, y) {
         Render.UpdateResourcesScreen();
     }
 }
-class Vector2 {
-    x;
-    y;
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
-    }
-}
-let MovementVector = new Vector2(0, 0);
-let usedInput = false;
-let inputPresses = [];
-let removeInputValues = [];
-//calls repeatedly on key hold
-function onKeyDown(event) {
-    switch (event.keyCode) {
-        case 87: //W
-            if (MovementVector.y != -1) {
-                MovementVector.y = -1;
-                usedInput = false;
+const AroundDir = [
+    new Vector2(0, 1), new Vector2(-1, 0), new Vector2(1, 0), new Vector2(0, -1)
+];
+/**
+ * Returns an array of positions that are inside an enclosed space
+ * @param x
+ * @param y
+ */
+function GetEnclosedSpacesAround(x, y) {
+    function checkEnclosedSpace(x, y) {
+        const CheckedPixel = mapData[x][y] instanceof PlayerData ? Player.OverlapPixel : mapData[x][y];
+        if (CheckedPixel.status != PixelStatus.walkable)
+            return false;
+        const queue = [new Vector2(x, y)];
+        const visited = Array.from({ length: rows }, () => Array(cols).fill(false));
+        visited[x][y] = true;
+        while (queue.length > 0) {
+            const sVec = queue.shift();
+            for (const dVec of AroundDir) {
+                const nx = sVec.x + dVec.x;
+                const ny = sVec.y + dVec.y;
+                const NextCheckPixel = mapData[nx][ny] instanceof PlayerData ? Player.OverlapPixel : mapData[nx][ny];
+                if (nx < 0 || ny < 0 || nx >= rows || ny >= cols) {
+                    return false; // Found border of the map -> not enclosed
+                }
+                else if (NextCheckPixel.status == PixelStatus.walkable && !visited[nx][ny]) {
+                    visited[nx][ny] = true;
+                    queue.push(new Vector2(nx, ny));
+                }
             }
-            break;
-        case 65: //A
-            if (MovementVector.x != -1) {
-                MovementVector.x = -1;
-                usedInput = false;
-            }
-            break;
-        case 83: //S
-            if (MovementVector.y != 1) {
-                MovementVector.y = 1;
-                usedInput = false;
-            }
-            break;
-        case 68: //D
-            if (MovementVector.x != 1) {
-                MovementVector.x = 1;
-                usedInput = false;
-            }
-            break;
-        default:
-            //for other keys add to input presses array
-            if (!inputPresses.includes(event.keyCode)) {
-                inputPresses.push(event.keyCode);
-                usedInput = false;
-            }
-            break;
-    }
-    //if(event.keyCode >= 49 && event.keyCode <= 57) SelectBuilding(event.keyCode - 49);
-}
-let clearMap = { xMinus: false, xPlus: false, yMinus: false, yPlus: false };
-//calls once on key release
-function onKeyUp(event) {
-    //clear movement vector if it was registered ingame
-    if (usedInput) {
-        switch (event.keyCode) {
-            case 87:
-                if (MovementVector.y == -1)
-                    MovementVector.y = 0;
-                break;
-            case 68:
-                if (MovementVector.x == 1)
-                    MovementVector.x = 0;
-                break;
-            case 83:
-                if (MovementVector.y == 1)
-                    MovementVector.y = 0;
-                break;
-            case 65:
-                if (MovementVector.x == -1)
-                    MovementVector.x = 0;
-                break;
-            default:
-                if (inputPresses.includes(event.keyCode))
-                    inputPresses.splice(inputPresses.indexOf(event.keyCode), 1);
-                break;
         }
+        console.log("Enclosed space found at: " + x + ", " + y);
+        return true;
+    }
+    const rows = mapData.length;
+    const cols = mapData[0].length;
+    const EnclosedVectors = [];
+    for (const dVec of AroundDir) {
+        const nx = x + dVec.x;
+        const ny = y + dVec.y;
+        const CheckedPixel = mapData[nx][ny] instanceof PlayerData ? Player.OverlapPixel : mapData[nx][ny];
+        if (nx >= 0 && ny >= 0 && nx < rows && ny < cols && CheckedPixel.status == PixelStatus.walkable) {
+            if (checkEnclosedSpace(nx, ny)) {
+                EnclosedVectors.push(new Vector2(nx, ny));
+            }
+        }
+    }
+    return EnclosedVectors;
+}
+const InteriorFillColor = new rgb(109, 76, 65);
+async function fillInterior(x, y) {
+    if (mapData[x][y].Indoors)
         return;
+    if (mapData[x][y].status != PixelStatus.walkable)
+        return;
+    mapData[x][y].Indoors = true;
+    InteriorFillVisual(x, y);
+    await sleep(40);
+    for (const dVec of AroundDir) {
+        fillInterior(x + dVec.x, y + dVec.y);
     }
-    //if the key was not registered ingame, designate for later removal
-    switch (event.keyCode) {
-        case 87:
-            clearMap.yMinus = true;
-            break;
-        case 68:
-            clearMap.xPlus = true;
-            break;
-        case 83:
-            clearMap.yPlus = true;
-            break;
-        case 65:
-            clearMap.xMinus = true;
-            break;
-    }
-    removeInputValues.push(event.keyCode);
-}
-//inputs have been used and can be cleared now
-function UpdateInput() {
-    usedInput = true;
-    //clears any movement vector if its designated for clearing
-    if (clearMap.xMinus) {
-        if (MovementVector.x == -1)
-            MovementVector.x = 0;
-        clearMap.xMinus = false;
-    }
-    if (clearMap.xPlus) {
-        if (MovementVector.x == 1)
-            MovementVector.x = 0;
-        clearMap.xPlus = false;
-    }
-    if (clearMap.yMinus) {
-        if (MovementVector.y == -1)
-            MovementVector.y = 0;
-        clearMap.yMinus = false;
-    }
-    if (clearMap.yPlus) {
-        if (MovementVector.y == 1)
-            MovementVector.y = 0;
-        clearMap.yPlus = false;
-    }
-    //removes any keys that were designated for removal
-    if (removeInputValues.length > 0) {
-        removeInputValues.forEach(value => {
-            if (inputPresses.includes(value))
-                inputPresses.splice(inputPresses.indexOf(value), 1);
-        });
-        removeInputValues = [];
+    async function InteriorFillVisual(x, y) {
+        const OriginalColor = mapData[x][y].color.new();
+        const FillPixel = mapData[x][y] instanceof PlayerData ? Player.OverlapPixel : mapData[x][y];
+        for (let i = 0; i < 1; i += .1) {
+            FillPixel.color = FillPixel.color.Lerp(InteriorFillColor, i);
+            await sleep(5);
+        }
+        await sleep(800);
+        for (let i = 0; i < 1; i += .05) {
+            FillPixel.color = FillPixel.color.Lerp(OriginalColor, i);
+            await sleep(200);
+        }
     }
 }
-window.addEventListener("keydown", onKeyDown, false);
-window.addEventListener("keyup", onKeyUp, false);
+function CheckDeleteInterior(x, y) {
+    const EnclosedSpaces = GetEnclosedSpacesAround(x, y);
+    for (const vec of AroundDir) {
+        if (EnclosedSpaces.find((v) => v.x == x + vec.x && v.y == y + vec.y) == undefined) {
+            console.log(EnclosedSpaces, x + vec.x, y + vec.y);
+            deleteInterior(x + vec.x, y + vec.y);
+        }
+    }
+}
+function deleteInterior(x, y) {
+    const InteriorPixel = mapData[x][y] instanceof PlayerData ? Player.OverlapPixel : mapData[x][y];
+    if (!InteriorPixel.Indoors)
+        return;
+    InteriorPixel.Indoors = false;
+    let p;
+    for (const dVec of AroundDir) {
+        p = mapData[x + dVec.x][y + dVec.y] instanceof PlayerData ? Player.OverlapPixel : mapData[x + dVec.x][y + dVec.y];
+        if (p.Indoors) {
+            deleteInterior(x + dVec.x, y + dVec.y);
+        }
+    }
+}
 function RandomUsingSeed(seed) {
     const m = 0x80000000; // 2**31
     const a = 1103515245;
@@ -1255,8 +1382,11 @@ function Update() {
         //if standing on a building damage it
         if (Player.OverlapPixel instanceof BuildingData) {
             const brokePixel = Player.OverlapPixel.DamageNoDestroy(1);
-            if (brokePixel)
+            if (brokePixel) {
                 Player.OverlapPixel = Player.OverlapPixel.OverlaidPixel;
+                //removes the interior if building below player is destroyed
+                CheckDeleteInterior(Player.x, Player.y);
+            }
         }
     }
     //movement interactions

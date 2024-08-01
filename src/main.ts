@@ -53,7 +53,12 @@ function Update(){
         //if standing on a building damage it
         if(Player.OverlapPixel instanceof BuildingData){
             const brokePixel = Player.OverlapPixel.DamageNoDestroy(1);
-            if(brokePixel) Player.OverlapPixel = Player.OverlapPixel.OverlaidPixel;
+            if(brokePixel){
+                Player.OverlapPixel = Player.OverlapPixel.OverlaidPixel;
+
+                //removes the interior if building below player is destroyed
+                CheckDeleteInterior(Player.x, Player.y);
+            }
         }
     }
 
