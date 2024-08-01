@@ -431,10 +431,11 @@ class LightData extends BuildingData {
     }
 }
 function castRay(sX, sY, angle, intensity, radius) {
-    let x = sX;
-    let y = sY;
     const dx = Math.cos(angle);
     const dy = Math.sin(angle);
+    //movement with angle for small deviations
+    let x = sX - (dx / 100);
+    let y = sY - (dy / 100);
     for (let i = 0; i < radius; i++) {
         x += dx;
         y += dy;
@@ -455,6 +456,7 @@ function castSunRay(// cestuje a pokud něco najde, tak se na chvili vypne pro i
 sX, sY, angle, intensity) {
     const constIntensity = intensity;
     let ShadowTravel = 0;
+    let HitBuilding = false;
     let x = sX;
     let y = sY;
     const dx = Math.cos(angle);
@@ -470,11 +472,17 @@ sX, sY, angle, intensity) {
             intensity = constIntensity;
         //indoor light is very dim
         if (!mapData[ix][iy].Indoors)
-            mapData[ix][iy].Brightness = clamp(intensity, 5, mapData[ix][iy].Brightness);
-        else
-            mapData[ix][iy].Brightness = clamp(mapData[ix][iy].Brightness, 3, constIntensity / 1.5);
+            mapData[ix][iy].Brightness = clamp(mapData[ix][iy].Brightness, 5, intensity);
+        else {
+            if (HitBuilding)
+                mapData[ix][iy].Brightness = clamp(mapData[ix][iy].Brightness, Math.max(mapData[ix][iy].Brightness, 3), constIntensity / 1.5);
+            else
+                mapData[ix][iy].Brightness = clamp(mapData[ix][iy].Brightness, 5, intensity);
+        }
         //blocks light 
         if (BlocksLight(mapData[ix][iy])) {
+            if (mapData[ix][iy] instanceof BuildingData)
+                HitBuilding = true;
             ShadowTravel = 4;
             intensity = constIntensity / 1.4;
         }
