@@ -212,11 +212,12 @@ function GetEnclosedSpacesAround(x: number, y: number): Vector2[] {
                 const nx = sVec.x + dVec.x;
                 const ny = sVec.y + dVec.y;
 
-                const NextCheckPixel = mapData[nx][ny] instanceof PlayerData ? Player.OverlapPixel : mapData[nx][ny];
-
                 if (nx < 0 || ny < 0 || nx >= rows || ny >= cols) {
                     return false; // Found border of the map -> not enclosed
-                } else if (NextCheckPixel.status == PixelStatus.walkable && !visited[nx][ny]) {
+                }
+                
+                const NextCheckPixel = mapData[nx][ny] instanceof PlayerData ? Player.OverlapPixel : mapData[nx][ny];
+                if (NextCheckPixel.status == PixelStatus.walkable && !visited[nx][ny]) {
                     visited[nx][ny] = true;
                     queue.push(new Vector2(nx, ny));
                 }
