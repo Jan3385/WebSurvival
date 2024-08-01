@@ -861,8 +861,11 @@ function GetEnclosedSpacesAround(x, y) {
     for (const dVec of AroundDir) {
         const nx = x + dVec.x;
         const ny = y + dVec.y;
+        if (nx < 0 || ny < 0 || nx >= rows || ny >= cols) {
+            continue;
+        }
         const CheckedPixel = mapData[nx][ny] instanceof PlayerData ? Player.OverlapPixel : mapData[nx][ny];
-        if (nx >= 0 && ny >= 0 && nx < rows && ny < cols && CheckedPixel.status == PixelStatus.walkable) {
+        if (CheckedPixel.status == PixelStatus.walkable) {
             if (checkEnclosedSpace(nx, ny)) {
                 EnclosedVectors.push(new Vector2(nx, ny));
             }
