@@ -143,8 +143,8 @@ function castRay(
     let y = sY - (dy/100);
 
     for(let i = 0; i < radius; i++){
-        x += dx;
-        y += dy;
+        x += dx*.7;
+        y += dy*.7;
         const ix = Math.floor(x);
         const iy = Math.floor(y);
 
@@ -174,8 +174,8 @@ function castSunRay( // cestuje a pokud něco najde, tak se na chvili vypne pro 
     const dy = Math.sin(angle);
 
     for(let i = 0; true; i++){
-        x += dx;
-        y += dy;
+        x += dx*.5;
+        y += dy*.5;
         const ix = Math.floor(x);
         const iy = Math.floor(y);
 

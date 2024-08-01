@@ -437,8 +437,8 @@ function castRay(sX, sY, angle, intensity, radius) {
     let x = sX - (dx / 100);
     let y = sY - (dy / 100);
     for (let i = 0; i < radius; i++) {
-        x += dx;
-        y += dy;
+        x += dx * .7;
+        y += dy * .7;
         const ix = Math.floor(x);
         const iy = Math.floor(y);
         //stop the light out of bounds
@@ -462,8 +462,8 @@ sX, sY, angle, intensity) {
     const dx = Math.cos(angle);
     const dy = Math.sin(angle);
     for (let i = 0; true; i++) {
-        x += dx;
-        y += dy;
+        x += dx * .5;
+        y += dy * .5;
         const ix = Math.floor(x);
         const iy = Math.floor(y);
         if (ix < 0 || ix >= mapData.length || iy < 0 || iy >= mapData[0].length)
