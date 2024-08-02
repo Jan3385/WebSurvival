@@ -222,6 +222,7 @@ class BuildingData extends PixelData {
     Damage(damage) {
         this.Health -= damage;
         this.color.Darken(1.07); //TODO: update the Darken method and execution
+        console.log(this.Health + " au");
         if (this.Health <= 0) {
             this.Destroy();
             return true;
@@ -298,6 +299,19 @@ class DoorData extends BuildingData {
         this.color = this.color.changeBy(+30);
         this.Highlight = HighlightPixel.slash;
         this.isOpen = false;
+    }
+}
+class GlassData extends BuildingData {
+    constructor(name, color, x, y, hp = 3) {
+        super(name, color, PixelStatus.breakable, hp, x, y, HighlightPixel.border);
+    }
+    at(x, y) {
+        const glass = new GlassData(this.name, this.DefaultColor.newSlightlyRandom(30), x, y, this.MaxHealth);
+        if (Player.x == x && Player.y == y)
+            glass.OverlaidPixel = Player.OverlapPixel;
+        else
+            glass.OverlaidPixel = mapData[x][y];
+        return glass;
     }
 }
 function sleep(ms) {
@@ -395,6 +409,8 @@ class GameTime {
 function BlocksLight(pixel) {
     if (pixel instanceof BuildingData) {
         if (pixel instanceof LightData)
+            return false;
+        if (pixel instanceof GlassData)
             return false;
         if (pixel.status == PixelStatus.block)
             return true;
@@ -723,6 +739,11 @@ let Building = [
         cost: { stone: 1, wood: 10 },
         label: "Fills the ocean!"
     },
+    {
+        build: new GlassData("Glass", new rgb(178, 190, 195), 1, 1, 3),
+        cost: { stone: 15, wood: 10 },
+        label: "Lets the sunlight thru"
+    }
 ];
 let SelectedBuilding = Building[0];
 document.getElementById("Selected-Building-Label").innerHTML = SelectedBuilding.build.name + " - " + SelectedBuilding.label;
@@ -1053,7 +1074,6 @@ class Renderer {
         this.UpdateWindowSize();
         console.log("initialised canvas with array of X:" + mapData.length + " Y:" + mapData[0].length);
     }
-    renderLight = false;
     /**
      * Executes a draw call on the canvas, rendering everyting
      */
@@ -1062,10 +1082,10 @@ class Renderer {
         for (let i = 0; i < canvas.width / canvasScale; i++) {
             for (let j = 0; j < canvas.height / canvasScale; j++) {
                 const pixel = mapData[i][j];
-                if (!this.renderLight)
+                if (!(pixel instanceof GlassData))
                     ctx.fillStyle = pixel.color.getWithLight(pixel.Brightness);
                 else
-                    ctx.fillStyle = "rgb(" + pixel.Brightness * 50 + "," + pixel.Brightness * 50 + "," + pixel.Brightness * 50 + ")";
+                    ctx.fillStyle = pixel.OverlaidPixel.color.MixWith(pixel.color, 0.4).getWithLight(pixel.Brightness);
                 ctx.fillRect(i * canvasScale, j * canvasScale, canvasScale, canvasScale);
             }
         }

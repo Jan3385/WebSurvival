@@ -261,6 +261,7 @@ class BuildingData extends PixelData implements IDamageable, IHighlightable{
     Damage(damage: number): boolean{
         this.Health -= damage;
         this.color.Darken(1.07); //TODO: update the Darken method and execution
+        console.log(this.Health + " au");
         if(this.Health <= 0){
             this.Destroy();
             return true;
@@ -337,6 +338,17 @@ class DoorData extends BuildingData implements IInteractable{
         this.color = this.color.changeBy(+30);
         this.Highlight = HighlightPixel.slash;
         this.isOpen = false;
+    }
+}
+class GlassData extends BuildingData{
+    constructor(name: string, color: rgb, x: number, y: number, hp: number = 3){
+        super(name, color, PixelStatus.breakable, hp, x, y, HighlightPixel.border);
+    }
+    at(x: number,y: number){
+        const glass = new GlassData(this.name, this.DefaultColor.newSlightlyRandom(30), x, y, this.MaxHealth);
+        if(Player.x == x && Player.y == y) glass.OverlaidPixel = Player.OverlapPixel;
+        else glass.OverlaidPixel = mapData[x][y];
+        return glass;
     }
 }
 function sleep(ms: number) {

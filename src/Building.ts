@@ -68,6 +68,11 @@ let Building = [
         cost: {stone: 1, wood: 10},
         label: "Fills the ocean!"
     },
+    {   //Glass
+        build: new GlassData("Glass", new rgb(178, 190, 195), 1, 1, 3),
+        cost: {stone: 15, wood: 10},
+        label: "Lets the sunlight thru"
+    }
 ];
 
 let SelectedBuilding = Building[0];

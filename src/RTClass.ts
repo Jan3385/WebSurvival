@@ -36,7 +36,6 @@ class Renderer{
 
         console.log("initialised canvas with array of X:" + mapData.length + " Y:" + mapData[0].length);
     }
-    renderLight: boolean = false;
     /**
      * Executes a draw call on the canvas, rendering everyting
      */
@@ -46,8 +45,8 @@ class Renderer{
             for (let j = 0; j < canvas.height/canvasScale; j++) {
                 const pixel = mapData[i][j];
 
-                if(!this.renderLight) ctx.fillStyle = pixel.color.getWithLight(pixel.Brightness);
-                else ctx.fillStyle = "rgb(" + pixel.Brightness * 50 + "," + pixel.Brightness * 50 + "," + pixel.Brightness * 50 + ")";
+                if(!(pixel instanceof GlassData)) ctx.fillStyle = pixel.color.getWithLight(pixel.Brightness);
+                else ctx.fillStyle = pixel.OverlaidPixel.color.MixWith(pixel.color, 0.4).getWithLight(pixel.Brightness);
                 
                 ctx.fillRect(i*canvasScale, j*canvasScale, canvasScale, canvasScale);
             }

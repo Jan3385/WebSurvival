@@ -99,6 +99,7 @@ class GameTime{
 function BlocksLight(pixel: PixelData): boolean{
     if(pixel instanceof BuildingData){
         if(pixel instanceof LightData) return false;
+        if(pixel instanceof GlassData) return false;
         if(pixel.status == PixelStatus.block) return true;
         if(pixel.status == PixelStatus.breakable) return true;
         if(pixel.status == PixelStatus.interact) return true;
