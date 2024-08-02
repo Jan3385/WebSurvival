@@ -303,7 +303,7 @@ class DoorData extends BuildingData {
 }
 class GlassData extends BuildingData {
     constructor(name, color, x, y, hp = 3) {
-        super(name, color, PixelStatus.breakable, hp, x, y, HighlightPixel.border);
+        super(name, color, PixelStatus.breakable, hp, x, y, HighlightPixel.lightBorder);
     }
     at(x, y) {
         const glass = new GlassData(this.name, this.DefaultColor.newSlightlyRandom(30), x, y, this.MaxHealth);

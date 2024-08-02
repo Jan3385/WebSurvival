@@ -342,7 +342,7 @@ class DoorData extends BuildingData implements IInteractable{
 }
 class GlassData extends BuildingData{
     constructor(name: string, color: rgb, x: number, y: number, hp: number = 3){
-        super(name, color, PixelStatus.breakable, hp, x, y, HighlightPixel.border);
+        super(name, color, PixelStatus.breakable, hp, x, y, HighlightPixel.lightBorder);
     }
     at(x: number,y: number){
         const glass = new GlassData(this.name, this.DefaultColor.newSlightlyRandom(30), x, y, this.MaxHealth);
