@@ -111,6 +111,7 @@ enum ResourceTypes{
     stone,
     sand,
     glass,
+    iron
 }
 class ResourceManager{
     resources: [ResourceTypes, number][] = [];

@@ -772,6 +772,7 @@ var ResourceTypes;
     ResourceTypes[ResourceTypes["stone"] = 1] = "stone";
     ResourceTypes[ResourceTypes["sand"] = 2] = "sand";
     ResourceTypes[ResourceTypes["glass"] = 3] = "glass";
+    ResourceTypes[ResourceTypes["iron"] = 4] = "iron";
 })(ResourceTypes || (ResourceTypes = {}));
 class ResourceManager {
     resources = [];
