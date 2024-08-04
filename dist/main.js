@@ -158,11 +158,6 @@ class EnemyData extends EntityData {
         mapData[this.x][this.y] = this.OverlapPixel;
     }
 }
-var ResourceType;
-(function (ResourceType) {
-    ResourceType[ResourceType["wood"] = 0] = "wood";
-    ResourceType[ResourceType["stone"] = 1] = "stone";
-})(ResourceType || (ResourceType = {}));
 class ResourceData extends PixelData {
     Health;
     MaxHealth;
@@ -670,9 +665,424 @@ function UpdateInput() {
 }
 window.addEventListener("keydown", onKeyDown, false);
 window.addEventListener("keyup", onKeyUp, false);
+/**
+ * Linear interpolation from a to b with t
+ */
+function lerp(a, b, t) {
+    return a + t * (b - a);
+}
+//Class for rendering the game
+class Renderer {
+    /**
+     * Creates a renderer object for the canvas
+     * @constructor
+     */
+    constructor() {
+        this.init();
+        this.Draw();
+    }
+    /**
+     * Initialises the canvas and fills it with perlin noise
+     */
+    init() {
+        if (canvas.width % canvasScale != 0 || canvas.height % canvasScale != 0)
+            console.error('Canvas size is not divisible by scale');
+        // 16 : 10 resolution | 80x50 pixel map
+        for (let i = 0; i < 80; i++) {
+            mapData[i] = [];
+            for (let j = 0; j < 50; j++) {
+                mapData[i][j] = PerlinPixel(i, j);
+            }
+        }
+        window.addEventListener('resize', this.UpdateWindowSize);
+        this.UpdateWindowSize();
+        console.log("initialised canvas with array of X:" + mapData.length + " Y:" + mapData[0].length);
+    }
+    /**
+     * Executes a draw call on the canvas, rendering everyting
+     */
+    Draw() {
+        ctx.beginPath(); //Clear ctx from prev. frame
+        for (let i = 0; i < canvas.width / canvasScale; i++) {
+            for (let j = 0; j < canvas.height / canvasScale; j++) {
+                const pixel = mapData[i][j];
+                if (!(pixel instanceof GlassData))
+                    ctx.fillStyle = pixel.color.getWithLight(pixel.Brightness);
+                else
+                    ctx.fillStyle = pixel.OverlaidPixel.color.MixWith(pixel.color, 0.4).getWithLight(pixel.Brightness);
+                ctx.fillRect(i * canvasScale, j * canvasScale, canvasScale, canvasScale);
+            }
+        }
+        this.DrawInteractIndicator();
+        ctx.strokeStyle = Player.HighlightColor.getWithLight(Math.max(0.35, mapData[Player.x][Player.y].Brightness));
+        ctx.lineWidth = 2;
+        ctx.strokeRect(Player.x * canvasScale + 1, Player.y * canvasScale + 1, canvasScale - 2, canvasScale - 2);
+    }
+    DrawInteractIndicator() {
+        if (canvasScale < 6.5)
+            return;
+        ctx.beginPath();
+        for (let i = 0; i < mapData.length; i++) {
+            for (let j = 0; j < mapData[0].length; j++) {
+                const pixel = mapData[i][j];
+                if (IsHighlightable(pixel)) {
+                    switch (pixel.Highlight) {
+                        case HighlightPixel.none:
+                            break;
+                        case HighlightPixel.lightBorder:
+                            ctx.strokeStyle = pixel.HighlightColor.getWithLight(pixel.Brightness);
+                            ctx.lineWidth = 1;
+                            ctx.strokeRect(i * canvasScale, j * canvasScale, canvasScale - 1, canvasScale - 1);
+                            break;
+                        case HighlightPixel.border:
+                            ctx.strokeStyle = pixel.HighlightColor.getWithLight(pixel.Brightness);
+                            ctx.lineWidth = 2;
+                            ctx.strokeRect(i * canvasScale + 1, j * canvasScale + 1, canvasScale - 2, canvasScale - 2);
+                            break;
+                        case HighlightPixel.thickBorder:
+                            ctx.strokeStyle = pixel.HighlightColor.getWithLight(pixel.Brightness);
+                            ctx.lineWidth = 4;
+                            ctx.strokeRect(i * canvasScale + 2, j * canvasScale + 2, canvasScale - 4, canvasScale - 4);
+                            break;
+                        case HighlightPixel.slash:
+                            ctx.strokeStyle = pixel.HighlightColor.getWithLight(pixel.Brightness);
+                            ctx.lineWidth = 2;
+                            ctx.strokeRect(i * canvasScale + 1, j * canvasScale + 1, canvasScale - 2, canvasScale - 2);
+                            ctx.moveTo(i * canvasScale + 1, j * canvasScale + 1);
+                            ctx.lineTo(i * canvasScale + canvasScale - 1, j * canvasScale + canvasScale - 1);
+                            break;
+                    }
+                }
+            }
+        }
+        ctx.lineWidth = 2;
+        ctx.stroke(); //write all the diagonal lines
+    }
+    UpdateWindowSize() {
+        canvasScale = Math.floor(window.innerWidth / 140);
+        if (mapData[0].length * canvasScale > window.innerHeight * 0.8)
+            canvasScale = Math.floor(window.innerHeight * 0.7 / mapData[0].length);
+        canvas.width = mapData.length * canvasScale;
+        canvas.height = mapData[0].length * canvasScale;
+    }
+}
+var ResourceTypes;
+(function (ResourceTypes) {
+    ResourceTypes[ResourceTypes["wood"] = 0] = "wood";
+    ResourceTypes[ResourceTypes["stone"] = 1] = "stone";
+    ResourceTypes[ResourceTypes["sand"] = 2] = "sand";
+    ResourceTypes[ResourceTypes["glass"] = 3] = "glass";
+})(ResourceTypes || (ResourceTypes = {}));
+class ResourceManager {
+    resources = [];
+    DisplayStoredResources() {
+        const ResouceElements = [];
+        this.resources.forEach(x => {
+            const container = document.createElement('div');
+            const image = document.createElement('img');
+            const text = document.createElement('p');
+            image.src = 'Icons/' + ResourceTypes[x[0]] + '.png';
+            text.innerHTML = x[1].toString();
+            container.appendChild(image);
+            container.appendChild(text);
+            ResouceElements.push(container);
+        });
+        document.getElementById("Player-Resources").replaceChildren(...ResouceElements);
+    }
+    DisplayCostResources(resources) {
+        const ResouceElements = [];
+        const text = document.createElement('p');
+        text.classList.add('Cost-Build');
+        text.innerHTML = "Cost:";
+        ResouceElements.push(text);
+        resources.resources.forEach(x => {
+            const container = document.createElement('p');
+            container.innerHTML = '<img src="Icons/' + ResourceTypes[x[0]] + '.png">: ' + x[1];
+            ResouceElements.push(container);
+        });
+        document.getElementsByClassName("Cost-List")[0].replaceChildren(...ResouceElements);
+    }
+    Cheat() {
+        this.AddResourceList(new ResourceList()
+            .Add(ResourceTypes.wood, 1000)
+            .Add(ResourceTypes.stone, 1000));
+    }
+    GetResourceAmount(type) {
+        const resource = this.resources.filter(x => x[0] == type)[0];
+        if (resource == undefined)
+            return 0;
+        return resource[1];
+    }
+    AddResource(type, amount) {
+        const resource = this.resources.filter(x => x[0] == type)[0];
+        if (resource == undefined)
+            this.resources.push([type, amount]);
+        else
+            this.resources.filter(x => x[0] == type)[0][1] += amount;
+        this.DisplayStoredResources();
+    }
+    AddResourceList(list) {
+        list.resources.forEach(x => this.AddResource(x[0], x[1]));
+    }
+    RemoveResource(type, amount) {
+        const resource = this.resources.filter(x => x[0] == type)[0];
+        if (resource == undefined)
+            return false;
+        else
+            this.resources.filter(x => x[0] == type)[0][1] -= amount;
+        this.DisplayStoredResources();
+        if (this.resources.filter(x => x[0] == type)[0][1] < 0) {
+            this.resources.filter(x => x[0] == type)[0][1] = 0;
+            this.DisplayStoredResources();
+            return false;
+        }
+        return true;
+    }
+    RemoveResourceList(list) {
+        let RemovedSuccesfully = true;
+        for (let i = 0; i < list.resources.length; i++) {
+            if (!this.RemoveResource(list.resources[i][0], list.resources[i][1]))
+                RemovedSuccesfully = false;
+        }
+        return RemovedSuccesfully;
+    }
+    HasResources(list) {
+        for (let i = 0; i < list.resources.length; i++) {
+            if (this.GetResourceAmount(list.resources[i][0]) < list.resources[i][1])
+                return false;
+        }
+        return true;
+    }
+}
+class ResourceList {
+    resources = [];
+    Add(type, amount) {
+        const resourceIndex = this.resources.findIndex(x => x[0] == type);
+        if (resourceIndex != -1)
+            this.resources[resourceIndex][1] += amount;
+        else
+            this.resources.push([type, amount]);
+        return this;
+    }
+    Remove(type, amount) {
+        const resourceIndex = this.resources.findIndex(x => x[0] == type);
+        if (resourceIndex != -1)
+            this.resources[resourceIndex][1] -= amount;
+        else
+            console.log("Tried to remove non-existant resource from ResourceList");
+        return this;
+    }
+    GetResourceAmount(type) {
+        const resource = this.resources.filter(x => x[0] == type)[0];
+        if (resource == undefined)
+            return 0;
+        return resource[1];
+    }
+}
+//Class for terrain modification
+class TerrainManipulator {
+    /**
+     * Inserts a pixel at the given position
+     * @param {number} x
+     * @param {number} y
+     * @param {PixelData} PixelData
+     */
+    ModifyMapData(x, y, PixelData) {
+        mapData[x][y] = PixelData;
+    }
+    /**
+     *
+     * @param {Array<Array<PixelData>>} NewMapData
+     * @returns
+     */
+    InsertMapDataRaw(NewMapData) {
+        if (mapData.length != NewMapData.length || mapData[0].length != NewMapData[0].length) {
+            console.error('Map size is not matched');
+            return;
+        }
+        mapData = NewMapData;
+    }
+    /**
+     * Inserts a interactable pixel at the pixel inner position
+     * @param {InteractData} Pixel
+     */
+    InsertResourcePixel(Pixel) {
+        Terrain.ModifyMapData(Pixel.x, Pixel.y, Pixel);
+        ResourceTerrain.Add(Pixel.ResourceType, 1);
+    }
+    /**
+     * Deletes the interactable pixel at the given X,Y position
+     * @param {number} pX
+     * @param {number} pY
+     * @throws {ReferenceError} No interactable type at that location
+     */
+    DeleteResourcePixel(pX, pY, replacement) {
+        ResourceTerrain.Remove(mapData[pX][pY].ResourceType, 1);
+        this.ModifyMapData(pX, pY, replacement);
+    }
+    /**
+     * Clears the map and fills it with perlin noise
+     */
+    Clear() {
+        for (let i = 0; i < mapData.length; i++) {
+            for (let j = 0; j < mapData[0].length; j++) {
+                mapData[i][j] = PerlinPixel(i, j);
+            }
+        }
+    }
+    /**
+     * Hadles safe player movement
+     * @param {PlayerData} Player
+     * @param {Number} x
+     * @param {Number} y
+     */
+    MovePlayer(Player, x, y) {
+        //if player is not building allow diagonal movement else only move non-diagonaly
+        if (!isBuilding) {
+            Terrain.MovePlayerRaw(Player, MovementVector.x, 0);
+            Terrain.MovePlayerRaw(Player, 0, MovementVector.y);
+        }
+        else {
+            if (MovementVector.x != 0)
+                MovementVector.y = 0;
+            Terrain.MovePlayerRaw(Player, MovementVector.x, MovementVector.y);
+        }
+    }
+    /**
+     * Moves the given player by the X and Y amount
+     * @param {PlayerData} Player
+     * @param {Number} x
+     * @param {Number} y
+     */
+    MovePlayerRaw(Player, x, y) {
+        let mPixel = mapData[Player.x + x][Player.y + y];
+        //check if the player can move to the given position
+        if (mPixel.status == PixelStatus.walkable) {
+            //if is player exiting a door, lock it
+            if (mPixel instanceof DoorData)
+                mPixel.Close();
+            this.ModifyMapData(Player.x, Player.y, Player.OverlapPixel);
+            Player.x += x;
+            Player.y += y;
+            Player.OverlapPixel = mapData[Player.x][Player.y];
+            this.ModifyMapData(Player.x, Player.y, new PlayerData(Player.color, Player.HighlightColor, Player.x, Player.y, Player.Health));
+        }
+        else if (mPixel.status == PixelStatus.interact && mPixel instanceof DoorData) {
+            mPixel.Open();
+        }
+    }
+    /**
+     * Forcefully moves the player to a given X and Y position (skips any checks)
+     * @param {PlayerData} Player
+     * @param {number} x
+     * @param {number} y
+     */
+    ForceMovePlayer(Player, x, y) {
+        this.ModifyMapData(Player.x, Player.y, Player.OverlapPixel);
+        Player.x += x;
+        Player.y += y;
+        Player.OverlapPixel = mapData[Player.x][Player.y];
+        this.ModifyMapData(Player.x, Player.y, new PlayerData(Player.color, Player.HighlightColor, Player.x, Player.y, Player.Health));
+    }
+    /**
+     * Tries to generate a random resource on the map
+     */
+    GenerateRandomResource() {
+        let rand = Math.random();
+        const spawnArea = 12;
+        let centerVec = {
+            x: Math.floor(mapData.length / 2),
+            y: Math.floor(mapData[0].length / 2),
+        };
+        let pX;
+        let pY;
+        //gets a position outside of spawn area
+        do {
+            pX = Math.floor((Math.random() * mapData.length - 2) + 1);
+            pY = Math.floor((Math.random() * mapData[0].length - 2) + 1);
+        } while (((pX > centerVec.x - spawnArea && pX < centerVec.x + spawnArea) && (pY > centerVec.y - spawnArea && pY < centerVec.y + spawnArea)));
+        if (rand < (ResourceTerrain.GetResourceAmount(ResourceTypes.wood) / ResourceTerrain.GetResourceAmount(ResourceTypes.stone)) / 3)
+            this.GenerateStone(pX, pY);
+        else
+            this.GenerateTree(pX, pY);
+    }
+    /**
+     * Generates a tree at the given position (mainly for internal use)
+     * @param {number} x
+     * @param {number} y
+     */
+    GenerateTree(x, y) {
+        if (ResourceTerrain.GetResourceAmount(ResourceTypes.wood) + 5 > MaxTResource.GetResourceAmount(ResourceTypes.wood))
+            return;
+        //check if there is a space for the tree in a 3x3 grid
+        for (let i = x - 1; i <= x + 1; i++) {
+            if (i < 0 || i > mapData.length)
+                return;
+            for (let j = y - 1; j <= y + 1; j++) {
+                if (j < 0 || j > mapData[0].length || mapData[i][j].status != PixelStatus.walkable)
+                    return;
+            }
+        }
+        let OnBreak = () => { Resources.AddResource(ResourceTypes.wood, Math.floor(1 + Math.random() * 4)); }; // 1 - 4
+        const tPixel = new ResourceData(new rgb(200, 70, 50), PixelStatus.breakable, 6, x, y, HighlightPixel.border, ResourceTypes.wood, mapData[x][y], OnBreak);
+        Terrain.InsertResourcePixel(tPixel);
+        OnBreak = () => { Resources.AddResource(ResourceTypes.wood, Math.floor(Math.random() * 1.7)); }; // 0 - 1
+        let lPixel = new ResourceData(new rgb(49, 87, 44), PixelStatus.breakable, 2, x + 1, y, HighlightPixel.border, ResourceTypes.wood, mapData[x + 1][y], OnBreak);
+        Terrain.InsertResourcePixel(lPixel);
+        lPixel = new ResourceData(new rgb(49, 87, 44), PixelStatus.breakable, 2, x - 1, y, HighlightPixel.border, ResourceTypes.wood, mapData[x - 1][y], OnBreak);
+        Terrain.InsertResourcePixel(lPixel);
+        lPixel = new ResourceData(new rgb(49, 87, 44), PixelStatus.breakable, 2, x, y + 1, HighlightPixel.border, ResourceTypes.wood, mapData[x][y + 1], OnBreak);
+        Terrain.InsertResourcePixel(lPixel);
+        lPixel = new ResourceData(new rgb(49, 87, 44), PixelStatus.breakable, 2, x, y - 1, HighlightPixel.border, ResourceTypes.wood, mapData[x][y - 1], OnBreak);
+        Terrain.InsertResourcePixel(lPixel);
+    }
+    /**
+     * Generates a stone at the given position (mainly for internal use)
+     * @param {number} x
+     * @param {number} y
+     */
+    GenerateStone(x, y) {
+        if (ResourceTerrain.GetResourceAmount(ResourceTypes.stone) + 5 > MaxTResource.GetResourceAmount(ResourceTypes.stone))
+            return;
+        //check if stone can freely spawn in a 3x3 grid
+        for (let i = x - 1; i <= x + 1; i++) {
+            if (i < 0 || i > mapData.length)
+                return;
+            for (let j = y - 1; j <= y + 1; j++) {
+                if (j < 0 || j > mapData[0].length || mapData[i][j].status != PixelStatus.walkable)
+                    return;
+            }
+        }
+        const OnBreak = () => { Resources.AddResource(ResourceTypes.stone, Math.floor(1 + Math.random() * 3)); }; // 1 - 3
+        let sPixel;
+        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x, y, HighlightPixel.border, ResourceTypes.stone, mapData[x][y], OnBreak);
+        Terrain.InsertResourcePixel(sPixel);
+        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x + 1, y, HighlightPixel.border, ResourceTypes.stone, mapData[x + 1][y], OnBreak);
+        Terrain.InsertResourcePixel(sPixel);
+        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x - 1, y, HighlightPixel.border, ResourceTypes.stone, mapData[x - 1][y], OnBreak);
+        Terrain.InsertResourcePixel(sPixel);
+        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x, y + 1, HighlightPixel.border, ResourceTypes.stone, mapData[x][y + 1], OnBreak);
+        Terrain.InsertResourcePixel(sPixel);
+        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x, y - 1, HighlightPixel.border, ResourceTypes.stone, mapData[x][y - 1], OnBreak);
+        Terrain.InsertResourcePixel(sPixel);
+        let stoneVec = { x: 1, y: 1 };
+        let repeats = Math.floor(Math.random() * 3) + 1;
+        for (let i = 0; i < repeats; i++) {
+            stoneVec.x = Math.floor(Math.random() * 2) - 1;
+            stoneVec.y = Math.floor(Math.random() * 2) - 1;
+            if (stoneVec.x == 0)
+                stoneVec.x = 1;
+            if (stoneVec.y == 0)
+                stoneVec.y = 1;
+            sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x + stoneVec.x, y + stoneVec.y, HighlightPixel.border, ResourceTypes.stone, mapData[x + stoneVec.x][y + stoneVec.y], OnBreak);
+            Terrain.InsertResourcePixel(sPixel);
+        }
+    }
+}
 /// <reference path="PixelData.ts" />
 /// <reference path="Lighting.ts" />
 /// <reference path="InputManager.ts" />
+/// <reference path="RTClass.ts" />
 let buildButtons = document.getElementsByClassName("Selection-Button-Div")[0].querySelectorAll("button");
 const BuildType = {
     Wall: 0,
@@ -681,74 +1091,72 @@ const BuildType = {
 let Building = [
     {
         build: new BuildingData("Cheap Wall", new rgb(244, 211, 94), PixelStatus.breakable, 3, 1, 1, HighlightPixel.border),
-        cost: { stone: 0, wood: 3 },
+        cost: new ResourceList().Add(ResourceTypes.wood, 3),
         label: "Cheap but weak"
     },
     {
         build: new BuildingData("Wooden Wall", new rgb(127, 79, 36), PixelStatus.breakable, 3, 1, 1, HighlightPixel.border),
-        cost: { stone: 0, wood: 10 },
+        cost: new ResourceList().Add(ResourceTypes.wood, 10),
         label: "Stronger but more expensive"
     },
     {
         build: new BuildingData("Stone Wall", new rgb(85, 85, 85), PixelStatus.breakable, 3, 1, 1, HighlightPixel.border),
-        cost: { stone: 15, wood: 2 },
+        cost: new ResourceList().Add(ResourceTypes.wood, 2).Add(ResourceTypes.stone, 15),
         label: "Strong but expensive"
     },
     {
         build: new BuildingData("Cheap Floor", new rgb(255, 243, 176), PixelStatus.walkable, 3, 1, 1, HighlightPixel.none),
-        cost: { stone: 0, wood: 1 },
+        cost: new ResourceList().Add(ResourceTypes.wood, 1),
         label: "Not the prettiest"
     },
     {
         build: new BuildingData("Wooden Floor", new rgb(175, 164, 126), PixelStatus.walkable, 3, 1, 1, HighlightPixel.none),
-        cost: { stone: 0, wood: 2 },
+        cost: new ResourceList().Add(ResourceTypes.wood, 2),
         label: "Decent looking"
     },
     {
         build: new BuildingData("Stone Floor", new rgb(206, 212, 218), PixelStatus.walkable, 3, 1, 1, HighlightPixel.none),
-        cost: { stone: 2, wood: 0 },
+        cost: new ResourceList().Add(ResourceTypes.stone, 15),
         label: "Build with unforseen quality"
     },
     {
         build: new DoorData("Cheap Door", new rgb(255, 231, 230), 1, 1, 3),
-        cost: { stone: 0, wood: 10 },
+        cost: new ResourceList().Add(ResourceTypes.wood, 10),
         label: "Gets you thru the night"
     },
     {
         build: new DoorData("Wooden Door", new rgb(200, 180, 166), 1, 1, 12),
-        cost: { stone: 0, wood: 20 },
+        cost: new ResourceList().Add(ResourceTypes.wood, 20),
         label: "Feels like home"
     },
     {
         build: new DoorData("Stone Door", new rgb(200, 200, 200), 1, 1, 24),
-        cost: { stone: 25, wood: 2 },
+        cost: new ResourceList().Add(ResourceTypes.wood, 2).Add(ResourceTypes.stone, 25),
         label: "A door that will last"
     },
     {
         build: new LightData("Torch", new rgb(200, 185, 0), 1, 1, 4, 5, 5),
-        cost: { stone: 2, wood: 10 },
+        cost: new ResourceList().Add(ResourceTypes.wood, 10).Add(ResourceTypes.stone, 2),
         label: "Lights up the night, burns out by sunrise"
     },
     {
         build: new LightData("Lantern", new rgb(255, 255, 0), 1, 1, 4, 7, 7),
-        cost: { stone: 7, wood: 30 },
+        cost: new ResourceList().Add(ResourceTypes.wood, 30).Add(ResourceTypes.stone, 7),
         label: "Lasts a lifetime!"
     },
     {
         build: new BuildingData("Landfill", new rgb(109, 76, 65), PixelStatus.walkable, 3, 1, 1, HighlightPixel.none),
-        cost: { stone: 1, wood: 10 },
+        cost: new ResourceList().Add(ResourceTypes.wood, 10).Add(ResourceTypes.stone, 1),
         label: "Fills the ocean!"
     },
     {
         build: new GlassData("Glass", new rgb(178, 190, 195), 1, 1, 3),
-        cost: { stone: 15, wood: 10 },
+        cost: new ResourceList().Add(ResourceTypes.wood, 10).Add(ResourceTypes.stone, 15),
         label: "Lets the sunlight thru"
     }
 ];
 let SelectedBuilding = Building[0];
 document.getElementById("Selected-Building-Label").innerHTML = SelectedBuilding.build.name + " - " + SelectedBuilding.label;
-document.getElementById("C-Wood").innerHTML = '<img src="Icons/wood.png">: ' + SelectedBuilding.cost.wood;
-document.getElementById("C-Stone").innerHTML = '<img src="Icons/stone.png">: ' + SelectedBuilding.cost.stone;
 let buildId = 0;
 function SelectBuilding(id) {
     //unselect previously selected building
@@ -758,11 +1166,6 @@ function SelectBuilding(id) {
     //update buildId variable
     buildId = id;
     UpdateSelectedBuilding();
-}
-function cheat() {
-    Resources.stone += 1000;
-    Resources.wood += 1000;
-    Render.UpdateResourcesScreen();
 }
 /**
  * Returns the id of the selected material
@@ -786,8 +1189,7 @@ function UpdateSelectedBuilding() {
     //update label
     document.getElementById("Selected-Building-Label").innerHTML = SelectedBuilding.build.name + " - " + SelectedBuilding.label;
     //update cost display
-    document.getElementById("C-Wood").innerHTML = '<img src="Icons/wood.png">: ' + SelectedBuilding.cost.wood;
-    document.getElementById("C-Stone").innerHTML = '<img src="Icons/stone.png">: ' + SelectedBuilding.cost.stone;
+    Resources.DisplayCostResources(SelectedBuilding.cost);
 }
 function canPlaceBuildingOn(pixel) {
     //cannot place floor on floor
@@ -800,17 +1202,14 @@ function canPlaceBuildingOn(pixel) {
     return false;
 }
 function Build(BuildedBuilding) {
-    if (Resources.stone >= BuildedBuilding.cost.stone
-        && Resources.wood >= BuildedBuilding.cost.wood) {
+    if (Resources.HasResources(BuildedBuilding.cost)) {
         //if placing landfill
         if (BuildedBuilding.build.name == "Landfill") {
             BuildLandfill(Player.x, Player.y);
             return;
         }
-        Resources.stone -= BuildedBuilding.cost.stone;
-        Resources.wood -= BuildedBuilding.cost.wood;
+        Resources.RemoveResourceList(BuildedBuilding.cost);
         Player.OverlapPixel = BuildedBuilding.build.at(Player.x, Player.y);
-        Render.UpdateResourcesScreen();
         isBuilding = true;
         //check if build is enclosed
         GetEnclosedSpacesAround(Player.x, Player.y).forEach((vec) => {
@@ -838,9 +1237,7 @@ function BuildLandfill(x, y) {
         }
     }
     if (didBuild) {
-        Resources.stone -= Building[11].cost.stone;
-        Resources.wood -= Building[11].cost.wood;
-        Render.UpdateResourcesScreen();
+        Resources.RemoveResourceList(Building[11].cost);
     }
 }
 const AroundDir = [
@@ -1041,338 +1438,6 @@ class PerlinNoise {
     }
 }
 let Perlin = new PerlinNoise(Math.random() * 1000); //TODO add custom seed
-/**
- * Linear interpolation from a to b with t
- */
-function lerp(a, b, t) {
-    return a + t * (b - a);
-}
-//Class for rendering the game
-class Renderer {
-    /**
-     * Creates a renderer object for the canvas
-     * @constructor
-     */
-    constructor() {
-        this.init();
-        this.Draw();
-    }
-    /**
-     * Initialises the canvas and fills it with perlin noise
-     */
-    init() {
-        if (canvas.width % canvasScale != 0 || canvas.height % canvasScale != 0)
-            console.error('Canvas size is not divisible by scale');
-        // 16 : 10 resolution
-        for (let i = 0; i < 80; i++) {
-            mapData[i] = [];
-            for (let j = 0; j < 50; j++) {
-                mapData[i][j] = PerlinPixel(i, j);
-            }
-        }
-        window.addEventListener('resize', this.UpdateWindowSize);
-        this.UpdateWindowSize();
-        console.log("initialised canvas with array of X:" + mapData.length + " Y:" + mapData[0].length);
-    }
-    /**
-     * Executes a draw call on the canvas, rendering everyting
-     */
-    Draw() {
-        ctx.beginPath(); //Clear ctx from prev. frame
-        for (let i = 0; i < canvas.width / canvasScale; i++) {
-            for (let j = 0; j < canvas.height / canvasScale; j++) {
-                const pixel = mapData[i][j];
-                if (!(pixel instanceof GlassData))
-                    ctx.fillStyle = pixel.color.getWithLight(pixel.Brightness);
-                else
-                    ctx.fillStyle = pixel.OverlaidPixel.color.MixWith(pixel.color, 0.4).getWithLight(pixel.Brightness);
-                ctx.fillRect(i * canvasScale, j * canvasScale, canvasScale, canvasScale);
-            }
-        }
-        this.DrawInteractIndicator();
-        ctx.strokeStyle = Player.HighlightColor.getWithLight(Math.max(0.35, mapData[Player.x][Player.y].Brightness));
-        ctx.lineWidth = 2;
-        ctx.strokeRect(Player.x * canvasScale + 1, Player.y * canvasScale + 1, canvasScale - 2, canvasScale - 2);
-    }
-    DrawInteractIndicator() {
-        if (canvasScale < 6.5)
-            return;
-        ctx.beginPath();
-        for (let i = 0; i < mapData.length; i++) {
-            for (let j = 0; j < mapData[0].length; j++) {
-                const pixel = mapData[i][j];
-                if (IsHighlightable(pixel)) {
-                    switch (pixel.Highlight) {
-                        case HighlightPixel.none:
-                            break;
-                        case HighlightPixel.lightBorder:
-                            ctx.strokeStyle = pixel.HighlightColor.getWithLight(pixel.Brightness);
-                            ctx.lineWidth = 1;
-                            ctx.strokeRect(i * canvasScale, j * canvasScale, canvasScale - 1, canvasScale - 1);
-                            break;
-                        case HighlightPixel.border:
-                            ctx.strokeStyle = pixel.HighlightColor.getWithLight(pixel.Brightness);
-                            ctx.lineWidth = 2;
-                            ctx.strokeRect(i * canvasScale + 1, j * canvasScale + 1, canvasScale - 2, canvasScale - 2);
-                            break;
-                        case HighlightPixel.thickBorder:
-                            ctx.strokeStyle = pixel.HighlightColor.getWithLight(pixel.Brightness);
-                            ctx.lineWidth = 4;
-                            ctx.strokeRect(i * canvasScale + 2, j * canvasScale + 2, canvasScale - 4, canvasScale - 4);
-                            break;
-                        case HighlightPixel.slash:
-                            ctx.strokeStyle = pixel.HighlightColor.getWithLight(pixel.Brightness);
-                            ctx.lineWidth = 2;
-                            ctx.strokeRect(i * canvasScale + 1, j * canvasScale + 1, canvasScale - 2, canvasScale - 2);
-                            ctx.moveTo(i * canvasScale + 1, j * canvasScale + 1);
-                            ctx.lineTo(i * canvasScale + canvasScale - 1, j * canvasScale + canvasScale - 1);
-                            break;
-                    }
-                }
-            }
-        }
-        ctx.lineWidth = 2;
-        ctx.stroke(); //write all the diagonal lines
-    }
-    /**
-     * Updates the resource count on the screen
-     */
-    UpdateResourcesScreen() {
-        document.getElementById("stone").innerHTML = ": " + Resources.stone;
-        document.getElementById("wood").innerHTML = ": " + Resources.wood;
-    }
-    UpdateWindowSize() {
-        canvasScale = Math.floor(window.innerWidth / 140);
-        if (mapData[0].length * canvasScale > window.innerHeight * 0.8)
-            canvasScale = Math.floor(window.innerHeight * 0.7 / mapData[0].length);
-        canvas.width = mapData.length * canvasScale;
-        canvas.height = mapData[0].length * canvasScale;
-    }
-}
-class ResourceList {
-    stone = 0;
-    wood = 0;
-    constructor(stone, wood) {
-        this.stone = stone;
-        this.wood = wood;
-    }
-}
-//Class for terrain modification
-class TerrainManipulator {
-    /**
-     * Inserts a pixel at the given position
-     * @param {number} x
-     * @param {number} y
-     * @param {PixelData} PixelData
-     */
-    ModifyMapData(x, y, PixelData) {
-        mapData[x][y] = PixelData;
-    }
-    /**
-     *
-     * @param {Array<Array<PixelData>>} NewMapData
-     * @returns
-     */
-    InsertMapDataRaw(NewMapData) {
-        if (mapData.length != NewMapData.length || mapData[0].length != NewMapData[0].length) {
-            console.error('Map size is not matched');
-            return;
-        }
-        mapData = NewMapData;
-    }
-    /**
-     * Inserts a interactable pixel at the pixel inner position
-     * @param {InteractData} Pixel
-     */
-    InsertResourcePixel(Pixel) {
-        Terrain.ModifyMapData(Pixel.x, Pixel.y, Pixel);
-        switch (Pixel.ResourceType) {
-            case ResourceType.stone:
-                ResourceTerrain.stone++;
-                break;
-            case ResourceType.wood:
-                ResourceTerrain.wood++;
-                break;
-        }
-    }
-    /**
-     * Deletes the interactable pixel at the given X,Y position
-     * @param {number} pX
-     * @param {number} pY
-     * @throws {ReferenceError} No interactable type at that location
-     */
-    DeleteResourcePixel(pX, pY, replacement) {
-        switch (mapData[pX][pY].ResourceType) {
-            case ResourceType.stone:
-                ResourceTerrain.stone--;
-                break;
-            case ResourceType.wood:
-                ResourceTerrain.wood--;
-                break;
-            default:
-                throw new ReferenceError("Unknown resource type");
-        }
-        this.ModifyMapData(pX, pY, replacement);
-    }
-    /**
-     * Clears the map and fills it with perlin noise
-     */
-    Clear() {
-        for (let i = 0; i < mapData.length; i++) {
-            for (let j = 0; j < mapData[0].length; j++) {
-                mapData[i][j] = PerlinPixel(i, j);
-            }
-        }
-    }
-    /**
-     * Hadles safe player movement
-     * @param {PlayerData} Player
-     * @param {Number} x
-     * @param {Number} y
-     */
-    MovePlayer(Player, x, y) {
-        //if player is not building allow diagonal movement else only move non-diagonaly
-        if (!isBuilding) {
-            Terrain.MovePlayerRaw(Player, MovementVector.x, 0);
-            Terrain.MovePlayerRaw(Player, 0, MovementVector.y);
-        }
-        else {
-            if (MovementVector.x != 0)
-                MovementVector.y = 0;
-            Terrain.MovePlayerRaw(Player, MovementVector.x, MovementVector.y);
-        }
-    }
-    /**
-     * Moves the given player by the X and Y amount
-     * @param {PlayerData} Player
-     * @param {Number} x
-     * @param {Number} y
-     */
-    MovePlayerRaw(Player, x, y) {
-        let mPixel = mapData[Player.x + x][Player.y + y];
-        //check if the player can move to the given position
-        if (mPixel.status == PixelStatus.walkable) {
-            //if is player exiting a door, lock it
-            if (mPixel instanceof DoorData)
-                mPixel.Close();
-            this.ModifyMapData(Player.x, Player.y, Player.OverlapPixel);
-            Player.x += x;
-            Player.y += y;
-            Player.OverlapPixel = mapData[Player.x][Player.y];
-            this.ModifyMapData(Player.x, Player.y, new PlayerData(Player.color, Player.HighlightColor, Player.x, Player.y, Player.Health));
-        }
-        else if (mPixel.status == PixelStatus.interact && mPixel instanceof DoorData) {
-            mPixel.Open();
-        }
-    }
-    /**
-     * Forcefully moves the player to a given X and Y position (skips any checks)
-     * @param {PlayerData} Player
-     * @param {number} x
-     * @param {number} y
-     */
-    ForceMovePlayer(Player, x, y) {
-        this.ModifyMapData(Player.x, Player.y, Player.OverlapPixel);
-        Player.x += x;
-        Player.y += y;
-        Player.OverlapPixel = mapData[Player.x][Player.y];
-        this.ModifyMapData(Player.x, Player.y, new PlayerData(Player.color, Player.HighlightColor, Player.x, Player.y, Player.Health));
-    }
-    /**
-     * Tries to generate a random resource on the map
-     */
-    GenerateRandomResource() {
-        let rand = Math.random();
-        const spawnArea = 12;
-        let centerVec = {
-            x: Math.floor(mapData.length / 2),
-            y: Math.floor(mapData[0].length / 2),
-        };
-        let pX;
-        let pY;
-        //gets a position outside of spawn area
-        do {
-            pX = Math.floor((Math.random() * mapData.length - 2) + 1);
-            pY = Math.floor((Math.random() * mapData[0].length - 2) + 1);
-        } while (((pX > centerVec.x - spawnArea && pX < centerVec.x + spawnArea) && (pY > centerVec.y - spawnArea && pY < centerVec.y + spawnArea)));
-        if (rand < (ResourceTerrain.wood / ResourceTerrain.stone) / 3)
-            this.GenerateStone(pX, pY);
-        else
-            this.GenerateTree(pX, pY);
-    }
-    /**
-     * Generates a tree at the given position (mainly for internal use)
-     * @param {number} x
-     * @param {number} y
-     */
-    GenerateTree(x, y) {
-        if (ResourceTerrain.wood + 5 > MaxTResource.wood)
-            return;
-        //check if there is a space for the tree in a 3x3 grid
-        for (let i = x - 1; i <= x + 1; i++) {
-            if (i < 0 || i > mapData.length)
-                return;
-            for (let j = y - 1; j <= y + 1; j++) {
-                if (j < 0 || j > mapData[0].length || mapData[i][j].status != PixelStatus.walkable)
-                    return;
-            }
-        }
-        let OnBreak = () => { Resources.wood += Math.floor(1 + Math.random() * 4); }; // 1 - 4
-        const tPixel = new ResourceData(new rgb(200, 70, 50), PixelStatus.breakable, 6, x, y, HighlightPixel.border, ResourceType.wood, mapData[x][y], OnBreak);
-        Terrain.InsertResourcePixel(tPixel);
-        OnBreak = () => { Resources.wood += Math.floor(Math.random() * 1.7); }; // 0 - 1
-        let lPixel = new ResourceData(new rgb(49, 87, 44), PixelStatus.breakable, 2, x + 1, y, HighlightPixel.border, ResourceType.wood, mapData[x + 1][y], OnBreak);
-        Terrain.InsertResourcePixel(lPixel);
-        lPixel = new ResourceData(new rgb(49, 87, 44), PixelStatus.breakable, 2, x - 1, y, HighlightPixel.border, ResourceType.wood, mapData[x - 1][y], OnBreak);
-        Terrain.InsertResourcePixel(lPixel);
-        lPixel = new ResourceData(new rgb(49, 87, 44), PixelStatus.breakable, 2, x, y + 1, HighlightPixel.border, ResourceType.wood, mapData[x][y + 1], OnBreak);
-        Terrain.InsertResourcePixel(lPixel);
-        lPixel = new ResourceData(new rgb(49, 87, 44), PixelStatus.breakable, 2, x, y - 1, HighlightPixel.border, ResourceType.wood, mapData[x][y - 1], OnBreak);
-        Terrain.InsertResourcePixel(lPixel);
-    }
-    /**
-     * Generates a stone at the given position (mainly for internal use)
-     * @param {number} x
-     * @param {number} y
-     */
-    GenerateStone(x, y) {
-        if (ResourceTerrain.stone + 5 > MaxTResource.stone)
-            return;
-        //check if stone can freely spawn in a 3x3 grid
-        for (let i = x - 1; i <= x + 1; i++) {
-            if (i < 0 || i > mapData.length)
-                return;
-            for (let j = y - 1; j <= y + 1; j++) {
-                if (j < 0 || j > mapData[0].length || mapData[i][j].status != PixelStatus.walkable)
-                    return;
-            }
-        }
-        const OnBreak = () => { Resources.stone += Math.floor(1 + Math.random() * 3); }; // 1 - 3
-        let sPixel;
-        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x, y, HighlightPixel.border, ResourceType.stone, mapData[x][y], OnBreak);
-        Terrain.InsertResourcePixel(sPixel);
-        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x + 1, y, HighlightPixel.border, ResourceType.stone, mapData[x + 1][y], OnBreak);
-        Terrain.InsertResourcePixel(sPixel);
-        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x - 1, y, HighlightPixel.border, ResourceType.stone, mapData[x - 1][y], OnBreak);
-        Terrain.InsertResourcePixel(sPixel);
-        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x, y + 1, HighlightPixel.border, ResourceType.stone, mapData[x][y + 1], OnBreak);
-        Terrain.InsertResourcePixel(sPixel);
-        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x, y - 1, HighlightPixel.border, ResourceType.stone, mapData[x][y - 1], OnBreak);
-        Terrain.InsertResourcePixel(sPixel);
-        let stoneVec = { x: 1, y: 1 };
-        let repeats = Math.floor(Math.random() * 3) + 1;
-        for (let i = 0; i < repeats; i++) {
-            stoneVec.x = Math.floor(Math.random() * 2) - 1;
-            stoneVec.y = Math.floor(Math.random() * 2) - 1;
-            if (stoneVec.x == 0)
-                stoneVec.x = 1;
-            if (stoneVec.y == 0)
-                stoneVec.y = 1;
-            sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x + stoneVec.x, y + stoneVec.y, HighlightPixel.border, ResourceType.stone, mapData[x + stoneVec.x][y + stoneVec.y], OnBreak);
-            Terrain.InsertResourcePixel(sPixel);
-        }
-    }
-}
 /// <reference path="RTClass.ts" />
 /// <reference path="Lighting.ts" />
 //check if user is on mobile
@@ -1383,20 +1448,21 @@ const ctx = canvas.getContext('2d', { alpha: false });
 let canvasScale = 10;
 const gTime = new GameTime();
 let mapData = [];
-let ResourceTerrain = new ResourceList(0, 0);
-const MaxTResource = new ResourceList(20, 30);
+let ResourceTerrain = new ResourceList();
+const MaxTResource = new ResourceList().Add(ResourceTypes.wood, 20).Add(ResourceTypes.stone, 30);
 //sets player position in the middle of the map
 let Player = new PlayerData(new rgb(0, 0, 0), new rgb(255, 255, 255), Math.floor(canvas.width / canvasScale / 2), Math.floor(canvas.height / canvasScale / 2), 10);
 let Render = new Renderer();
 let Terrain = new TerrainManipulator();
-let Resources = new ResourceList(0, 0);
+let Resources = new ResourceManager();
 function Start() {
     Terrain.MovePlayer(Player, 0, 0); //Draw player
     Render.Draw();
     for (let i = 0; i < 20; i++) {
         Terrain.GenerateRandomResource();
     }
-    cheat();
+    Resources.DisplayCostResources(SelectedBuilding.cost);
+    Resources.Cheat();
 }
 let isBuilding = false;
 function Update() {
@@ -1422,12 +1488,10 @@ function Update() {
     //movement interactions
     if (moveTile instanceof ResourceData) {
         moveTile.Damage(1);
-        Render.UpdateResourcesScreen();
     }
     else if (moveTile instanceof BuildingData && moveTile.status == PixelStatus.breakable) {
         if (IsDamageable(moveTile))
             moveTile.Damage(1);
-        Render.UpdateResourcesScreen();
     }
     else if (IsInteractable(moveTile) && moveTile.status == PixelStatus.interact)
         moveTile.Interact();

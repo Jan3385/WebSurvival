@@ -13,8 +13,8 @@ const gTime = new GameTime();
 let mapData: PixelData[][] = [];
 
 
-let ResourceTerrain = new ResourceList(0,0);
-const MaxTResource = new ResourceList(20, 30);
+let ResourceTerrain = new ResourceList();
+const MaxTResource = new ResourceList().Add(ResourceTypes.wood, 20).Add(ResourceTypes.stone,30);
 
 //sets player position in the middle of the map
 let Player: PlayerData = new PlayerData(new rgb(0, 0, 0), new rgb(255, 255, 255), 
@@ -23,7 +23,7 @@ let Player: PlayerData = new PlayerData(new rgb(0, 0, 0), new rgb(255, 255, 255)
 let Render = new Renderer();
 let Terrain = new TerrainManipulator();
 
-let Resources = new ResourceList(0, 0);
+let Resources = new ResourceManager();
 
 function Start(){
     Terrain.MovePlayer(Player, 0, 0); //Draw player
@@ -33,7 +33,9 @@ function Start(){
         Terrain.GenerateRandomResource();
     }
 
-    cheat();
+    Resources.DisplayCostResources(SelectedBuilding.cost);
+
+    Resources.Cheat();
 }
 
 let isBuilding = false;
@@ -65,11 +67,9 @@ function Update(){
     //movement interactions
     if(moveTile instanceof ResourceData){
         moveTile.Damage(1);
-        Render.UpdateResourcesScreen();
     }
     else if(moveTile instanceof BuildingData && moveTile.status == PixelStatus.breakable){
         if(IsDamageable(moveTile)) (<IDamageable>moveTile).Damage(1);
-        Render.UpdateResourcesScreen();
     }
     else if(IsInteractable(moveTile) && moveTile.status == PixelStatus.interact) (<IInteractable>moveTile).Interact();
     else if(!(MovementVector.x == 0 && MovementVector.y == 0)){

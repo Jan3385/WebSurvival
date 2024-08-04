@@ -1,6 +1,7 @@
 /// <reference path="PixelData.ts" />
 /// <reference path="Lighting.ts" />
 /// <reference path="InputManager.ts" />
+/// <reference path="RTClass.ts" />
 
 let buildButtons: NodeListOf<HTMLElement> = document.getElementsByClassName("Selection-Button-Div")[0].querySelectorAll("button");
 const BuildType = {
@@ -10,75 +11,73 @@ const BuildType = {
 let Building = [
     {   //cheap wall
         build: new BuildingData("Cheap Wall", new rgb(244, 211, 94), PixelStatus.breakable, 3, 1,1, HighlightPixel.border),
-        cost: {stone: 0, wood: 3},
+        cost: new ResourceList().Add(ResourceTypes.wood, 3),
         label: "Cheap but weak"
     },
     {   //wooden wall
         build: new BuildingData("Wooden Wall", new rgb(127, 79, 36), PixelStatus.breakable, 3, 1,1, HighlightPixel.border),
-        cost: {stone: 0, wood: 10},
+        cost: new ResourceList().Add(ResourceTypes.wood, 10),
         label: "Stronger but more expensive"
     },
     {   //stone wall
         build: new BuildingData("Stone Wall", new rgb(85, 85, 85), PixelStatus.breakable, 3, 1,1, HighlightPixel.border),
-        cost: {stone: 15, wood: 2},
+        cost: new ResourceList().Add(ResourceTypes.wood, 2).Add(ResourceTypes.stone, 15),
         label: "Strong but expensive"
     },
     {   //cheap floor
         build: new BuildingData("Cheap Floor", new rgb(255, 243, 176), PixelStatus.walkable, 3, 1,1, HighlightPixel.none),
-        cost: {stone: 0, wood: 1},
+        cost: new ResourceList().Add(ResourceTypes.wood, 1),
         label: "Not the prettiest"
     },
     {   //wooden floor
         build: new BuildingData("Wooden Floor", new rgb(175, 164, 126), PixelStatus.walkable, 3, 1,1, HighlightPixel.none),
-        cost: {stone: 0, wood: 2},
+        cost: new ResourceList().Add(ResourceTypes.wood, 2),
         label: "Decent looking"
     },
     {   //stone floor
         build: new BuildingData("Stone Floor", new rgb(206, 212, 218), PixelStatus.walkable, 3, 1,1, HighlightPixel.none),
-        cost: {stone: 2, wood: 0},
+        cost: new ResourceList().Add(ResourceTypes.stone, 15),
         label: "Build with unforseen quality"
     },
     {   //cheap door
         build: new DoorData("Cheap Door", new rgb(255, 231, 230), 1, 1, 3),
-        cost: {stone: 0, wood: 10},
+        cost: new ResourceList().Add(ResourceTypes.wood, 10),
         label: "Gets you thru the night"
     },
     {   //wooden door
         build: new DoorData("Wooden Door", new rgb(200, 180, 166), 1, 1, 12),
-        cost: {stone: 0, wood: 20},
+        cost: new ResourceList().Add(ResourceTypes.wood, 20),
         label: "Feels like home"
     },
     {   //stone door
         build: new DoorData("Stone Door", new rgb(200, 200, 200), 1, 1, 24),
-        cost: {stone: 25, wood: 2},
+        cost: new ResourceList().Add(ResourceTypes.wood, 2).Add(ResourceTypes.stone, 25),
         label: "A door that will last"
     },
     {   //torch
         build: new LightData("Torch", new rgb(200, 185, 0), 1, 1, 4, 5, 5),
-        cost: {stone: 2, wood: 10},
+        cost: new ResourceList().Add(ResourceTypes.wood, 10).Add(ResourceTypes.stone, 2),
         label: "Lights up the night, burns out by sunrise"
     },
     {   //lantern
         build: new LightData("Lantern", new rgb(255, 255, 0), 1, 1, 4, 7, 7),
-        cost: {stone: 7, wood: 30},
+        cost: new ResourceList().Add(ResourceTypes.wood, 30).Add(ResourceTypes.stone, 7),
         label: "Lasts a lifetime!"
     },
     {   //LandFill
         build: new BuildingData("Landfill", new rgb(109, 76, 65), PixelStatus.walkable, 3, 1,1, HighlightPixel.none),
-        cost: {stone: 1, wood: 10},
+        cost: new ResourceList().Add(ResourceTypes.wood, 10).Add(ResourceTypes.stone, 1),
         label: "Fills the ocean!"
     },
     {   //Glass
         build: new GlassData("Glass", new rgb(178, 190, 195), 1, 1, 3),
-        cost: {stone: 15, wood: 10},
+        cost: new ResourceList().Add(ResourceTypes.wood, 10).Add(ResourceTypes.stone, 15),
         label: "Lets the sunlight thru"
     }
 ];
 
 let SelectedBuilding = Building[0];
 document.getElementById("Selected-Building-Label")!.innerHTML = SelectedBuilding.build.name + " - " + SelectedBuilding.label;
-document.getElementById("C-Wood")!.innerHTML = '<img src="Icons/wood.png">: ' + SelectedBuilding.cost.wood;
-document.getElementById("C-Stone")!.innerHTML = '<img src="Icons/stone.png">: ' + SelectedBuilding.cost.stone;
 
 let buildId = 0;
 function SelectBuilding(id: number){
@@ -91,11 +90,6 @@ function SelectBuilding(id: number){
     buildId = id;
 
     UpdateSelectedBuilding();
-}
-function cheat(){
-    Resources.stone += 1000;
-    Resources.wood += 1000;
-    Render.UpdateResourcesScreen();
 }
 /**
  * Returns the id of the selected material
@@ -121,8 +115,7 @@ function UpdateSelectedBuilding(){
     //update label
     document.getElementById("Selected-Building-Label")!.innerHTML = SelectedBuilding.build.name + " - " + SelectedBuilding.label;
     //update cost display
-    document.getElementById("C-Wood")!.innerHTML = '<img src="Icons/wood.png">: ' + SelectedBuilding.cost.wood;
-    document.getElementById("C-Stone")!.innerHTML = '<img src="Icons/stone.png">: ' + SelectedBuilding.cost.stone;
+    Resources.DisplayCostResources(SelectedBuilding.cost);
 }
 function canPlaceBuildingOn(pixel: PixelData): boolean{
     //cannot place floor on floor
@@ -136,26 +129,19 @@ function canPlaceBuildingOn(pixel: PixelData): boolean{
 function Build(
     BuildedBuilding: {
         build: BuildingData;
-        cost: {
-            stone: number;
-            wood: number;
-        };
+        cost: ResourceList;
         label: string;
     }): void{
-
-    if(Resources.stone >= BuildedBuilding.cost.stone
-        && Resources.wood >= BuildedBuilding.cost.wood){
+    if(Resources.HasResources(BuildedBuilding.cost)){
             //if placing landfill
             if(BuildedBuilding.build.name == "Landfill"){
                 BuildLandfill(Player.x, Player.y);
                 return;
             }
             
-            Resources.stone -= BuildedBuilding.cost.stone;
-            Resources.wood -= BuildedBuilding.cost.wood;
+            Resources.RemoveResourceList(BuildedBuilding.cost);
 
             Player.OverlapPixel = BuildedBuilding.build.at(Player.x, Player.y);
-            Render.UpdateResourcesScreen();
             isBuilding = true;
 
             //check if build is enclosed
@@ -187,9 +173,7 @@ function BuildLandfill(x: number, y: number): void{
     }
 
     if(didBuild){
-        Resources.stone -= Building[11].cost.stone;
-        Resources.wood -= Building[11].cost.wood;
-        Render.UpdateResourcesScreen();
+        Resources.RemoveResourceList(Building[11].cost);
     }
 }
 

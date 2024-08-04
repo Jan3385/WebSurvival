@@ -191,10 +191,6 @@ class EnemyData extends EntityData{
         mapData[this.x][this.y] = this.OverlapPixel;
     }
 }
-enum ResourceType{
-    wood,
-    stone,
-}
 class ResourceData extends PixelData implements IDamageable, IHighlightable{
     Health: number;
     MaxHealth: number;
@@ -202,12 +198,12 @@ class ResourceData extends PixelData implements IDamageable, IHighlightable{
     y: number;
     Highlight: HighlightPixel;
     HighlightColor: rgb = new rgb(60, 60, 60);
-    ResourceType: ResourceType;
+    ResourceType: ResourceTypes;
     OverlaidPixel: PixelData;
     OnResourceDestroy: () => void;
     constructor(
         color: rgb, status: PixelStatus, Health: number, x: number, y: number,
-        Highlight: HighlightPixel, ResourceType: ResourceType, OverlaidPixel: PixelData ,OnResourceDestroy: () => void
+        Highlight: HighlightPixel, ResourceType: ResourceTypes, OverlaidPixel: PixelData ,OnResourceDestroy: () => void
     ){
         super(color, status);
         this.Health = Health;

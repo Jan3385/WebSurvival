@@ -22,7 +22,7 @@ class Renderer{
         if(canvas.width % canvasScale != 0 || canvas.height % canvasScale != 0) 
             console.error('Canvas size is not divisible by scale');
 
-        // 16 : 10 resolution
+        // 16 : 10 resolution | 80x50 pixel map
         for (let i = 0; i < 80; i++) {
             mapData[i] = [];
             for (let j = 0; j < 50; j++) {
@@ -98,13 +98,6 @@ class Renderer{
         ctx.lineWidth = 2;
         ctx.stroke(); //write all the diagonal lines
     }
-    /**
-     * Updates the resource count on the screen
-     */
-    UpdateResourcesScreen(){
-        document.getElementById("stone")!.innerHTML = ": "+Resources.stone;
-        document.getElementById("wood")!.innerHTML = ": "+Resources.wood;
-    }
     UpdateWindowSize(){
         canvasScale = Math.floor(window.innerWidth / 140);
         if(mapData[0].length * canvasScale > window.innerHeight*0.8) canvasScale = Math.floor(window.innerHeight*0.7 / mapData[0].length);
@@ -113,12 +106,113 @@ class Renderer{
         canvas.height = mapData[0].length * canvasScale;
     }
 }
+enum ResourceTypes{
+    wood,
+    stone,
+    sand,
+    glass,
+}
+class ResourceManager{
+    resources: [ResourceTypes, number][] = [];
+    DisplayStoredResources(): void{
+        const ResouceElements: HTMLElement[] = [];
+        this.resources.forEach(x => {
+            const container = document.createElement('div');
+            const image = document.createElement('img');
+            const text = document.createElement('p');
+
+            image.src = 'Icons/' + ResourceTypes[x[0]] + '.png';
+            text.innerHTML = x[1].toString();
+            container.appendChild(image);
+            container.appendChild(text);
+            ResouceElements.push(container);
+        });
+
+        document.getElementById("Player-Resources")!.replaceChildren(...ResouceElements);
+    }
+    DisplayCostResources(resources: ResourceList): void{
+        const ResouceElements: HTMLElement[] = [];
+
+        const text = document.createElement('p');
+        text.classList.add('Cost-Build');
+        text.innerHTML = "Cost:";
+        ResouceElements.push(text);
+
+        resources.resources.forEach(x => {
+            const container = document.createElement('p');
+            container.innerHTML = '<img src="Icons/' + ResourceTypes[x[0]] +'.png">: ' + x[1];
+            ResouceElements.push(container);
+        });
+
+        document.getElementsByClassName("Cost-List")[0]!.replaceChildren(...ResouceElements);
+    }
+    Cheat(){
+        this.AddResourceList(new ResourceList()
+            .Add(ResourceTypes.wood, 1000)
+            .Add(ResourceTypes.stone, 1000));
+    }
+    GetResourceAmount(type: ResourceTypes): number{
+        const resource = this.resources.filter(x => x[0] == type)[0];
+        if(resource == undefined) return 0;
+        return resource[1];
+    }
+    AddResource(type: ResourceTypes, amount: number): void{
+        const resource = this.resources.filter(x => x[0] == type)[0];
+        if(resource == undefined) this.resources.push([type, amount]);
+        else this.resources.filter(x => x[0] == type)[0][1] += amount;
+        this.DisplayStoredResources();
+    }
+    AddResourceList(list: ResourceList): void{
+        list.resources.forEach(x => this.AddResource(x[0], x[1]));
+    }
+    RemoveResource(type: ResourceTypes, amount: number): boolean{
+        const resource = this.resources.filter(x => x[0] == type)[0];
+        if(resource == undefined) return false;
+        else this.resources.filter(x => x[0] == type)[0][1] -= amount;
+        this.DisplayStoredResources();
+
+        if(this.resources.filter(x => x[0] == type)[0][1] < 0){
+            this.resources.filter(x => x[0] == type)[0][1] = 0;
+            this.DisplayStoredResources();
+            return false;
+        }
+        return true;
+    }
+    RemoveResourceList(list: ResourceList): boolean{
+        let RemovedSuccesfully: boolean = true;
+
+        for(let i = 0; i < list.resources.length; i++){
+            if(!this.RemoveResource(list.resources[i][0], list.resources[i][1])) RemovedSuccesfully = false;
+        }
+
+        return RemovedSuccesfully;
+    }
+    HasResources(list: ResourceList): boolean{
+        for(let i = 0; i < list.resources.length; i++){
+            if(this.GetResourceAmount(list.resources[i][0]) < list.resources[i][1]) return false;
+        }
+        return true;
+    }
+}
 class ResourceList{
-    stone: number = 0;
-    wood: number = 0;
-    constructor(stone: number, wood: number){
-        this.stone = stone;
-        this.wood = wood;
+    resources: [ResourceTypes, number][] = [];
+    Add(type: ResourceTypes, amount: number): ResourceList{
+        const resourceIndex = this.resources.findIndex(x => x[0] == type);
+        if(resourceIndex != -1) this.resources[resourceIndex][1] += amount;
+        else this.resources.push([type, amount]);
+
+        return this;
+    }
+    Remove(type: ResourceTypes, amount: number): ResourceList{
+        const resourceIndex = this.resources.findIndex(x => x[0] == type);
+        if(resourceIndex != -1) this.resources[resourceIndex][1] -= amount;
+        else console.log("Tried to remove non-existant resource from ResourceList");
+        return this;
+    }
+    GetResourceAmount(type: ResourceTypes): number{
+        const resource = this.resources.filter(x => x[0] == type)[0];
+        if(resource == undefined) return 0;
+        return resource[1];
     }
 }
 //Class for terrain modification
@@ -152,14 +246,7 @@ class TerrainManipulator{
     InsertResourcePixel(Pixel: ResourceData): void{
         Terrain.ModifyMapData(Pixel.x, Pixel.y, Pixel);
 
-        switch(Pixel.ResourceType){
-            case ResourceType.stone:
-                ResourceTerrain.stone++;
-                break;
-            case ResourceType.wood:
-                ResourceTerrain.wood++;
-                break;
-        }
+        ResourceTerrain.Add(Pixel.ResourceType, 1);
     }
     /**
      * Deletes the interactable pixel at the given X,Y position
@@ -168,16 +255,7 @@ class TerrainManipulator{
      * @throws {ReferenceError} No interactable type at that location
      */
     DeleteResourcePixel(pX: number, pY: number, replacement: PixelData): void{
-        switch((<ResourceData>mapData[pX][pY]).ResourceType){
-            case ResourceType.stone:
-                ResourceTerrain.stone--;
-                break;
-            case ResourceType.wood:
-                ResourceTerrain.wood--;
-                break;
-            default:
-                throw new ReferenceError("Unknown resource type");
-        }
+        ResourceTerrain.Remove((<ResourceData>mapData[pX][pY]).ResourceType, 1);
 
         this.ModifyMapData(pX, pY, replacement);
     }
@@ -266,7 +344,8 @@ class TerrainManipulator{
             pY = Math.floor((Math.random() * mapData[0].length -2) + 1);
         }while(((pX > centerVec.x-spawnArea && pX < centerVec.x + spawnArea) && (pY > centerVec.y-spawnArea && pY < centerVec.y + spawnArea)))
 
-        if(rand < (ResourceTerrain.wood/ResourceTerrain.stone)/3) this.GenerateStone(pX, pY);
+        if(rand < (ResourceTerrain.GetResourceAmount(ResourceTypes.wood)/ResourceTerrain.GetResourceAmount(ResourceTypes.stone))/3)
+            this.GenerateStone(pX, pY);
         else this.GenerateTree(pX, pY);
     }
     /**
@@ -275,7 +354,7 @@ class TerrainManipulator{
      * @param {number} y 
      */
     GenerateTree(x: number,y: number): void{
-        if(ResourceTerrain.wood + 5 > MaxTResource.wood) return;
+        if(ResourceTerrain.GetResourceAmount(ResourceTypes.wood) + 5 > MaxTResource.GetResourceAmount(ResourceTypes.wood)) return;
 
         //check if there is a space for the tree in a 3x3 grid
         for(let i = x-1; i <= x+1; i++){
@@ -285,19 +364,19 @@ class TerrainManipulator{
             }
         }
 
-        let OnBreak = () =>{ Resources.wood+= Math.floor(1 + Math.random()*4); }; // 1 - 4
+        let OnBreak = () =>{ Resources.AddResource(ResourceTypes.wood, Math.floor(1 + Math.random()*4)); }; // 1 - 4
         const tPixel: ResourceData = new ResourceData(new rgb(200, 70, 50), PixelStatus.breakable, 
-            6, x, y, HighlightPixel.border, ResourceType.wood, mapData[x][y], OnBreak);
+            6, x, y, HighlightPixel.border, ResourceTypes.wood, mapData[x][y], OnBreak);
         Terrain.InsertResourcePixel(tPixel);
         
-        OnBreak = () =>{ Resources.wood+= Math.floor(Math.random()*1.7); }; // 0 - 1
-        let lPixel = new ResourceData(new rgb(49, 87, 44),PixelStatus.breakable, 2, x+1, y, HighlightPixel.border, ResourceType.wood, mapData[x+1][y], OnBreak);
+        OnBreak = () =>{ Resources.AddResource(ResourceTypes.wood, Math.floor(Math.random()*1.7)); }; // 0 - 1
+        let lPixel = new ResourceData(new rgb(49, 87, 44),PixelStatus.breakable, 2, x+1, y, HighlightPixel.border, ResourceTypes.wood, mapData[x+1][y], OnBreak);
         Terrain.InsertResourcePixel(lPixel);
-        lPixel = new ResourceData(new rgb(49, 87, 44),PixelStatus.breakable, 2, x-1, y, HighlightPixel.border, ResourceType.wood, mapData[x-1][y], OnBreak);
+        lPixel = new ResourceData(new rgb(49, 87, 44),PixelStatus.breakable, 2, x-1, y, HighlightPixel.border, ResourceTypes.wood, mapData[x-1][y], OnBreak);
         Terrain.InsertResourcePixel(lPixel);
-        lPixel = new ResourceData(new rgb(49, 87, 44),PixelStatus.breakable, 2, x, y+1, HighlightPixel.border, ResourceType.wood, mapData[x][y+1], OnBreak);
+        lPixel = new ResourceData(new rgb(49, 87, 44),PixelStatus.breakable, 2, x, y+1, HighlightPixel.border, ResourceTypes.wood, mapData[x][y+1], OnBreak);
         Terrain.InsertResourcePixel(lPixel);
-        lPixel = new ResourceData(new rgb(49, 87, 44),PixelStatus.breakable, 2, x, y-1, HighlightPixel.border, ResourceType.wood, mapData[x][y-1], OnBreak);
+        lPixel = new ResourceData(new rgb(49, 87, 44),PixelStatus.breakable, 2, x, y-1, HighlightPixel.border, ResourceTypes.wood, mapData[x][y-1], OnBreak);
         Terrain.InsertResourcePixel(lPixel);
     }
     /**
@@ -306,7 +385,7 @@ class TerrainManipulator{
      * @param {number} y 
      */
     GenerateStone(x: number,y: number): void{
-        if(ResourceTerrain.stone + 5 > MaxTResource.stone) return;
+        if(ResourceTerrain.GetResourceAmount(ResourceTypes.stone) + 5 > MaxTResource.GetResourceAmount(ResourceTypes.stone)) return;
 
         //check if stone can freely spawn in a 3x3 grid
         for(let i = x-1; i <= x+1; i++){
@@ -316,23 +395,23 @@ class TerrainManipulator{
             }
         }
 
-        const OnBreak = () =>{ Resources.stone+= Math.floor(1 + Math.random()*3); }; // 1 - 3
+        const OnBreak = () =>{ Resources.AddResource(ResourceTypes.stone, Math.floor(1 + Math.random()*3)); }; // 1 - 3
         let sPixel: ResourceData;
         
         sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x, y,HighlightPixel.border, 
-            ResourceType.stone,mapData[x][y], OnBreak);
+            ResourceTypes.stone,mapData[x][y], OnBreak);
         Terrain.InsertResourcePixel(sPixel);
         sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x+1, y,HighlightPixel.border, 
-            ResourceType.stone,mapData[x+1][y], OnBreak);
+            ResourceTypes.stone,mapData[x+1][y], OnBreak);
         Terrain.InsertResourcePixel(sPixel);
         sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x-1, y,HighlightPixel.border, 
-            ResourceType.stone,mapData[x-1][y], OnBreak);
+            ResourceTypes.stone,mapData[x-1][y], OnBreak);
         Terrain.InsertResourcePixel(sPixel);
         sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x, y+1,HighlightPixel.border, 
-            ResourceType.stone,mapData[x][y+1], OnBreak);
+            ResourceTypes.stone,mapData[x][y+1], OnBreak);
         Terrain.InsertResourcePixel(sPixel);
         sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x, y-1,HighlightPixel.border, 
-            ResourceType.stone,mapData[x][y-1], OnBreak);
+            ResourceTypes.stone,mapData[x][y-1], OnBreak);
         Terrain.InsertResourcePixel(sPixel);
 
         let stoneVec = {x: 1, y: 1}
@@ -344,7 +423,7 @@ class TerrainManipulator{
             if(stoneVec.y == 0) stoneVec.y = 1;
 
             sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, 
-                x+stoneVec.x, y+stoneVec.y,HighlightPixel.border, ResourceType.stone, mapData[x+stoneVec.x][y+stoneVec.y], OnBreak);
+                x+stoneVec.x, y+stoneVec.y,HighlightPixel.border, ResourceTypes.stone, mapData[x+stoneVec.x][y+stoneVec.y], OnBreak);
             Terrain.InsertResourcePixel(sPixel);
         }
     }
