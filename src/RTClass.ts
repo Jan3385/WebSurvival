@@ -168,15 +168,18 @@ class ResourceManager{
     }
     RemoveResource(type: ResourceTypes, amount: number): boolean{
         const resource = this.resources.filter(x => x[0] == type)[0];
+        
         if(resource == undefined) return false;
         else this.resources.filter(x => x[0] == type)[0][1] -= amount;
-        this.DisplayStoredResources();
 
-        if(this.resources.filter(x => x[0] == type)[0][1] < 0){
-            this.resources.filter(x => x[0] == type)[0][1] = 0;
+        if(this.resources.filter(x => x[0] == type)[0][1] <= 0){
+            const resourceIndex = this.resources.findIndex(x => x[0] == type);
+            this.resources.splice(resourceIndex, 1);
             this.DisplayStoredResources();
             return false;
         }
+
+        this.DisplayStoredResources();
         return true;
     }
     RemoveResourceList(list: ResourceList): boolean{

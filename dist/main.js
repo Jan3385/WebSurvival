@@ -217,7 +217,6 @@ class BuildingData extends PixelData {
     Damage(damage) {
         this.Health -= damage;
         this.color.Darken(1.07); //TODO: update the Darken method and execution
-        console.log(this.Health + " au");
         if (this.Health <= 0) {
             this.Destroy();
             return true;
@@ -831,12 +830,13 @@ class ResourceManager {
             return false;
         else
             this.resources.filter(x => x[0] == type)[0][1] -= amount;
-        this.DisplayStoredResources();
-        if (this.resources.filter(x => x[0] == type)[0][1] < 0) {
-            this.resources.filter(x => x[0] == type)[0][1] = 0;
+        if (this.resources.filter(x => x[0] == type)[0][1] <= 0) {
+            const resourceIndex = this.resources.findIndex(x => x[0] == type);
+            this.resources.splice(resourceIndex, 1);
             this.DisplayStoredResources();
             return false;
         }
+        this.DisplayStoredResources();
         return true;
     }
     RemoveResourceList(list) {
@@ -1322,7 +1322,8 @@ function CheckDeleteInterior(x, y) {
     const EnclosedSpaces = GetEnclosedSpacesAround(x, y);
     for (const vec of AroundDir) {
         if (EnclosedSpaces.find((v) => v.x == x + vec.x && v.y == y + vec.y) == undefined) {
-            console.log(EnclosedSpaces, x + vec.x, y + vec.y);
+            if (x + vec.x < 0 || x + vec.x >= mapData.length || y + vec.y < 0 || y + vec.y > mapData[0].length)
+                continue;
             deleteInterior(x + vec.x, y + vec.y);
         }
     }
@@ -1334,6 +1335,8 @@ function deleteInterior(x, y) {
     InteriorPixel.Indoors = false;
     let p;
     for (const dVec of AroundDir) {
+        if (x + dVec.x < 0 || x + dVec.x >= mapData.length || y + dVec.y < 0 || y + dVec.y > mapData[0].length)
+            continue;
         p = mapData[x + dVec.x][y + dVec.y] instanceof PlayerData ? Player.OverlapPixel : mapData[x + dVec.x][y + dVec.y];
         if (p.Indoors) {
             deleteInterior(x + dVec.x, y + dVec.y);

@@ -257,7 +257,6 @@ class BuildingData extends PixelData implements IDamageable, IHighlightable{
     Damage(damage: number): boolean{
         this.Health -= damage;
         this.color.Darken(1.07); //TODO: update the Darken method and execution
-        console.log(this.Health + " au");
         if(this.Health <= 0){
             this.Destroy();
             return true;
