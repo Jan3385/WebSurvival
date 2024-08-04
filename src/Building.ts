@@ -71,7 +71,7 @@ let Building = [
     },
     {   //Glass
         build: new GlassData("Glass", new rgb(178, 190, 195), 1, 1, 3),
-        cost: new ResourceList().Add(ResourceTypes.wood, 10).Add(ResourceTypes.stone, 15),
+        cost: new ResourceList().Add(ResourceTypes.wood, 4).Add(ResourceTypes.glass, 20),
         label: "Lets the sunlight thru"
     }
 ];

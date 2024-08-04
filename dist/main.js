@@ -805,7 +805,8 @@ class ResourceManager {
     Cheat() {
         this.AddResourceList(new ResourceList()
             .Add(ResourceTypes.wood, 1000)
-            .Add(ResourceTypes.stone, 1000));
+            .Add(ResourceTypes.stone, 1000)
+            .Add(ResourceTypes.glass, 1000));
     }
     GetResourceAmount(type) {
         const resource = this.resources.filter(x => x[0] == type)[0];
@@ -1152,7 +1153,7 @@ let Building = [
     },
     {
         build: new GlassData("Glass", new rgb(178, 190, 195), 1, 1, 3),
-        cost: new ResourceList().Add(ResourceTypes.wood, 10).Add(ResourceTypes.stone, 15),
+        cost: new ResourceList().Add(ResourceTypes.wood, 4).Add(ResourceTypes.glass, 20),
         label: "Lets the sunlight thru"
     }
 ];

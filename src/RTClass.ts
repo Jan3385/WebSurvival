@@ -150,7 +150,8 @@ class ResourceManager{
     Cheat(){
         this.AddResourceList(new ResourceList()
             .Add(ResourceTypes.wood, 1000)
-            .Add(ResourceTypes.stone, 1000));
+            .Add(ResourceTypes.stone, 1000)
+            .Add(ResourceTypes.glass, 1000));
     }
     GetResourceAmount(type: ResourceTypes): number{
         const resource = this.resources.filter(x => x[0] == type)[0];
@@ -168,7 +169,7 @@ class ResourceManager{
     }
     RemoveResource(type: ResourceTypes, amount: number): boolean{
         const resource = this.resources.filter(x => x[0] == type)[0];
-        
+
         if(resource == undefined) return false;
         else this.resources.filter(x => x[0] == type)[0][1] -= amount;
 
