@@ -1488,6 +1488,12 @@ function Update() {
                 CheckDeleteInterior(Player.x, Player.y);
             }
         }
+        if (Player.OverlapPixel instanceof TerrainData) {
+            if (Player.OverlapPixel.type == TerrainType.sand) {
+                if (Math.random() < 0.3)
+                    Resources.AddResource(ResourceTypes.sand, 1);
+            }
+        }
     }
     //movement interactions
     if (moveTile instanceof ResourceData) {

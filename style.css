@@ -45,22 +45,35 @@
 .Game-Spacer {
     padding: 5px;
     div{
-        margin: 0;
+        margin: auto;
         min-width: 5svw;
+        user-select: none;
+        overflow-y: auto;
+        max-height: 40dvh;
+        /* Player resources: */
         div{
             display: flex;
             flex-direction: row;
             justify-content: center;
             align-items: center;
-            height: 5%;
+            background-color: rgb(250, 177, 160);
+            padding: 1px 0px 1px 0px;
+            margin: 7px auto 7px auto;
+            border-radius: 10px;
+            width: 80%;
             p{
+                user-select: none;
                 margin: 0;
-                padding: 0;
+                margin-left: 5px;
+                padding: 3px;
                 white-space: nowrap;
                 overflow: hidden;
                 width: auto;
+                background-color: white;
+                border-radius: 6px;
             }
             img{
+                -webkit-user-drag: none;
                 vertical-align: middle;
                 width: 30px;
                 aspect-ratio: 1/1;
@@ -176,6 +189,7 @@
                 margin: 0;
                 margin-left: 3px;
                 img{
+                    -webkit-user-drag: none;
                     height: auto;
                     width: 20px;
                     aspect-ratio: 1/1;
