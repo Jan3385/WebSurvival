@@ -1,4 +1,5 @@
-/// <reference path="RTClass.ts" />
+/// <reference path="Terrain.ts" />
+/// <reference path="Rendering.ts" />
 /// <reference path="Lighting.ts" />
 
 //check if user is on mobile

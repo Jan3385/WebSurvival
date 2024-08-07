@@ -1,7 +1,7 @@
 /// <reference path="PixelData.ts" />
 /// <reference path="Lighting.ts" />
-/// <reference path="InputManager.ts" />
-/// <reference path="RTClass.ts" />
+/// <reference path="SupportClasses.ts" />
+/// <reference path="Terrain.ts" />
 
 let buildButtons: NodeListOf<HTMLElement> = document.getElementsByClassName("Selection-Button-Div")[0].querySelectorAll("button");
 const BuildType = {
