@@ -1,55 +1,4 @@
 "use strict";
-class rgb {
-    /**
-     * @constructor
-     * @param {number} r
-     * @param {number} g
-     * @param {number} b
-     */
-    r;
-    g;
-    b;
-    constructor(r, g, b) {
-        this.r = r;
-        this.g = g;
-        this.b = b;
-    }
-    new() {
-        return new rgb(this.r, this.g, this.b);
-    }
-    newSlightlyRandom(val) {
-        return new rgb(this.r + Math.floor(Math.random() * val), this.g + Math.floor(Math.random() * val), this.b + Math.floor(Math.random() * val));
-    }
-    changeBy(val) {
-        return new rgb(this.r + val, this.g + val, this.b + val);
-    }
-    /**
-    * Returns the rgb value in string format
-    * @returns {string}
-    */
-    get() {
-        return 'rgb(' + this.r + ',' + this.g + ',' + this.b + ')';
-    }
-    getWithLight(light) {
-        const lightShift = Math.min(light / 5, 1.1);
-        return `rgb(${Math.floor(this.r * lightShift)},${Math.floor(this.g * lightShift)},${this.b * lightShift})`;
-    }
-    /**
-     * Makes the rgb value darker by the value
-     * @param {number} val
-     */
-    Darken(val = 1.5) {
-        this.r /= val;
-        this.g /= val;
-        this.b /= val;
-    }
-    Lerp(other, t) {
-        return new rgb(Math.floor(lerp(this.r, other.r, t)), Math.floor(lerp(this.g, other.g, t)), Math.floor(lerp(this.b, other.b, t)));
-    }
-    MixWith(other, t) {
-        return new rgb(Math.floor(lerp(this.r, other.r, t)), Math.floor(lerp(this.g, other.g, t)), Math.floor(lerp(this.b, other.b, t)));
-    }
-}
 var PixelStatus;
 (function (PixelStatus) {
     PixelStatus[PixelStatus["walkable"] = 0] = "walkable";
@@ -542,228 +491,62 @@ class Vector2 {
         this.y = y;
     }
 }
-let MovementVector = new Vector2(0, 0);
-let usedInput = false;
-let inputPresses = [];
-let removeInputValues = [];
-//calls repeatedly on key hold
-function onKeyDown(event) {
-    switch (event.keyCode) {
-        case 87: //W
-            if (MovementVector.y != -1) {
-                MovementVector.y = -1;
-                usedInput = false;
-            }
-            break;
-        case 65: //A
-            if (MovementVector.x != -1) {
-                MovementVector.x = -1;
-                usedInput = false;
-            }
-            break;
-        case 83: //S
-            if (MovementVector.y != 1) {
-                MovementVector.y = 1;
-                usedInput = false;
-            }
-            break;
-        case 68: //D
-            if (MovementVector.x != 1) {
-                MovementVector.x = 1;
-                usedInput = false;
-            }
-            break;
-        default:
-            //for other keys add to input presses array
-            if (!inputPresses.includes(event.keyCode)) {
-                inputPresses.push(event.keyCode);
-                usedInput = false;
-            }
-            break;
+class rgb {
+    /**
+     * @constructor
+     * @param {number} r
+     * @param {number} g
+     * @param {number} b
+     */
+    r;
+    g;
+    b;
+    constructor(r, g, b) {
+        this.r = r;
+        this.g = g;
+        this.b = b;
     }
-    //if(event.keyCode >= 49 && event.keyCode <= 57) SelectBuilding(event.keyCode - 49);
-}
-let clearMap = { xMinus: false, xPlus: false, yMinus: false, yPlus: false };
-//calls once on key release
-function onKeyUp(event) {
-    //clear movement vector if it was registered ingame
-    if (usedInput) {
-        switch (event.keyCode) {
-            case 87:
-                if (MovementVector.y == -1)
-                    MovementVector.y = 0;
-                break;
-            case 68:
-                if (MovementVector.x == 1)
-                    MovementVector.x = 0;
-                break;
-            case 83:
-                if (MovementVector.y == 1)
-                    MovementVector.y = 0;
-                break;
-            case 65:
-                if (MovementVector.x == -1)
-                    MovementVector.x = 0;
-                break;
-            default:
-                if (inputPresses.includes(event.keyCode))
-                    inputPresses.splice(inputPresses.indexOf(event.keyCode), 1);
-                break;
-        }
-        return;
+    new() {
+        return new rgb(this.r, this.g, this.b);
     }
-    //if the key was not registered ingame, designate for later removal
-    switch (event.keyCode) {
-        case 87:
-            clearMap.yMinus = true;
-            break;
-        case 68:
-            clearMap.xPlus = true;
-            break;
-        case 83:
-            clearMap.yPlus = true;
-            break;
-        case 65:
-            clearMap.xMinus = true;
-            break;
+    newSlightlyRandom(val) {
+        return new rgb(this.r + Math.floor(Math.random() * val), this.g + Math.floor(Math.random() * val), this.b + Math.floor(Math.random() * val));
     }
-    removeInputValues.push(event.keyCode);
-}
-//inputs have been used and can be cleared now
-function UpdateInput() {
-    usedInput = true;
-    //clears any movement vector if its designated for clearing
-    if (clearMap.xMinus) {
-        if (MovementVector.x == -1)
-            MovementVector.x = 0;
-        clearMap.xMinus = false;
+    changeBy(val) {
+        return new rgb(this.r + val, this.g + val, this.b + val);
     }
-    if (clearMap.xPlus) {
-        if (MovementVector.x == 1)
-            MovementVector.x = 0;
-        clearMap.xPlus = false;
+    /**
+    * Returns the rgb value in string format
+    * @returns {string}
+    */
+    get() {
+        return 'rgb(' + this.r + ',' + this.g + ',' + this.b + ')';
     }
-    if (clearMap.yMinus) {
-        if (MovementVector.y == -1)
-            MovementVector.y = 0;
-        clearMap.yMinus = false;
+    getWithLight(light) {
+        const lightShift = Math.min(light / 5, 1.1);
+        return `rgb(${Math.floor(this.r * lightShift)},${Math.floor(this.g * lightShift)},${this.b * lightShift})`;
     }
-    if (clearMap.yPlus) {
-        if (MovementVector.y == 1)
-            MovementVector.y = 0;
-        clearMap.yPlus = false;
+    /**
+     * Makes the rgb value darker by the value
+     * @param {number} val
+     */
+    Darken(val = 1.5) {
+        this.r /= val;
+        this.g /= val;
+        this.b /= val;
     }
-    //removes any keys that were designated for removal
-    if (removeInputValues.length > 0) {
-        removeInputValues.forEach(value => {
-            if (inputPresses.includes(value))
-                inputPresses.splice(inputPresses.indexOf(value), 1);
-        });
-        removeInputValues = [];
+    Lerp(other, t) {
+        return new rgb(Math.floor(lerp(this.r, other.r, t)), Math.floor(lerp(this.g, other.g, t)), Math.floor(lerp(this.b, other.b, t)));
+    }
+    MixWith(other, t) {
+        return new rgb(Math.floor(lerp(this.r, other.r, t)), Math.floor(lerp(this.g, other.g, t)), Math.floor(lerp(this.b, other.b, t)));
     }
 }
-window.addEventListener("keydown", onKeyDown, false);
-window.addEventListener("keyup", onKeyUp, false);
 /**
  * Linear interpolation from a to b with t
  */
 function lerp(a, b, t) {
     return a + t * (b - a);
-}
-//Class for rendering the game
-class Renderer {
-    /**
-     * Creates a renderer object for the canvas
-     * @constructor
-     */
-    constructor() {
-        this.init();
-        this.Draw();
-    }
-    /**
-     * Initialises the canvas and fills it with perlin noise
-     */
-    init() {
-        if (canvas.width % canvasScale != 0 || canvas.height % canvasScale != 0)
-            console.error('Canvas size is not divisible by scale');
-        // 16 : 10 resolution | 80x50 pixel map
-        for (let i = 0; i < 80; i++) {
-            mapData[i] = [];
-            for (let j = 0; j < 50; j++) {
-                mapData[i][j] = PerlinPixel(i, j);
-            }
-        }
-        window.addEventListener('resize', this.UpdateWindowSize);
-        this.UpdateWindowSize();
-        console.log("initialised canvas with array of X:" + mapData.length + " Y:" + mapData[0].length);
-    }
-    /**
-     * Executes a draw call on the canvas, rendering everyting
-     */
-    Draw() {
-        ctx.beginPath(); //Clear ctx from prev. frame
-        for (let i = 0; i < canvas.width / canvasScale; i++) {
-            for (let j = 0; j < canvas.height / canvasScale; j++) {
-                const pixel = mapData[i][j];
-                if (!(pixel instanceof GlassData))
-                    ctx.fillStyle = pixel.color.getWithLight(pixel.Brightness);
-                else
-                    ctx.fillStyle = pixel.OverlaidPixel.color.MixWith(pixel.color, 0.4).getWithLight(pixel.Brightness);
-                ctx.fillRect(i * canvasScale, j * canvasScale, canvasScale, canvasScale);
-            }
-        }
-        this.DrawInteractIndicator();
-        ctx.strokeStyle = Player.HighlightColor.getWithLight(Math.max(0.35, mapData[Player.x][Player.y].Brightness));
-        ctx.lineWidth = 2;
-        ctx.strokeRect(Player.x * canvasScale + 1, Player.y * canvasScale + 1, canvasScale - 2, canvasScale - 2);
-    }
-    DrawInteractIndicator() {
-        if (canvasScale < 6.5)
-            return;
-        ctx.beginPath();
-        for (let i = 0; i < mapData.length; i++) {
-            for (let j = 0; j < mapData[0].length; j++) {
-                const pixel = mapData[i][j];
-                if (IsHighlightable(pixel)) {
-                    switch (pixel.Highlight) {
-                        case HighlightPixel.none:
-                            break;
-                        case HighlightPixel.lightBorder:
-                            ctx.strokeStyle = pixel.HighlightColor.getWithLight(pixel.Brightness);
-                            ctx.lineWidth = 1;
-                            ctx.strokeRect(i * canvasScale, j * canvasScale, canvasScale - 1, canvasScale - 1);
-                            break;
-                        case HighlightPixel.border:
-                            ctx.strokeStyle = pixel.HighlightColor.getWithLight(pixel.Brightness);
-                            ctx.lineWidth = 2;
-                            ctx.strokeRect(i * canvasScale + 1, j * canvasScale + 1, canvasScale - 2, canvasScale - 2);
-                            break;
-                        case HighlightPixel.thickBorder:
-                            ctx.strokeStyle = pixel.HighlightColor.getWithLight(pixel.Brightness);
-                            ctx.lineWidth = 4;
-                            ctx.strokeRect(i * canvasScale + 2, j * canvasScale + 2, canvasScale - 4, canvasScale - 4);
-                            break;
-                        case HighlightPixel.slash:
-                            ctx.strokeStyle = pixel.HighlightColor.getWithLight(pixel.Brightness);
-                            ctx.lineWidth = 2;
-                            ctx.strokeRect(i * canvasScale + 1, j * canvasScale + 1, canvasScale - 2, canvasScale - 2);
-                            ctx.moveTo(i * canvasScale + 1, j * canvasScale + 1);
-                            ctx.lineTo(i * canvasScale + canvasScale - 1, j * canvasScale + canvasScale - 1);
-                            break;
-                    }
-                }
-            }
-        }
-        ctx.lineWidth = 2;
-        ctx.stroke(); //write all the diagonal lines
-    }
-    UpdateWindowSize() {
-        canvasScale = Math.floor(window.innerWidth / 140);
-        if (mapData[0].length * canvasScale > window.innerHeight * 0.8)
-            canvasScale = Math.floor(window.innerHeight * 0.7 / mapData[0].length);
-        canvas.width = mapData.length * canvasScale;
-        canvas.height = mapData[0].length * canvasScale;
-    }
 }
 var ResourceTypes;
 (function (ResourceTypes) {
@@ -1083,8 +866,8 @@ class TerrainManipulator {
 }
 /// <reference path="PixelData.ts" />
 /// <reference path="Lighting.ts" />
-/// <reference path="InputManager.ts" />
-/// <reference path="RTClass.ts" />
+/// <reference path="SupportClasses.ts" />
+/// <reference path="Terrain.ts" />
 let buildButtons = document.getElementsByClassName("Selection-Button-Div")[0].querySelectorAll("button");
 const BuildType = {
     Wall: 0,
@@ -1344,6 +1127,129 @@ function deleteInterior(x, y) {
         }
     }
 }
+/// <reference path="SupportClasses.ts" />
+let MovementVector = new Vector2(0, 0);
+let usedInput = false;
+let inputPresses = [];
+let removeInputValues = [];
+//calls repeatedly on key hold
+function onKeyDown(event) {
+    switch (event.keyCode) {
+        case 87: //W
+            if (MovementVector.y != -1) {
+                MovementVector.y = -1;
+                usedInput = false;
+            }
+            break;
+        case 65: //A
+            if (MovementVector.x != -1) {
+                MovementVector.x = -1;
+                usedInput = false;
+            }
+            break;
+        case 83: //S
+            if (MovementVector.y != 1) {
+                MovementVector.y = 1;
+                usedInput = false;
+            }
+            break;
+        case 68: //D
+            if (MovementVector.x != 1) {
+                MovementVector.x = 1;
+                usedInput = false;
+            }
+            break;
+        default:
+            //for other keys add to input presses array
+            if (!inputPresses.includes(event.keyCode)) {
+                inputPresses.push(event.keyCode);
+                usedInput = false;
+            }
+            break;
+    }
+    //if(event.keyCode >= 49 && event.keyCode <= 57) SelectBuilding(event.keyCode - 49);
+}
+let clearMap = { xMinus: false, xPlus: false, yMinus: false, yPlus: false };
+//calls once on key release
+function onKeyUp(event) {
+    //clear movement vector if it was registered ingame
+    if (usedInput) {
+        switch (event.keyCode) {
+            case 87:
+                if (MovementVector.y == -1)
+                    MovementVector.y = 0;
+                break;
+            case 68:
+                if (MovementVector.x == 1)
+                    MovementVector.x = 0;
+                break;
+            case 83:
+                if (MovementVector.y == 1)
+                    MovementVector.y = 0;
+                break;
+            case 65:
+                if (MovementVector.x == -1)
+                    MovementVector.x = 0;
+                break;
+            default:
+                if (inputPresses.includes(event.keyCode))
+                    inputPresses.splice(inputPresses.indexOf(event.keyCode), 1);
+                break;
+        }
+        return;
+    }
+    //if the key was not registered ingame, designate for later removal
+    switch (event.keyCode) {
+        case 87:
+            clearMap.yMinus = true;
+            break;
+        case 68:
+            clearMap.xPlus = true;
+            break;
+        case 83:
+            clearMap.yPlus = true;
+            break;
+        case 65:
+            clearMap.xMinus = true;
+            break;
+    }
+    removeInputValues.push(event.keyCode);
+}
+//inputs have been used and can be cleared now
+function UpdateInput() {
+    usedInput = true;
+    //clears any movement vector if its designated for clearing
+    if (clearMap.xMinus) {
+        if (MovementVector.x == -1)
+            MovementVector.x = 0;
+        clearMap.xMinus = false;
+    }
+    if (clearMap.xPlus) {
+        if (MovementVector.x == 1)
+            MovementVector.x = 0;
+        clearMap.xPlus = false;
+    }
+    if (clearMap.yMinus) {
+        if (MovementVector.y == -1)
+            MovementVector.y = 0;
+        clearMap.yMinus = false;
+    }
+    if (clearMap.yPlus) {
+        if (MovementVector.y == 1)
+            MovementVector.y = 0;
+        clearMap.yPlus = false;
+    }
+    //removes any keys that were designated for removal
+    if (removeInputValues.length > 0) {
+        removeInputValues.forEach(value => {
+            if (inputPresses.includes(value))
+                inputPresses.splice(inputPresses.indexOf(value), 1);
+        });
+        removeInputValues = [];
+    }
+}
+window.addEventListener("keydown", onKeyDown, false);
+window.addEventListener("keyup", onKeyUp, false);
 function RandomUsingSeed(seed) {
     const m = 0x80000000; // 2**31
     const a = 1103515245;
@@ -1443,7 +1349,103 @@ class PerlinNoise {
     }
 }
 let Perlin = new PerlinNoise(Math.random() * 1000); //TODO add custom seed
-/// <reference path="RTClass.ts" />
+//Class for rendering the game
+class Renderer {
+    /**
+     * Creates a renderer object for the canvas
+     * @constructor
+     */
+    constructor() {
+        this.init();
+        this.Draw();
+    }
+    /**
+     * Initialises the canvas and fills it with perlin noise
+     */
+    init() {
+        if (canvas.width % canvasScale != 0 || canvas.height % canvasScale != 0)
+            console.error('Canvas size is not divisible by scale');
+        // 16 : 10 resolution | 80x50 pixel map
+        for (let i = 0; i < 80; i++) {
+            mapData[i] = [];
+            for (let j = 0; j < 50; j++) {
+                mapData[i][j] = PerlinPixel(i, j);
+            }
+        }
+        window.addEventListener('resize', this.UpdateWindowSize);
+        this.UpdateWindowSize();
+        console.log("initialised canvas with array of X:" + mapData.length + " Y:" + mapData[0].length);
+    }
+    /**
+     * Executes a draw call on the canvas, rendering everyting
+     */
+    Draw() {
+        ctx.beginPath(); //Clear ctx from prev. frame
+        for (let i = 0; i < canvas.width / canvasScale; i++) {
+            for (let j = 0; j < canvas.height / canvasScale; j++) {
+                const pixel = mapData[i][j];
+                if (!(pixel instanceof GlassData))
+                    ctx.fillStyle = pixel.color.getWithLight(pixel.Brightness);
+                else
+                    ctx.fillStyle = pixel.OverlaidPixel.color.MixWith(pixel.color, 0.4).getWithLight(pixel.Brightness);
+                ctx.fillRect(i * canvasScale, j * canvasScale, canvasScale, canvasScale);
+            }
+        }
+        this.DrawInteractIndicator();
+        ctx.strokeStyle = Player.HighlightColor.getWithLight(Math.max(0.35, mapData[Player.x][Player.y].Brightness));
+        ctx.lineWidth = 2;
+        ctx.strokeRect(Player.x * canvasScale + 1, Player.y * canvasScale + 1, canvasScale - 2, canvasScale - 2);
+    }
+    DrawInteractIndicator() {
+        if (canvasScale < 6.5)
+            return;
+        ctx.beginPath();
+        for (let i = 0; i < mapData.length; i++) {
+            for (let j = 0; j < mapData[0].length; j++) {
+                const pixel = mapData[i][j];
+                if (IsHighlightable(pixel)) {
+                    switch (pixel.Highlight) {
+                        case HighlightPixel.none:
+                            break;
+                        case HighlightPixel.lightBorder:
+                            ctx.strokeStyle = pixel.HighlightColor.getWithLight(pixel.Brightness);
+                            ctx.lineWidth = 1;
+                            ctx.strokeRect(i * canvasScale, j * canvasScale, canvasScale - 1, canvasScale - 1);
+                            break;
+                        case HighlightPixel.border:
+                            ctx.strokeStyle = pixel.HighlightColor.getWithLight(pixel.Brightness);
+                            ctx.lineWidth = 2;
+                            ctx.strokeRect(i * canvasScale + 1, j * canvasScale + 1, canvasScale - 2, canvasScale - 2);
+                            break;
+                        case HighlightPixel.thickBorder:
+                            ctx.strokeStyle = pixel.HighlightColor.getWithLight(pixel.Brightness);
+                            ctx.lineWidth = 4;
+                            ctx.strokeRect(i * canvasScale + 2, j * canvasScale + 2, canvasScale - 4, canvasScale - 4);
+                            break;
+                        case HighlightPixel.slash:
+                            ctx.strokeStyle = pixel.HighlightColor.getWithLight(pixel.Brightness);
+                            ctx.lineWidth = 2;
+                            ctx.strokeRect(i * canvasScale + 1, j * canvasScale + 1, canvasScale - 2, canvasScale - 2);
+                            ctx.moveTo(i * canvasScale + 1, j * canvasScale + 1);
+                            ctx.lineTo(i * canvasScale + canvasScale - 1, j * canvasScale + canvasScale - 1);
+                            break;
+                    }
+                }
+            }
+        }
+        ctx.lineWidth = 2;
+        ctx.stroke(); //write all the diagonal lines
+    }
+    UpdateWindowSize() {
+        canvasScale = Math.floor(window.innerWidth / 140);
+        if (mapData[0].length * canvasScale > window.innerHeight * 0.8)
+            canvasScale = Math.floor(window.innerHeight * 0.7 / mapData[0].length);
+        canvas.width = mapData.length * canvasScale;
+        canvas.height = mapData[0].length * canvasScale;
+    }
+}
+/// <reference path="Terrain.ts" />
+/// <reference path="Rendering.ts" />
 /// <reference path="Lighting.ts" />
 //check if user is on mobile
 const isMobile = navigator.userAgent.match(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Windows Phone|Opera Mini/i);
