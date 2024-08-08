@@ -121,7 +121,7 @@
     justify-content: center;
     align-items: center;
     margin: 0 auto 0 auto;
-    width: fit-content;
+    width: 40dvw;
     max-width: 80%;
     padding: 0;
     background-color: cadetblue;
@@ -174,13 +174,15 @@
         background-color: whitesmoke;
         border-radius: 5px;
         margin: 3px auto 7px auto;
+
+        width: 390px;
     }
     .Non-Material-Building-List{
         background-color: whitesmoke;
         border-radius: 5px;
         margin-top: 3px;
 
-        max-width: 40svw;
+        width: 30dvw;
 
         overflow-x: auto;
 
