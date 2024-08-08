@@ -40,7 +40,6 @@
     margin: 0;
     padding: 0;
     list-style: none;
-
 }
 .Game-Spacer {
     padding: 5px;
@@ -139,67 +138,82 @@
     #Unselected:hover{
         background-color: rgb(98, 98, 98);
     }
-    .Selectable-Material{
-        display: flex;
+    button{
         margin: 5px;
-        button{
-            margin: 5px;
-            min-height: 40px;
-            height: auto;
-            aspect-ratio: 2/1;
-        }
-        .Tooltip-Building{
-            text-align: center;
-            background-color: white;
-            border-radius: 10px;
-            font-family: sans-serif;
-        }
-        select{
+        min-height: 40px;
+        height: auto;
+        aspect-ratio: 2/1;
+    }
+    .Tooltip-Building{
+        text-align: center;
+        background-color: white;
+        border-radius: 10px;
+        font-family: sans-serif;
+    }
+    select{
+        user-select: none;
+        margin: 5px;
+        min-height: 40px;
+        height: auto;
+        aspect-ratio: 2/1;
+        option{
             user-select: none;
-            margin: 5px;
-            min-height: 40px;
-            height: auto;
-            aspect-ratio: 2/1;
-            option{
-                user-select: none;
-                border: 1px solid black;
-            }
+            border: 1px solid black;
         }
-        ul{
-            padding: 0;
-        }
-        li{
-            list-style-type:none;
-        }
-        .Building-Material-List{
-            background-color: whitesmoke;
-            border-radius: 5px;
-            margin-top: 3px;
-        }
-        .Cost-List{
+    }
+    ul{
+        padding: 0;
+        margin-top: 0;
+    }
+    li{
+        list-style-type:none;
+        width: 90%;
+        margin: 0 auto 0 auto;
+    }
+    .Material-Building-List{
+        background-color: whitesmoke;
+        border-radius: 5px;
+        margin: 3px auto 7px auto;
+    }
+    .Non-Material-Building-List{
+        background-color: whitesmoke;
+        border-radius: 5px;
+        margin-top: 3px;
+
+        max-width: 40svw;
+
+        overflow-x: auto;
+
+        display: flex;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        align-items: flex-start;
+        -ms-scroll-translation: vertical-to-horizontal;
+    }
+    .Cost-List{
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        p{
             display: flex;
-            flex-direction: row;
-            justify-content: center;
-            align-items: center;
-            p{
-                display: flex;
-                background-color: white;
-                padding:4px;
-                border-radius: 5px;
+            background-color: white;
+            padding:4px;
+            border-radius: 5px;
+            margin: 0;
+            margin-left: 3px;
+            img{
+                -webkit-user-drag: none;
+                height: auto;
+                width: 20px;
+                aspect-ratio: 1/1;
                 margin: 0;
-                margin-left: 3px;
-                img{
-                    -webkit-user-drag: none;
-                    height: auto;
-                    width: 20px;
-                    aspect-ratio: 1/1;
-                    margin: 0;
-                    padding: 0;
-                }
-            }
-            .Cost-Build{
-                margin-right: 20px;
+                padding: 0;
             }
         }
+        .Cost-Build{
+            margin-right: 20px;
+        }
+    
     }
 }

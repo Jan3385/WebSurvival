@@ -11,7 +11,7 @@
         <h5>This is not a mobile experience</h5>
         <p>This game is unplayable without a keyboard</p>
     </div>
-    <ul class="Main-List">
+    <ul class="Main-List" id="GamePanel">
         <li class="Game-Spacer">
             <ul class="tutorial">
                 <h3>Inputs</h3>
@@ -37,35 +37,40 @@
         </li>
     </ul>
     <div class="Selection-Button-Div">
-        <div class="Selectable-Material" >
-            <ul>
-                <li>
-                    <p id="Selected-Building-Label" class="Tooltip-Building"></p>
-                </li>
-                <li class="Cost-List">
-                    <p class="Cost-Build">Cost:</p>
-                    <p id="C-Wood"><img src="Icons/wood.png">: 20</p>
-                    <p id="C-Stone"><img src="Icons/stone.png">: 20</p>
-                    <!-- <p><img src="Icons/iron.png">: 20</p> -->
-                </li>
-                <li class="Building-Material-List">
-                    <select id="Material-Select" onchange="UpdateSelectedBuilding();" onkeydown="false">
-                        <option value="0">cheap wood</option>
-                        <option value="1">wood</option>
-                        <option value="2">stone</option>
-                    </select>
-                    <button onclick="SelectBuilding(0)" id="Selected">Wall</button>
-                    <button onclick="SelectBuilding(1)" id="Unselected">Floor</button>
-                    <button onclick="SelectBuilding(2)" id="Unselected">Door</button>
-                </li>
-                <li>
-                    <button onclick="SelectBuilding(3)" id="Unselected">Torch</button>
-                    <button onclick="SelectBuilding(4)" id="Unselected">Lantern</button>
-                    <button onclick="SelectBuilding(5)" id="Unselected">Landfill</button>
-                    <button onclick="SelectBuilding(6)" id="Unselected">Glass</button>
-                </li>
-            </ul>
-        </div>
+        <ul>
+            <li>
+                <p id="Selected-Building-Label" class="Tooltip-Building"></p>
+            </li>
+            <li class="Cost-List">
+                <p class="Cost-Build">Cost:</p>
+                <p id="C-Wood"><img src="Icons/wood.png">: 20</p>
+                <p id="C-Stone"><img src="Icons/stone.png">: 20</p>
+                <!-- <p><img src="Icons/iron.png">: 20</p> -->
+            </li>
+            <li class="Material-Building-List">
+                <select id="Material-Select" onchange="UpdateSelectedBuilding();" onkeydown="false">
+                    <option value="0">cheap wood</option>
+                    <option value="1">wood</option>
+                    <option value="2">stone</option>
+                </select>
+                <button onclick="SelectBuilding(0)" id="Selected">Wall</button>
+                <button onclick="SelectBuilding(1)" id="Unselected">Floor</button>
+                <button onclick="SelectBuilding(2)" id="Unselected">Door</button>
+            </li>
+            <li class="Non-Material-Building-List">
+                <button onclick="SelectBuilding(3)" id="Unselected">Torch</button>
+                <button onclick="SelectBuilding(4)" id="Unselected">Lantern</button>
+                <button onclick="SelectBuilding(5)" id="Unselected">Landfill</button>
+                <button onclick="SelectBuilding(6)" id="Unselected">Glass</button>
+                <button onclick="SelectBuilding(6)" id="Unselected">Glass</button>
+                <button onclick="SelectBuilding(6)" id="Unselected">Glass</button>
+                <button onclick="SelectBuilding(6)" id="Unselected">Glass</button>
+                <button onclick="SelectBuilding(6)" id="Unselected">Glass</button>
+                <button onclick="SelectBuilding(6)" id="Unselected">Glass</button>
+                <button onclick="SelectBuilding(6)" id="Unselected">Glass</button>
+                <button onclick="SelectBuilding(6)" id="Unselected">Glass</button>
+            </li>
+        </ul>
         <!--<button onclick="SelectBuilding(3)" id="Unselected">Furnace</button>
         <button onclick="SelectBuilding(4)" id="Unselected">Turret</button>
         <button onclick="SelectBuilding(5)" id="Unselected">Miner</button>
