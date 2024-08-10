@@ -76,6 +76,12 @@ let Building = [
     }
 ];
 
+function FindBuilding(buildingName: String): BuildingData{
+    const find = Building.find(x => x.build.name == buildingName)?.build;
+    if(find == undefined) throw new Error("Building not found. Provided name: " + buildingName);
+    return Building.find(x => x.build.name == buildingName)!.build;
+}
+
 let SelectedBuilding = Building[0];
 document.getElementById("Selected-Building-Label")!.innerHTML = SelectedBuilding.build.name + " - " + SelectedBuilding.label;
 

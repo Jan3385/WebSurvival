@@ -131,17 +131,10 @@ class TerrainManipulator{
             this.GenerateStone(pX, pY);
         else this.GenerateTree(pX, pY);
     }
-    GenerateRandomStructures(count: number): void{
-        const JSONstructures = fetch(" -- TODO ONCE UPLOADED TO GITHUB -- ")
-            .then((res) => {
-                if(!res.ok) throw new Error("Failed to fetch structures.json - " + res.status);
-                return res.json();
-            })
-            .catch((err) => console.error("Unable to fetch data: ", err));
-        
-        console.log(JSONstructures);
+    GenerateRandomStructures(count: number, RandomGenerator: Function): void{
+
         for(let i = 0; i < count; i++){
-            let rand = Math.random();
+            let rand = RandomGenerator();
             const spawnArea = 12;
 
             let centerVec = {
@@ -153,10 +146,12 @@ class TerrainManipulator{
 
             //gets a position outside of spawn area
             do{
-                pX = Math.floor((Math.random() * mapData.length- 2) + 1);
-                pY = Math.floor((Math.random() * mapData[0].length -2) + 1);
-            }while(((pX > centerVec.x-spawnArea && pX < centerVec.x + spawnArea) && (pY > centerVec.y-spawnArea && pY < centerVec.y + spawnArea)))
+                pX = Math.floor((RandomGenerator() * mapData.length- 2) + 1);
+                pY = Math.floor((RandomGenerator() * mapData[0].length -2) + 1);
+            }while(((pX > centerVec.x-spawnArea && pX < centerVec.x + spawnArea) && (pY > centerVec.y-spawnArea && pY < centerVec.y + spawnArea))
+                && !this.CheckBuildSpace(pX, pY, 5, 5));
 
+            this.GenerateHouse(pX, pY, RandomGenerator);
         }
     }
     /**
@@ -236,6 +231,57 @@ class TerrainManipulator{
             sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, 
                 x+stoneVec.x, y+stoneVec.y,HighlightPixel.border, ResourceTypes.stone, mapData[x+stoneVec.x][y+stoneVec.y], OnBreak);
             Terrain.InsertResourcePixel(sPixel);
+        }
+    }
+    CheckBuildSpace(x: number, y:number, sizeX: number, sizeY: number): boolean{
+        for(let i = x; i < x+sizeX; i++){
+            for(let j = y; j < y+sizeY; j++){
+                if(i < 0 || i > mapData.length || j < 0 || j > mapData[0].length || mapData[i][j].status != PixelStatus.walkable) return false;
+            }
+        }
+        return true;
+    }
+    GenerateHouse(x: number, y: number, RandomGenerator: Function): void{
+        //array of IDs:
+        //0 - ground
+        //1 - wall
+        //2 - floor
+        //3 - door
+        //4 - window
+        //5 - light
+        const house: Array<Array<number>> = [
+            [1, 1, 1, 4, 0],
+            [1, 2, 2, 2, 4],
+            [1, 2, 5, 2, 4],
+            [1, 2, 2, 2, 1],
+            [1, 1, 1, 3, 1],
+        ];
+
+        for(let i = 0; i < house.length; i++){
+            for(let j = 0; j < house[0].length; j++){
+                if(RandomGenerator() < 0.3) continue;
+                let pixel: PixelData = nullPixel;
+                //TODO: optimze by preseaching building and saving them in a dictionary
+                switch(house[i][j]){
+                    case 1:
+                        pixel = FindBuilding("Stone Wall").at(x+j, y+i);
+                        break;
+                    case 2:
+                        pixel = FindBuilding("Wooden Floor").at(x+j, y+i);
+                        break;
+                    case 3:
+                        pixel = FindBuilding("Wooden Door").at(x+j, y+i);
+                        break;
+                    case 4:
+                        pixel = FindBuilding("Glass").at(x+j, y+i);
+                        break;
+                    case 5:
+                        pixel = FindBuilding("Lantern").at(x+j, y+i);
+                        break;
+                }
+                if(pixel == nullPixel) pixel = PerlinPixel(x+j, y+i);
+                this.ModifyMapData(x+j, y+i, pixel);
+            }
         }
     }
 }

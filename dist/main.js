@@ -1,5 +1,188 @@
 "use strict";
+class Vector2 {
+    x;
+    y;
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+}
+class rgb {
+    /**
+     * @constructor
+     * @param {number} r
+     * @param {number} g
+     * @param {number} b
+     */
+    r;
+    g;
+    b;
+    constructor(r, g, b) {
+        this.r = r;
+        this.g = g;
+        this.b = b;
+    }
+    new() {
+        return new rgb(this.r, this.g, this.b);
+    }
+    newSlightlyRandom(val) {
+        return new rgb(this.r + Math.floor(Math.random() * val), this.g + Math.floor(Math.random() * val), this.b + Math.floor(Math.random() * val));
+    }
+    changeBy(val) {
+        return new rgb(this.r + val, this.g + val, this.b + val);
+    }
+    /**
+    * Returns the rgb value in string format
+    * @returns {string}
+    */
+    get() {
+        return 'rgb(' + this.r + ',' + this.g + ',' + this.b + ')';
+    }
+    getWithLight(light) {
+        const lightShift = Math.min(light / 5, 1.1);
+        return `rgb(${Math.floor(this.r * lightShift)},${Math.floor(this.g * lightShift)},${this.b * lightShift})`;
+    }
+    /**
+     * Makes the rgb value darker by the value
+     * @param {number} val
+     */
+    Darken(val = 1.5) {
+        this.r /= val;
+        this.g /= val;
+        this.b /= val;
+    }
+    Lerp(other, t) {
+        return new rgb(Math.floor(lerp(this.r, other.r, t)), Math.floor(lerp(this.g, other.g, t)), Math.floor(lerp(this.b, other.b, t)));
+    }
+    MixWith(other, t) {
+        return new rgb(Math.floor(lerp(this.r, other.r, t)), Math.floor(lerp(this.g, other.g, t)), Math.floor(lerp(this.b, other.b, t)));
+    }
+}
+/**
+ * Linear interpolation from a to b with t
+ */
+function lerp(a, b, t) {
+    return a + t * (b - a);
+}
+var ResourceTypes;
+(function (ResourceTypes) {
+    ResourceTypes[ResourceTypes["wood"] = 0] = "wood";
+    ResourceTypes[ResourceTypes["stone"] = 1] = "stone";
+    ResourceTypes[ResourceTypes["sand"] = 2] = "sand";
+    ResourceTypes[ResourceTypes["glass"] = 3] = "glass";
+    ResourceTypes[ResourceTypes["iron"] = 4] = "iron";
+})(ResourceTypes || (ResourceTypes = {}));
+class ResourceManager {
+    resources = [];
+    DisplayStoredResources() {
+        const ResouceElements = [];
+        this.resources.forEach(x => {
+            const container = document.createElement('div');
+            const image = document.createElement('img');
+            const text = document.createElement('p');
+            image.src = 'Icons/' + ResourceTypes[x[0]] + '.png';
+            text.innerHTML = x[1].toString();
+            container.appendChild(image);
+            container.appendChild(text);
+            ResouceElements.push(container);
+        });
+        document.getElementById("Player-Resources").replaceChildren(...ResouceElements);
+    }
+    DisplayCostResources(resources) {
+        const ResouceElements = [];
+        const text = document.createElement('p');
+        text.classList.add('Cost-Build');
+        text.innerHTML = "Cost:";
+        ResouceElements.push(text);
+        resources.resources.forEach(x => {
+            const container = document.createElement('p');
+            container.innerHTML = '<img src="Icons/' + ResourceTypes[x[0]] + '.png">: ' + x[1];
+            ResouceElements.push(container);
+        });
+        document.getElementsByClassName("Cost-List")[0].replaceChildren(...ResouceElements);
+    }
+    Cheat() {
+        this.AddResourceList(new ResourceList()
+            .Add(ResourceTypes.wood, 1000)
+            .Add(ResourceTypes.stone, 1000)
+            .Add(ResourceTypes.glass, 1000));
+    }
+    GetResourceAmount(type) {
+        const resource = this.resources.filter(x => x[0] == type)[0];
+        if (resource == undefined)
+            return 0;
+        return resource[1];
+    }
+    AddResource(type, amount) {
+        const resource = this.resources.filter(x => x[0] == type)[0];
+        if (resource == undefined)
+            this.resources.push([type, amount]);
+        else
+            this.resources.filter(x => x[0] == type)[0][1] += amount;
+        this.DisplayStoredResources();
+    }
+    AddResourceList(list) {
+        list.resources.forEach(x => this.AddResource(x[0], x[1]));
+    }
+    RemoveResource(type, amount) {
+        const resource = this.resources.filter(x => x[0] == type)[0];
+        if (resource == undefined)
+            return false;
+        else
+            this.resources.filter(x => x[0] == type)[0][1] -= amount;
+        if (this.resources.filter(x => x[0] == type)[0][1] <= 0) {
+            const resourceIndex = this.resources.findIndex(x => x[0] == type);
+            this.resources.splice(resourceIndex, 1);
+            this.DisplayStoredResources();
+            return false;
+        }
+        this.DisplayStoredResources();
+        return true;
+    }
+    RemoveResourceList(list) {
+        let RemovedSuccesfully = true;
+        for (let i = 0; i < list.resources.length; i++) {
+            if (!this.RemoveResource(list.resources[i][0], list.resources[i][1]))
+                RemovedSuccesfully = false;
+        }
+        return RemovedSuccesfully;
+    }
+    HasResources(list) {
+        for (let i = 0; i < list.resources.length; i++) {
+            if (this.GetResourceAmount(list.resources[i][0]) < list.resources[i][1])
+                return false;
+        }
+        return true;
+    }
+}
+class ResourceList {
+    resources = [];
+    Add(type, amount) {
+        const resourceIndex = this.resources.findIndex(x => x[0] == type);
+        if (resourceIndex != -1)
+            this.resources[resourceIndex][1] += amount;
+        else
+            this.resources.push([type, amount]);
+        return this;
+    }
+    Remove(type, amount) {
+        const resourceIndex = this.resources.findIndex(x => x[0] == type);
+        if (resourceIndex != -1)
+            this.resources[resourceIndex][1] -= amount;
+        else
+            console.log("Tried to remove non-existant resource from ResourceList");
+        return this;
+    }
+    GetResourceAmount(type) {
+        const resource = this.resources.filter(x => x[0] == type)[0];
+        if (resource == undefined)
+            return 0;
+        return resource[1];
+    }
+}
+/// <reference path="SupportClasses.ts" />
 var PixelStatus;
+/// <reference path="SupportClasses.ts" />
 (function (PixelStatus) {
     PixelStatus[PixelStatus["walkable"] = 0] = "walkable";
     PixelStatus[PixelStatus["breakable"] = 1] = "breakable";
@@ -39,6 +222,7 @@ class TerrainData extends PixelData {
         this.type = type;
     }
 }
+const nullPixel = new TerrainData(new rgb(0, 0, 0), PixelStatus.walkable, TerrainType.water);
 function PerlinPixel(x, y) {
     const pColor = Perlin.perlinColorTerrain(x / 9, y / 9);
     return new TerrainData(new rgb(pColor.r, pColor.g, pColor.b), pColor.s, pColor.t);
@@ -483,187 +667,6 @@ function CalculateLightMap() {
         castRay(Player.x, Player.y, angle, 2, 2);
     }
 }
-class Vector2 {
-    x;
-    y;
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
-    }
-}
-class rgb {
-    /**
-     * @constructor
-     * @param {number} r
-     * @param {number} g
-     * @param {number} b
-     */
-    r;
-    g;
-    b;
-    constructor(r, g, b) {
-        this.r = r;
-        this.g = g;
-        this.b = b;
-    }
-    new() {
-        return new rgb(this.r, this.g, this.b);
-    }
-    newSlightlyRandom(val) {
-        return new rgb(this.r + Math.floor(Math.random() * val), this.g + Math.floor(Math.random() * val), this.b + Math.floor(Math.random() * val));
-    }
-    changeBy(val) {
-        return new rgb(this.r + val, this.g + val, this.b + val);
-    }
-    /**
-    * Returns the rgb value in string format
-    * @returns {string}
-    */
-    get() {
-        return 'rgb(' + this.r + ',' + this.g + ',' + this.b + ')';
-    }
-    getWithLight(light) {
-        const lightShift = Math.min(light / 5, 1.1);
-        return `rgb(${Math.floor(this.r * lightShift)},${Math.floor(this.g * lightShift)},${this.b * lightShift})`;
-    }
-    /**
-     * Makes the rgb value darker by the value
-     * @param {number} val
-     */
-    Darken(val = 1.5) {
-        this.r /= val;
-        this.g /= val;
-        this.b /= val;
-    }
-    Lerp(other, t) {
-        return new rgb(Math.floor(lerp(this.r, other.r, t)), Math.floor(lerp(this.g, other.g, t)), Math.floor(lerp(this.b, other.b, t)));
-    }
-    MixWith(other, t) {
-        return new rgb(Math.floor(lerp(this.r, other.r, t)), Math.floor(lerp(this.g, other.g, t)), Math.floor(lerp(this.b, other.b, t)));
-    }
-}
-/**
- * Linear interpolation from a to b with t
- */
-function lerp(a, b, t) {
-    return a + t * (b - a);
-}
-var ResourceTypes;
-(function (ResourceTypes) {
-    ResourceTypes[ResourceTypes["wood"] = 0] = "wood";
-    ResourceTypes[ResourceTypes["stone"] = 1] = "stone";
-    ResourceTypes[ResourceTypes["sand"] = 2] = "sand";
-    ResourceTypes[ResourceTypes["glass"] = 3] = "glass";
-    ResourceTypes[ResourceTypes["iron"] = 4] = "iron";
-})(ResourceTypes || (ResourceTypes = {}));
-class ResourceManager {
-    resources = [];
-    DisplayStoredResources() {
-        const ResouceElements = [];
-        this.resources.forEach(x => {
-            const container = document.createElement('div');
-            const image = document.createElement('img');
-            const text = document.createElement('p');
-            image.src = 'Icons/' + ResourceTypes[x[0]] + '.png';
-            text.innerHTML = x[1].toString();
-            container.appendChild(image);
-            container.appendChild(text);
-            ResouceElements.push(container);
-        });
-        document.getElementById("Player-Resources").replaceChildren(...ResouceElements);
-    }
-    DisplayCostResources(resources) {
-        const ResouceElements = [];
-        const text = document.createElement('p');
-        text.classList.add('Cost-Build');
-        text.innerHTML = "Cost:";
-        ResouceElements.push(text);
-        resources.resources.forEach(x => {
-            const container = document.createElement('p');
-            container.innerHTML = '<img src="Icons/' + ResourceTypes[x[0]] + '.png">: ' + x[1];
-            ResouceElements.push(container);
-        });
-        document.getElementsByClassName("Cost-List")[0].replaceChildren(...ResouceElements);
-    }
-    Cheat() {
-        this.AddResourceList(new ResourceList()
-            .Add(ResourceTypes.wood, 1000)
-            .Add(ResourceTypes.stone, 1000)
-            .Add(ResourceTypes.glass, 1000));
-    }
-    GetResourceAmount(type) {
-        const resource = this.resources.filter(x => x[0] == type)[0];
-        if (resource == undefined)
-            return 0;
-        return resource[1];
-    }
-    AddResource(type, amount) {
-        const resource = this.resources.filter(x => x[0] == type)[0];
-        if (resource == undefined)
-            this.resources.push([type, amount]);
-        else
-            this.resources.filter(x => x[0] == type)[0][1] += amount;
-        this.DisplayStoredResources();
-    }
-    AddResourceList(list) {
-        list.resources.forEach(x => this.AddResource(x[0], x[1]));
-    }
-    RemoveResource(type, amount) {
-        const resource = this.resources.filter(x => x[0] == type)[0];
-        if (resource == undefined)
-            return false;
-        else
-            this.resources.filter(x => x[0] == type)[0][1] -= amount;
-        if (this.resources.filter(x => x[0] == type)[0][1] <= 0) {
-            const resourceIndex = this.resources.findIndex(x => x[0] == type);
-            this.resources.splice(resourceIndex, 1);
-            this.DisplayStoredResources();
-            return false;
-        }
-        this.DisplayStoredResources();
-        return true;
-    }
-    RemoveResourceList(list) {
-        let RemovedSuccesfully = true;
-        for (let i = 0; i < list.resources.length; i++) {
-            if (!this.RemoveResource(list.resources[i][0], list.resources[i][1]))
-                RemovedSuccesfully = false;
-        }
-        return RemovedSuccesfully;
-    }
-    HasResources(list) {
-        for (let i = 0; i < list.resources.length; i++) {
-            if (this.GetResourceAmount(list.resources[i][0]) < list.resources[i][1])
-                return false;
-        }
-        return true;
-    }
-}
-class ResourceList {
-    resources = [];
-    Add(type, amount) {
-        const resourceIndex = this.resources.findIndex(x => x[0] == type);
-        if (resourceIndex != -1)
-            this.resources[resourceIndex][1] += amount;
-        else
-            this.resources.push([type, amount]);
-        return this;
-    }
-    Remove(type, amount) {
-        const resourceIndex = this.resources.findIndex(x => x[0] == type);
-        if (resourceIndex != -1)
-            this.resources[resourceIndex][1] -= amount;
-        else
-            console.log("Tried to remove non-existant resource from ResourceList");
-        return this;
-    }
-    GetResourceAmount(type) {
-        const resource = this.resources.filter(x => x[0] == type)[0];
-        if (resource == undefined)
-            return 0;
-        return resource[1];
-    }
-}
 //Class for terrain modification
 class TerrainManipulator {
     /**
@@ -791,17 +794,9 @@ class TerrainManipulator {
         else
             this.GenerateTree(pX, pY);
     }
-    GenerateRandomStructures(count) {
-        const JSONstructures = fetch(" -- TODO ONCE UPLOADED TO GITHUB -- ")
-            .then((res) => {
-            if (!res.ok)
-                throw new Error("Failed to fetch structures.json - " + res.status);
-            return res.json();
-        })
-            .catch((err) => console.error("Unable to fetch data: ", err));
-        console.log(JSONstructures);
+    GenerateRandomStructures(count, RandomGenerator) {
         for (let i = 0; i < count; i++) {
-            let rand = Math.random();
+            let rand = RandomGenerator();
             const spawnArea = 12;
             let centerVec = {
                 x: Math.floor(mapData.length / 2),
@@ -811,9 +806,11 @@ class TerrainManipulator {
             let pY;
             //gets a position outside of spawn area
             do {
-                pX = Math.floor((Math.random() * mapData.length - 2) + 1);
-                pY = Math.floor((Math.random() * mapData[0].length - 2) + 1);
-            } while (((pX > centerVec.x - spawnArea && pX < centerVec.x + spawnArea) && (pY > centerVec.y - spawnArea && pY < centerVec.y + spawnArea)));
+                pX = Math.floor((RandomGenerator() * mapData.length - 2) + 1);
+                pY = Math.floor((RandomGenerator() * mapData[0].length - 2) + 1);
+            } while (((pX > centerVec.x - spawnArea && pX < centerVec.x + spawnArea) && (pY > centerVec.y - spawnArea && pY < centerVec.y + spawnArea))
+                && !this.CheckBuildSpace(pX, pY, 5, 5));
+            this.GenerateHouse(pX, pY, RandomGenerator);
         }
     }
     /**
@@ -886,6 +883,59 @@ class TerrainManipulator {
                 stoneVec.y = 1;
             sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x + stoneVec.x, y + stoneVec.y, HighlightPixel.border, ResourceTypes.stone, mapData[x + stoneVec.x][y + stoneVec.y], OnBreak);
             Terrain.InsertResourcePixel(sPixel);
+        }
+    }
+    CheckBuildSpace(x, y, sizeX, sizeY) {
+        for (let i = x; i < x + sizeX; i++) {
+            for (let j = y; j < y + sizeY; j++) {
+                if (i < 0 || i > mapData.length || j < 0 || j > mapData[0].length || mapData[i][j].status != PixelStatus.walkable)
+                    return false;
+            }
+        }
+        return true;
+    }
+    GenerateHouse(x, y, RandomGenerator) {
+        //array of IDs:
+        //0 - ground
+        //1 - wall
+        //2 - floor
+        //3 - door
+        //4 - window
+        //5 - light
+        const house = [
+            [1, 1, 1, 4, 0],
+            [1, 2, 2, 2, 4],
+            [1, 2, 5, 2, 4],
+            [1, 2, 2, 2, 1],
+            [1, 1, 1, 3, 1],
+        ];
+        for (let i = 0; i < house.length; i++) {
+            for (let j = 0; j < house[0].length; j++) {
+                if (RandomGenerator() < 0.3)
+                    continue;
+                let pixel = nullPixel;
+                //TODO: optimze by preseaching building and saving them in a dictionary
+                switch (house[i][j]) {
+                    case 1:
+                        pixel = FindBuilding("Stone Wall").at(x + j, y + i);
+                        break;
+                    case 2:
+                        pixel = FindBuilding("Wooden Floor").at(x + j, y + i);
+                        break;
+                    case 3:
+                        pixel = FindBuilding("Wooden Door").at(x + j, y + i);
+                        break;
+                    case 4:
+                        pixel = FindBuilding("Glass").at(x + j, y + i);
+                        break;
+                    case 5:
+                        pixel = FindBuilding("Lantern").at(x + j, y + i);
+                        break;
+                }
+                if (pixel == nullPixel)
+                    pixel = PerlinPixel(x + j, y + i);
+                this.ModifyMapData(x + j, y + i, pixel);
+            }
         }
     }
 }
@@ -965,6 +1015,12 @@ let Building = [
         label: "Lets the sunlight thru"
     }
 ];
+function FindBuilding(buildingName) {
+    const find = Building.find(x => x.build.name == buildingName)?.build;
+    if (find == undefined)
+        throw new Error("Building not found. Provided name: " + buildingName);
+    return Building.find(x => x.build.name == buildingName).build;
+}
 let SelectedBuilding = Building[0];
 document.getElementById("Selected-Building-Label").innerHTML = SelectedBuilding.build.name + " - " + SelectedBuilding.label;
 let buildId = 0;
@@ -1373,7 +1429,8 @@ class PerlinNoise {
         return this.perlinColorTerrain(x, y);
     }
 }
-let Perlin = new PerlinNoise(Math.random() * 1000); //TODO add custom seed
+const Seed = Math.random() * 1000;
+let Perlin = new PerlinNoise(Seed); //TODO: add settable seed
 //Class for rendering the game
 class Renderer {
     /**
@@ -1490,7 +1547,8 @@ let Resources = new ResourceManager();
 function Start() {
     Terrain.MovePlayer(Player, 0, 0); //Draw player
     Render.Draw();
-    Terrain.GenerateRandomStructures(2);
+    //TODO: Maybe fix?
+    //Terrain.GenerateRandomStructures(2, RandomUsingSeed(Seed));
     for (let i = 0; i < 20; i++) {
         Terrain.GenerateRandomResource();
     }
