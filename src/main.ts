@@ -30,6 +30,8 @@ function Start(){
     Terrain.MovePlayer(Player, 0, 0); //Draw player
     Render.Draw();
 
+    Terrain.GenerateRandomStructures(2);
+
     for(let i = 0; i < 20; i++){
         Terrain.GenerateRandomResource();
     }

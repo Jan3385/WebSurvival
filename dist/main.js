@@ -791,6 +791,31 @@ class TerrainManipulator {
         else
             this.GenerateTree(pX, pY);
     }
+    GenerateRandomStructures(count) {
+        const JSONstructures = fetch(" -- TODO ONCE UPLOADED TO GITHUB -- ")
+            .then((res) => {
+            if (!res.ok)
+                throw new Error("Failed to fetch structures.json - " + res.status);
+            return res.json();
+        })
+            .catch((err) => console.error("Unable to fetch data: ", err));
+        console.log(JSONstructures);
+        for (let i = 0; i < count; i++) {
+            let rand = Math.random();
+            const spawnArea = 12;
+            let centerVec = {
+                x: Math.floor(mapData.length / 2),
+                y: Math.floor(mapData[0].length / 2),
+            };
+            let pX;
+            let pY;
+            //gets a position outside of spawn area
+            do {
+                pX = Math.floor((Math.random() * mapData.length - 2) + 1);
+                pY = Math.floor((Math.random() * mapData[0].length - 2) + 1);
+            } while (((pX > centerVec.x - spawnArea && pX < centerVec.x + spawnArea) && (pY > centerVec.y - spawnArea && pY < centerVec.y + spawnArea)));
+        }
+    }
     /**
      * Generates a tree at the given position (mainly for internal use)
      * @param {number} x
@@ -1465,6 +1490,7 @@ let Resources = new ResourceManager();
 function Start() {
     Terrain.MovePlayer(Player, 0, 0); //Draw player
     Render.Draw();
+    Terrain.GenerateRandomStructures(2);
     for (let i = 0; i < 20; i++) {
         Terrain.GenerateRandomResource();
     }
