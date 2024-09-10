@@ -140,7 +140,7 @@
     }
     button{
         margin: 5px;
-        min-height: 40px;
+        min-height: 30px;
         height: auto;
         aspect-ratio: 2/1;
     }
@@ -148,13 +148,15 @@
         text-align: center;
         background-color: white;
         border-radius: 10px;
+        margin-top: 2px;
+        margin-bottom: 4px;
         font-family: sans-serif;
     }
     select{
         user-select: none;
         margin: 5px;
-        min-height: 40px;
-        height: auto;
+        min-height: 30px;
+        height: 30px;
         aspect-ratio: 2/1;
         option{
             user-select: none;
