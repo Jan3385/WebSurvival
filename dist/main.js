@@ -1078,11 +1078,12 @@ function Build(BuildedBuilding) {
         const didBuildIndoors = Player.OverlapPixel.Indoors;
         Player.OverlapPixel = BuildedBuilding.build.at(Player.x, Player.y);
         isBuilding = true;
-        //check if build is enclosed
+        //skip indoors check if placing a floor or similiar
         if (BuildedBuilding.build.status == PixelStatus.walkable) {
             Player.OverlapPixel.Indoors = didBuildIndoors;
             return;
         }
+        //check if build is enclosed
         GetEnclosedSpacesAround(Player.x, Player.y).forEach((vec) => {
             fillInterior(vec.x, vec.y);
         });

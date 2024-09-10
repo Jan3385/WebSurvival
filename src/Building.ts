@@ -151,11 +151,12 @@ function Build(
             Player.OverlapPixel = BuildedBuilding.build.at(Player.x, Player.y);
             isBuilding = true;
 
-            //check if build is enclosed
+            //skip indoors check if placing a floor or similiar
             if(BuildedBuilding.build.status == PixelStatus.walkable) {
                 Player.OverlapPixel.Indoors = didBuildIndoors;
                 return;
             }
+            //check if build is enclosed
             GetEnclosedSpacesAround(Player.x, Player.y).forEach((vec: Vector2) => {
                 fillInterior(vec.x, vec.y);
             });
