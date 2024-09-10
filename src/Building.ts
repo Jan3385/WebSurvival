@@ -147,10 +147,15 @@ function Build(
             
             Resources.RemoveResourceList(BuildedBuilding.cost);
 
+            const didBuildIndoors : boolean = Player.OverlapPixel.Indoors;
             Player.OverlapPixel = BuildedBuilding.build.at(Player.x, Player.y);
             isBuilding = true;
 
             //check if build is enclosed
+            if(BuildedBuilding.build.status == PixelStatus.walkable) {
+                Player.OverlapPixel.Indoors = didBuildIndoors;
+                return;
+            }
             GetEnclosedSpacesAround(Player.x, Player.y).forEach((vec: Vector2) => {
                 fillInterior(vec.x, vec.y);
             });
