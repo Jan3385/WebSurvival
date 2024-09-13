@@ -86,7 +86,7 @@ class ResourceManager {
             container.appendChild(text);
             ResouceElements.push(container);
         });
-        document.getElementById("Player-Resources").replaceChildren(...ResouceElements);
+        document.getElementById("resources").replaceChildren(...ResouceElements);
     }
     DisplayCostResources(resources) {
         const ResouceElements = [];
@@ -1212,6 +1212,46 @@ function deleteInterior(x, y) {
         if (p.Indoors) {
             deleteInterior(x + dVec.x, y + dVec.y);
         }
+    }
+}
+class Recipe {
+    constructor() {
+    }
+}
+class RecipeHandler {
+    AvalibleRecipes = [];
+    UpdatevAvalibleRecipes() {
+    }
+    DisplayAvalibleRecipes() {
+        const RecipeElements = [];
+        const button = document.createElement('button');
+        button.onclick = () => {
+            this.Craft(1);
+        };
+        const ButtonChildren = [];
+        let WorkedElement;
+        WorkedElement = document.createElement('p');
+        WorkedElement.innerHTML = "10";
+        ButtonChildren.push(WorkedElement);
+        WorkedElement = document.createElement('img');
+        WorkedElement.src = "Icons/wood.png";
+        ButtonChildren.push(WorkedElement);
+        WorkedElement = document.createElement('img');
+        WorkedElement.src = "Icons/right-arrow.png";
+        WorkedElement.classList.add("arrow");
+        ButtonChildren.push(WorkedElement);
+        WorkedElement = document.createElement('p');
+        WorkedElement.innerHTML = "10";
+        ButtonChildren.push(WorkedElement);
+        WorkedElement = document.createElement('img');
+        WorkedElement.src = "Icons/wood.png";
+        ButtonChildren.push(WorkedElement);
+        /*const container = document.createElement('p');
+        container.innerHTML = '<img src="Icons/' + ResourceTypes[x[0]] +'.png">: ' + x[1];
+        ResouceElements.push(container);*/
+        document.getElementsByClassName("Crafting-List")[0].replaceChildren(...RecipeElements);
+    }
+    Craft(number) {
     }
 }
 /// <reference path="SupportClasses.ts" />

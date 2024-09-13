@@ -99,7 +99,7 @@ class ResourceManager{
             ResouceElements.push(container);
         });
 
-        document.getElementById("Player-Resources")!.replaceChildren(...ResouceElements);
+        document.getElementById("resources")!.replaceChildren(...ResouceElements);
     }
     DisplayCostResources(resources: ResourceList): void{
         const ResouceElements: HTMLElement[] = [];

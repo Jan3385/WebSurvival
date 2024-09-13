@@ -43,14 +43,7 @@
 }
 .Game-Spacer {
     padding: 5px;
-    div{
-        margin: auto;
-        min-width: 5svw;
-        user-select: none;
-        overflow-y: auto;
-        max-height: 40dvh;
-        /* Player resources: */
-    }
+    /*
     #Player-Resources div{
         display: flex;
         flex-direction: row;
@@ -78,7 +71,104 @@
             width: 30px;
             aspect-ratio: 1/1;
         }
+    }*/
+    .Player-Material-List{
+        background-color: rgb(230, 230, 230);
+        border-radius: 5px;
+        border: solid rgb(194, 194, 194) 1px;
+
+        margin: auto;
+        min-width: 5svw;
+        user-select: none;
+        overflow-y: auto;
+        max-height: 40dvh;
+
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 1px 0px 1px 0px;
+        margin: 7px auto 7px auto;
+        border-radius: 10px;
+        width: 100%;
+        p{
+            user-select: none;
+            margin: 0;
+            margin-left: 5px;
+            padding: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            width: auto;
+            background-color: white;
+            border-radius: 6px;
+            font-family: monospace;
+        }
+
+        .Crafting-List{
+            button{
+                display: block;
+                margin: 5px;
+                background-color: rgb(202, 202, 202);
+                border-radius: 5px;
+            }
+            button:hover{
+                background-color: rgb(178, 178, 178);
+            }
+            button:active{
+                background-color: rgb(250, 177, 160);
+            }
+            button#unavaliable{
+                background-color: rgb(94, 94, 94);
+            }
+            img{
+                -webkit-user-drag: none;
+                vertical-align: middle;
+                width: 20px;
+                aspect-ratio: 1/1;
+            }
+            .arrow{
+                width: 15px;
+            }
+            p{
+                display: inline-block;
+                vertical-align: middle;
+                font-size: 10px;
+                font-weight: bold;
+                user-select: none;
+            }
+        }
+        .Player-Resources-List{
+            div{
+                background-color: rgb(250, 177, 160);
+                padding: 1px 3px 1px 3px;
+                margin: 7px auto 7px auto;
+                border-radius: 10px;
+                p{
+                    display: inline-block;
+                    vertical-align: middle;
+                    user-select: none;
+
+                    margin: 0;
+                    margin-left: 5px;
+                    padding: 3px;
+                    
+                    white-space: nowrap;
+                    overflow: hidden;
+                    width: auto;
+                    background-color: white;
+                    border-radius: 6px;
+                }
+                img{
+                    display: inline-block;
+                    -webkit-user-drag: none;
+                    vertical-align: middle;
+                    width: 30px;
+                    aspect-ratio: 1/1;
+                }
+            }
+        }
     }
+
     .Info-Bar{
         display: flex;
         flex-direction: row;
@@ -87,8 +177,8 @@
         background-color: rgb(230, 230, 230);
         border-radius: 5px;
         padding: 5px;
-        margin: 5px;
-        width: 100%;
+        margin: 0px;
+        width: 94%;
         font-family: monospace;
         p{
             user-select: none;
@@ -107,6 +197,7 @@
         }
     }
 }
+
 .tutorial{
     background-color: rgb(230, 230, 230);
     padding: 10px;

@@ -29,9 +29,30 @@
                 <p class="divider">|</p>
                 <p id="Time">22:00</p>
             </div>
-            <div id="Player-Resources">
-                <div><img src="Icons/wood.png"><p id="wood">: 0</p></div>
-                <div><img src="Icons/stone.png"><p id="stone">: 0</p></div>
+            <div class="Player-Material-List" id="Player-Resources">
+                <p>- Crafting -</p>
+                <div class="Crafting-List">
+                    <button onclick="Craft(0)">
+                        <p>10</p>
+                        <img src="Icons/wood.png">
+                        <img class="arrow" src="Icons/right-arrow.png">
+                        <p>10</p>
+                        <img src="Icons/wood.png">
+                    </button>
+                    <button id="unavaliable" onclick="Craft(0)">
+                        <p>10</p>
+                        <img src="Icons/wood.png">
+                        <img class="arrow" src="Icons/right-arrow.png">
+                        <p>10</p>
+                        <img src="Icons/wood.png">
+                    </button>
+                </div>
+                <p>- Resources -</p>
+                <div class="Player-Resources-List" id="resources">
+                    <div><img src="Icons/wood.png"><p id="wood">: 0</p></div>
+                    <div><img src="Icons/stone.png"><p id="stone">: 0</p></div>  
+                </div>
+                
             </div>
             
         </li>
