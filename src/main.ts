@@ -14,17 +14,18 @@ const gTime = new GameTime();
 let mapData: PixelData[][] = [];
 
 
-let ResourceTerrain = new ResourceList();
+const ResourceTerrain = new ResourceList();
 const MaxTResource = new ResourceList().Add(ResourceTypes.wood, 20).Add(ResourceTypes.stone,30);
 
 //sets player position in the middle of the map
-let Player: PlayerData = new PlayerData(new rgb(0, 0, 0), new rgb(255, 255, 255), 
+const Player: PlayerData = new PlayerData(new rgb(0, 0, 0), new rgb(255, 255, 255), 
     Math.floor(canvas.width/canvasScale/2), Math.floor(canvas.height/canvasScale/2), 10);
 
-let Render = new Renderer();
-let Terrain = new TerrainManipulator();
+    const Render = new Renderer();
+const Terrain = new TerrainManipulator();
 
-let Resources = new ResourceManager();
+const Resources = new ResourceManager();
+const Recipes = new RecipeHandler();
 
 function Start(){
     Terrain.MovePlayer(Player, 0, 0); //Draw player
@@ -47,11 +48,13 @@ function Update(){
     //movement checker
     const moveTile = mapData[Player.x + MovementVector.x][Player.y + MovementVector.y];
 
+
     //placement logic
     isBuilding = false;
     if(inputPresses.includes(69) && canPlaceBuildingOn(Player.OverlapPixel))
     {
         Build(SelectedBuilding);
+        Recipes.UpdatevAvalibleRecipes();
     }
 
     //digging underneath player logic
@@ -64,6 +67,8 @@ function Update(){
 
                 //removes the interior if building below player is destroyed
                 CheckDeleteInterior(Player.x, Player.y);
+
+                Recipes.UpdatevAvalibleRecipes();
             }
         }
         if(Player.OverlapPixel instanceof TerrainData){
@@ -79,10 +84,12 @@ function Update(){
     }
     else if(moveTile instanceof BuildingData && moveTile.status == PixelStatus.breakable){
         if(IsDamageable(moveTile)) (<IDamageable>moveTile).Damage(1);
+        Recipes.UpdatevAvalibleRecipes();
     }
     else if(IsInteractable(moveTile) && moveTile.status == PixelStatus.interact) (<IInteractable>moveTile).Interact();
     else if(!(MovementVector.x == 0 && MovementVector.y == 0)){
         Terrain.MovePlayer(Player, MovementVector.x, MovementVector.y);
+        Recipes.UpdatevAvalibleRecipes();
     }
 
     UpdateInput();

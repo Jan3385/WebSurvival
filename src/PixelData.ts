@@ -175,13 +175,13 @@ class BuildingData extends PixelData implements IDamageable, IHighlightable{
     x: number;
     y: number;
     Highlight: HighlightPixel;
-    HighlightColor: rgb = new rgb(60, 60, 60);
+    HighlightColor: rgb;
     DefaultColor: rgb;
     name: string;
     OverlaidPixel: PixelData = new TerrainData(new rgb(0,0,0), PixelStatus.walkable, TerrainType.ground);
     constructor(
         name: string, color: rgb, status: PixelStatus, Health: number, x: number, y: number,
-        Highlight: HighlightPixel
+        Highlight: HighlightPixel, HighlightColor: rgb = new rgb(80, 80, 80)
     ){
         super(color, status);
         this.name = name;
@@ -191,6 +191,7 @@ class BuildingData extends PixelData implements IDamageable, IHighlightable{
         this.y = y;
         this.Highlight = Highlight;
         this.DefaultColor = color.new();
+        this.HighlightColor = HighlightColor;
     }
     Damage(damage: number): boolean{
         this.Health -= damage;
@@ -220,7 +221,7 @@ class BuildingData extends PixelData implements IDamageable, IHighlightable{
      * @returns {ThisType}
      */
     at(x: number,y: number): BuildingData{
-        const build = new BuildingData(this.name, this.DefaultColor.newSlightlyRandom(30), this.status, this.MaxHealth ,x, y, this.Highlight);
+        const build = new BuildingData(this.name, this.DefaultColor.newSlightlyRandom(30), this.status, this.MaxHealth ,x, y, this.Highlight, this.HighlightColor);
         if(Player.x == x && Player.y == y) build.OverlaidPixel = Player.OverlapPixel;
         else build.OverlaidPixel = mapData[x][y];
         return build;

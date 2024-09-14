@@ -73,6 +73,16 @@ let Building = [
         build: new GlassData("Glass", new rgb(178, 190, 195), 1, 1, 3),
         cost: new ResourceList().Add(ResourceTypes.wood, 4).Add(ResourceTypes.glass, 20),
         label: "Lets the sunlight thru"
+    },
+    {   //Furnace
+        build: new BuildingData("Furnace", new rgb(253, 203, 110), PixelStatus.breakable, 20, 1,1, HighlightPixel.thickBorder, new rgb(45, 52, 54)),
+        cost: new ResourceList().Add(ResourceTypes.wood, 25).Add(ResourceTypes.stone, 60),
+        label: "Smelts stuff"
+    },
+    {   //Large Furnace
+        build: new BuildingData("Large Furnace", new rgb(214, 48, 49), PixelStatus.breakable, 20, 1,1, HighlightPixel.thickBorder, new rgb(20, 20, 20)),
+        cost: new ResourceList().Add(ResourceTypes.wood, 60).Add(ResourceTypes.stone, 120),
+        label: "Smelts stuff"
     }
 ];
 
@@ -188,10 +198,6 @@ function BuildLandfill(x: number, y: number): void{
         Resources.RemoveResourceList(Building[11].cost);
     }
 }
-
-const AroundDir: Vector2[] = [
-    new Vector2(0, 1), new Vector2(-1, 0), new Vector2(1, 0), new Vector2(0, -1)
-];
 /**
  * Returns an array of positions that are inside an enclosed space
  * @param x 
@@ -209,7 +215,7 @@ function GetEnclosedSpacesAround(x: number, y: number): Vector2[] {
         while (queue.length > 0) {
             const sVec: Vector2 = queue.shift()!;
 
-            for (const dVec of AroundDir) {
+            for (const dVec of SidesDir) {
                 const nx = sVec.x + dVec.x;
                 const ny = sVec.y + dVec.y;
 
@@ -232,7 +238,7 @@ function GetEnclosedSpacesAround(x: number, y: number): Vector2[] {
 
     const EnclosedVectors: Vector2[] = [];
 
-    for(const dVec of AroundDir){
+    for(const dVec of SidesDir){
         const nx = x + dVec.x;
         const ny = y + dVec.y;
 
@@ -260,7 +266,7 @@ async function fillInterior(x: number, y:number): Promise<void>{
 
     await sleep(40);
     
-    for(const dVec of AroundDir){
+    for(const dVec of SidesDir){
         fillInterior(x+dVec.x, y+dVec.y);
     }
 
@@ -283,7 +289,7 @@ async function fillInterior(x: number, y:number): Promise<void>{
 function CheckDeleteInterior(x: number, y: number): void{
     const EnclosedSpaces: Vector2[] = GetEnclosedSpacesAround(x, y);
 
-    for(const vec of AroundDir){
+    for(const vec of SidesDir){
         if(EnclosedSpaces.find((v: Vector2) => v.x == x+vec.x && v.y == y+vec.y) == undefined){
             if(x+vec.x < 0 || x+vec.x >= mapData.length || y+vec.y < 0 || y+vec.y > mapData[0].length) continue;
             deleteInterior(x+vec.x, y+vec.y);
@@ -298,7 +304,7 @@ function deleteInterior(x: number,y: number): void{
     InteriorPixel.Indoors = false;
 
     let p: PixelData;
-    for(const dVec of AroundDir){
+    for(const dVec of SidesDir){
         if(x+dVec.x < 0 || x+dVec.x >= mapData.length || y+dVec.y < 0 || y+dVec.y > mapData[0].length) continue;
 
         p = mapData[x+dVec.x][y+dVec.y] instanceof PlayerData ? Player.OverlapPixel : mapData[x+dVec.x][y+dVec.y];

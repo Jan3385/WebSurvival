@@ -6,6 +6,15 @@ class Vector2{
         this.y = y;
     }
 }
+
+const SidesDir: Vector2[] = [
+    new Vector2(0, 1), new Vector2(-1, 0), new Vector2(1, 0), new Vector2(0, -1)
+];
+const AroundDir: Vector2[] = [
+    new Vector2(0, 1), new Vector2(-1, 0), new Vector2(1, 0), new Vector2(0, -1),
+    new Vector2(1, 1), new Vector2(-1, 1), new Vector2(1, -1), new Vector2(-1, -1)
+];
+
 class rgb{
     /**
      * @constructor
@@ -100,6 +109,8 @@ class ResourceManager{
         });
 
         document.getElementById("resources")!.replaceChildren(...ResouceElements);
+
+        Recipes.DisplayAvalibleRecipes();
     }
     DisplayCostResources(resources: ResourceList): void{
         const ResouceElements: HTMLElement[] = [];

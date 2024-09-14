@@ -7,6 +7,13 @@ class Vector2 {
         this.y = y;
     }
 }
+const SidesDir = [
+    new Vector2(0, 1), new Vector2(-1, 0), new Vector2(1, 0), new Vector2(0, -1)
+];
+const AroundDir = [
+    new Vector2(0, 1), new Vector2(-1, 0), new Vector2(1, 0), new Vector2(0, -1),
+    new Vector2(1, 1), new Vector2(-1, 1), new Vector2(1, -1), new Vector2(-1, -1)
+];
 class rgb {
     /**
      * @constructor
@@ -87,6 +94,7 @@ class ResourceManager {
             ResouceElements.push(container);
         });
         document.getElementById("resources").replaceChildren(...ResouceElements);
+        Recipes.DisplayAvalibleRecipes();
     }
     DisplayCostResources(resources) {
         const ResouceElements = [];
@@ -333,11 +341,11 @@ class BuildingData extends PixelData {
     x;
     y;
     Highlight;
-    HighlightColor = new rgb(60, 60, 60);
+    HighlightColor;
     DefaultColor;
     name;
     OverlaidPixel = new TerrainData(new rgb(0, 0, 0), PixelStatus.walkable, TerrainType.ground);
-    constructor(name, color, status, Health, x, y, Highlight) {
+    constructor(name, color, status, Health, x, y, Highlight, HighlightColor = new rgb(80, 80, 80)) {
         super(color, status);
         this.name = name;
         this.Health = Health;
@@ -346,6 +354,7 @@ class BuildingData extends PixelData {
         this.y = y;
         this.Highlight = Highlight;
         this.DefaultColor = color.new();
+        this.HighlightColor = HighlightColor;
     }
     Damage(damage) {
         this.Health -= damage;
@@ -375,7 +384,7 @@ class BuildingData extends PixelData {
      * @returns {ThisType}
      */
     at(x, y) {
-        const build = new BuildingData(this.name, this.DefaultColor.newSlightlyRandom(30), this.status, this.MaxHealth, x, y, this.Highlight);
+        const build = new BuildingData(this.name, this.DefaultColor.newSlightlyRandom(30), this.status, this.MaxHealth, x, y, this.Highlight, this.HighlightColor);
         if (Player.x == x && Player.y == y)
             build.OverlaidPixel = Player.OverlapPixel;
         else
@@ -1013,6 +1022,16 @@ let Building = [
         build: new GlassData("Glass", new rgb(178, 190, 195), 1, 1, 3),
         cost: new ResourceList().Add(ResourceTypes.wood, 4).Add(ResourceTypes.glass, 20),
         label: "Lets the sunlight thru"
+    },
+    {
+        build: new BuildingData("Furnace", new rgb(253, 203, 110), PixelStatus.breakable, 20, 1, 1, HighlightPixel.thickBorder, new rgb(45, 52, 54)),
+        cost: new ResourceList().Add(ResourceTypes.wood, 25).Add(ResourceTypes.stone, 60),
+        label: "Smelts stuff"
+    },
+    {
+        build: new BuildingData("Large Furnace", new rgb(214, 48, 49), PixelStatus.breakable, 20, 1, 1, HighlightPixel.thickBorder, new rgb(20, 20, 20)),
+        cost: new ResourceList().Add(ResourceTypes.wood, 60).Add(ResourceTypes.stone, 120),
+        label: "Smelts stuff"
     }
 ];
 function FindBuilding(buildingName) {
@@ -1112,9 +1131,6 @@ function BuildLandfill(x, y) {
         Resources.RemoveResourceList(Building[11].cost);
     }
 }
-const AroundDir = [
-    new Vector2(0, 1), new Vector2(-1, 0), new Vector2(1, 0), new Vector2(0, -1)
-];
 /**
  * Returns an array of positions that are inside an enclosed space
  * @param x
@@ -1130,7 +1146,7 @@ function GetEnclosedSpacesAround(x, y) {
         visited[x][y] = true;
         while (queue.length > 0) {
             const sVec = queue.shift();
-            for (const dVec of AroundDir) {
+            for (const dVec of SidesDir) {
                 const nx = sVec.x + dVec.x;
                 const ny = sVec.y + dVec.y;
                 if (nx < 0 || ny < 0 || nx >= rows || ny >= cols) {
@@ -1148,7 +1164,7 @@ function GetEnclosedSpacesAround(x, y) {
     const rows = mapData.length;
     const cols = mapData[0].length;
     const EnclosedVectors = [];
-    for (const dVec of AroundDir) {
+    for (const dVec of SidesDir) {
         const nx = x + dVec.x;
         const ny = y + dVec.y;
         if (nx < 0 || ny < 0 || nx >= rows || ny >= cols) {
@@ -1172,7 +1188,7 @@ async function fillInterior(x, y) {
     mapData[x][y].Indoors = true;
     InteriorFillVisual(x, y);
     await sleep(40);
-    for (const dVec of AroundDir) {
+    for (const dVec of SidesDir) {
         fillInterior(x + dVec.x, y + dVec.y);
     }
     async function InteriorFillVisual(x, y) {
@@ -1191,7 +1207,7 @@ async function fillInterior(x, y) {
 }
 function CheckDeleteInterior(x, y) {
     const EnclosedSpaces = GetEnclosedSpacesAround(x, y);
-    for (const vec of AroundDir) {
+    for (const vec of SidesDir) {
         if (EnclosedSpaces.find((v) => v.x == x + vec.x && v.y == y + vec.y) == undefined) {
             if (x + vec.x < 0 || x + vec.x >= mapData.length || y + vec.y < 0 || y + vec.y > mapData[0].length)
                 continue;
@@ -1205,7 +1221,7 @@ function deleteInterior(x, y) {
         return;
     InteriorPixel.Indoors = false;
     let p;
-    for (const dVec of AroundDir) {
+    for (const dVec of SidesDir) {
         if (x + dVec.x < 0 || x + dVec.x >= mapData.length || y + dVec.y < 0 || y + dVec.y > mapData[0].length)
             continue;
         p = mapData[x + dVec.x][y + dVec.y] instanceof PlayerData ? Player.OverlapPixel : mapData[x + dVec.x][y + dVec.y];
@@ -1214,44 +1230,91 @@ function deleteInterior(x, y) {
         }
     }
 }
+var RecipeTriggerType;
+(function (RecipeTriggerType) {
+    RecipeTriggerType[RecipeTriggerType["AlwaysDisplay"] = 0] = "AlwaysDisplay";
+    RecipeTriggerType[RecipeTriggerType["Furnace"] = 1] = "Furnace";
+    RecipeTriggerType[RecipeTriggerType["LargeFurnace"] = 2] = "LargeFurnace";
+})(RecipeTriggerType || (RecipeTriggerType = {}));
 class Recipe {
-    constructor() {
+    constructor(ResourceFrom, AmountFrom, ResourceTo, AmountTo, TriggerBlocks) {
+        this.ResourceFrom = [ResourceFrom, AmountFrom];
+        this.ResourceTo = [ResourceTo, AmountTo];
+        this.TriggerBlocks = TriggerBlocks;
     }
+    ResourceFrom;
+    ResourceTo;
+    TriggerBlocks;
 }
+const AvalibleRecipes = [];
 class RecipeHandler {
+    AllRecipes = [
+        new Recipe(ResourceTypes.wood, 2, ResourceTypes.stone, 1, RecipeTriggerType.Furnace),
+        new Recipe(ResourceTypes.sand, 7, ResourceTypes.glass, 1, RecipeTriggerType.Furnace),
+        new Recipe(ResourceTypes.iron, 1, ResourceTypes.stone, 5, RecipeTriggerType.Furnace),
+        new Recipe(ResourceTypes.sand, 25, ResourceTypes.glass, 5, RecipeTriggerType.LargeFurnace),
+        new Recipe(ResourceTypes.wood, 10, ResourceTypes.stone, 6, RecipeTriggerType.LargeFurnace),
+    ];
     AvalibleRecipes = [];
     UpdatevAvalibleRecipes() {
+        this.AvalibleRecipes = [];
+        const PlayerPos = new Vector2(Player.x, Player.y);
+        AroundDir.forEach(dir => {
+            const Tile = mapData[PlayerPos.x + dir.x][PlayerPos.y + dir.y];
+            if (Tile instanceof BuildingData) {
+                if (Tile.name == "Furnace") {
+                    this.AvalibleRecipes.push(...this.AllRecipes.filter(x => x.TriggerBlocks == RecipeTriggerType.Furnace));
+                }
+                if (Tile.name == "Large Furnace") {
+                    this.AvalibleRecipes.push(...this.AllRecipes.filter(x => x.TriggerBlocks == RecipeTriggerType.LargeFurnace));
+                }
+            }
+        });
+        this.AvalibleRecipes.push(...this.AllRecipes.filter(x => x.TriggerBlocks == RecipeTriggerType.AlwaysDisplay));
+        this.DisplayAvalibleRecipes();
     }
     DisplayAvalibleRecipes() {
         const RecipeElements = [];
-        const button = document.createElement('button');
-        button.onclick = () => {
-            this.Craft(1);
-        };
-        const ButtonChildren = [];
-        let WorkedElement;
-        WorkedElement = document.createElement('p');
-        WorkedElement.innerHTML = "10";
-        ButtonChildren.push(WorkedElement);
-        WorkedElement = document.createElement('img');
-        WorkedElement.src = "Icons/wood.png";
-        ButtonChildren.push(WorkedElement);
-        WorkedElement = document.createElement('img');
-        WorkedElement.src = "Icons/right-arrow.png";
-        WorkedElement.classList.add("arrow");
-        ButtonChildren.push(WorkedElement);
-        WorkedElement = document.createElement('p');
-        WorkedElement.innerHTML = "10";
-        ButtonChildren.push(WorkedElement);
-        WorkedElement = document.createElement('img');
-        WorkedElement.src = "Icons/wood.png";
-        ButtonChildren.push(WorkedElement);
-        /*const container = document.createElement('p');
-        container.innerHTML = '<img src="Icons/' + ResourceTypes[x[0]] +'.png">: ' + x[1];
-        ResouceElements.push(container);*/
-        document.getElementsByClassName("Crafting-List")[0].replaceChildren(...RecipeElements);
+        this.AvalibleRecipes.forEach(recipe => {
+            const button = document.createElement('button');
+            if (Resources.HasResources(new ResourceList().Add(recipe.ResourceFrom[0], recipe.ResourceFrom[1]))) {
+                const PosInArray = this.AllRecipes.indexOf(recipe);
+                button.onclick = () => this.Craft(PosInArray);
+            }
+            else {
+                button.id = "unavailable";
+            }
+            const ButtonChildren = [];
+            let WorkedElement;
+            WorkedElement = document.createElement('p');
+            WorkedElement.innerHTML = recipe.ResourceFrom[1].toString();
+            ButtonChildren.push(WorkedElement);
+            WorkedElement = document.createElement('img');
+            WorkedElement.src = "Icons/" + ResourceTypes[recipe.ResourceFrom[0]] + ".png";
+            ButtonChildren.push(WorkedElement);
+            WorkedElement = document.createElement('img');
+            WorkedElement.src = "Icons/right-arrow.png";
+            WorkedElement.classList.add("arrow");
+            ButtonChildren.push(WorkedElement);
+            WorkedElement = document.createElement('p');
+            WorkedElement.innerHTML = recipe.ResourceTo[1].toString();
+            ButtonChildren.push(WorkedElement);
+            WorkedElement = document.createElement('img');
+            WorkedElement.src = "Icons/" + ResourceTypes[recipe.ResourceTo[0]] + ".png";
+            ButtonChildren.push(WorkedElement);
+            button.replaceChildren(...ButtonChildren);
+            RecipeElements.push(button);
+        });
+        if (RecipeElements.length == 0)
+            document.getElementsByClassName("Crafting-List")[0].replaceChildren(document.createElement('hr'));
+        else
+            document.getElementsByClassName("Crafting-List")[0].replaceChildren(...RecipeElements);
     }
-    Craft(number) {
+    Craft(id) {
+        const CraftedRecipe = this.AllRecipes[id];
+        Resources.RemoveResource(CraftedRecipe.ResourceFrom[0], CraftedRecipe.ResourceFrom[1]);
+        Resources.AddResource(CraftedRecipe.ResourceTo[0], CraftedRecipe.ResourceTo[1]);
+        this.DisplayAvalibleRecipes();
     }
 }
 /// <reference path="SupportClasses.ts" />
@@ -1583,13 +1646,14 @@ const ctx = canvas.getContext('2d', { alpha: false });
 let canvasScale = 10;
 const gTime = new GameTime();
 let mapData = [];
-let ResourceTerrain = new ResourceList();
+const ResourceTerrain = new ResourceList();
 const MaxTResource = new ResourceList().Add(ResourceTypes.wood, 20).Add(ResourceTypes.stone, 30);
 //sets player position in the middle of the map
-let Player = new PlayerData(new rgb(0, 0, 0), new rgb(255, 255, 255), Math.floor(canvas.width / canvasScale / 2), Math.floor(canvas.height / canvasScale / 2), 10);
-let Render = new Renderer();
-let Terrain = new TerrainManipulator();
-let Resources = new ResourceManager();
+const Player = new PlayerData(new rgb(0, 0, 0), new rgb(255, 255, 255), Math.floor(canvas.width / canvasScale / 2), Math.floor(canvas.height / canvasScale / 2), 10);
+const Render = new Renderer();
+const Terrain = new TerrainManipulator();
+const Resources = new ResourceManager();
+const Recipes = new RecipeHandler();
 function Start() {
     Terrain.MovePlayer(Player, 0, 0); //Draw player
     Render.Draw();
@@ -1609,6 +1673,7 @@ function Update() {
     isBuilding = false;
     if (inputPresses.includes(69) && canPlaceBuildingOn(Player.OverlapPixel)) {
         Build(SelectedBuilding);
+        Recipes.UpdatevAvalibleRecipes();
     }
     //digging underneath player logic
     if (inputPresses.includes(81)) {
@@ -1619,6 +1684,7 @@ function Update() {
                 Player.OverlapPixel = Player.OverlapPixel.OverlaidPixel;
                 //removes the interior if building below player is destroyed
                 CheckDeleteInterior(Player.x, Player.y);
+                Recipes.UpdatevAvalibleRecipes();
             }
         }
         if (Player.OverlapPixel instanceof TerrainData) {
@@ -1635,11 +1701,13 @@ function Update() {
     else if (moveTile instanceof BuildingData && moveTile.status == PixelStatus.breakable) {
         if (IsDamageable(moveTile))
             moveTile.Damage(1);
+        Recipes.UpdatevAvalibleRecipes();
     }
     else if (IsInteractable(moveTile) && moveTile.status == PixelStatus.interact)
         moveTile.Interact();
     else if (!(MovementVector.x == 0 && MovementVector.y == 0)) {
         Terrain.MovePlayer(Player, MovementVector.x, MovementVector.y);
+        Recipes.UpdatevAvalibleRecipes();
     }
     UpdateInput();
     document.getElementById("Time").innerHTML = gTime.GetDayTime(); //shows time
