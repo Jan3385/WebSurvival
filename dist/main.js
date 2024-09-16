@@ -1258,15 +1258,19 @@ class RecipeHandler {
     AvalibleRecipes = [];
     UpdatevAvalibleRecipes() {
         this.AvalibleRecipes = [];
+        let UsedFurnaceRecipes = false;
+        let UsedLargeFurnaceRecipes = false;
         const PlayerPos = new Vector2(Player.x, Player.y);
         AroundDir.forEach(dir => {
             const Tile = mapData[PlayerPos.x + dir.x][PlayerPos.y + dir.y];
             if (Tile instanceof BuildingData) {
-                if (Tile.name == "Furnace") {
+                if (Tile.name == "Furnace" && !UsedFurnaceRecipes) {
                     this.AvalibleRecipes.push(...this.AllRecipes.filter(x => x.TriggerBlocks == RecipeTriggerType.Furnace));
+                    UsedFurnaceRecipes = true;
                 }
-                if (Tile.name == "Large Furnace") {
+                if (Tile.name == "Large Furnace" && !UsedLargeFurnaceRecipes) {
                     this.AvalibleRecipes.push(...this.AllRecipes.filter(x => x.TriggerBlocks == RecipeTriggerType.LargeFurnace));
+                    UsedLargeFurnaceRecipes = true;
                 }
             }
         });
