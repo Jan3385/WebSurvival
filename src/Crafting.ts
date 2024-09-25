@@ -4,23 +4,21 @@ enum RecipeTriggerType{
     LargeFurnace,
 }
 class Recipe{
-    constructor(ResourceFrom: ResourceTypes, AmountFrom: number, ResourceTo: ResourceTypes, AmountTo: number, TriggerBlocks: RecipeTriggerType){
-        this.ResourceFrom = [ResourceFrom, AmountFrom];
+    constructor(ResourceFrom: ResourceList, ResourceTo: ResourceTypes, AmountTo: number, TriggerBlocks: RecipeTriggerType){
+        this.ResourceFrom = ResourceFrom;
         this.ResourceTo = [ResourceTo, AmountTo];
         this.TriggerBlocks = TriggerBlocks;
     }
-    ResourceFrom: [ResourceTypes, number];
+    ResourceFrom: ResourceList;
     ResourceTo: [ResourceTypes, number];
     TriggerBlocks: RecipeTriggerType;
 }
 const AvalibleRecipes: Recipe[] = [];
 class RecipeHandler{
     AllRecipes: Recipe[] = [
-        new Recipe(ResourceTypes.wood, 2, ResourceTypes.stone, 1, RecipeTriggerType.Furnace),
-        new Recipe(ResourceTypes.sand, 7, ResourceTypes.glass, 1, RecipeTriggerType.Furnace),
-        new Recipe(ResourceTypes.iron, 1, ResourceTypes.stone, 5, RecipeTriggerType.Furnace),
-        new Recipe(ResourceTypes.sand, 25, ResourceTypes.glass, 5, RecipeTriggerType.LargeFurnace),
-        new Recipe(ResourceTypes.wood, 10, ResourceTypes.stone, 6, RecipeTriggerType.LargeFurnace),
+        new Recipe(new ResourceList().Add(ResourceTypes.sand, 3).Add(ResourceTypes.wood, 1), ResourceTypes.glass, 1, RecipeTriggerType.Furnace),
+        new Recipe(new ResourceList().Add(ResourceTypes.iron, 4).Add(ResourceTypes.wood, 3), ResourceTypes.iron, 1, RecipeTriggerType.Furnace),
+        new Recipe(new ResourceList().Add(ResourceTypes.sand, 20), ResourceTypes.glass, 10, RecipeTriggerType.LargeFurnace),
     ];
     AvalibleRecipes: Recipe[] = [];
     UpdatevAvalibleRecipes(){
@@ -47,39 +45,53 @@ class RecipeHandler{
         this.DisplayAvalibleRecipes();
     }
     DisplayAvalibleRecipes(){
+        //return;
         const RecipeElements: HTMLElement[] = [];
     
         this.AvalibleRecipes.forEach(recipe => {
             const button = document.createElement('button');
-            if(Resources.HasResources(new ResourceList().Add(recipe.ResourceFrom[0], recipe.ResourceFrom[1]))){
+            if(Resources.HasResources(recipe.ResourceFrom)){
                 const PosInArray = this.AllRecipes.indexOf(recipe);
                 button.onclick = () => this.Craft(PosInArray);
             }else{
                 button.id = "unavailable";
             }
 
-            const ButtonChildren: HTMLElement[] = [];
+            let ChildrenOfElement: HTMLElement[] = [];
             let WorkedElement: HTMLElement;
-            WorkedElement = document.createElement('p');
-            WorkedElement.innerHTML = recipe.ResourceFrom[1].toString();
-            ButtonChildren.push(WorkedElement);
-            WorkedElement = document.createElement('img');
-            (WorkedElement as HTMLImageElement).src = "Icons/" +ResourceTypes[recipe.ResourceFrom[0]]+ ".png";
-            ButtonChildren.push(WorkedElement);
+            const DivResourceFrom: HTMLElement = document.createElement('div');
+            DivResourceFrom.classList.add("Ingredients-List");
+
+            recipe.ResourceFrom.resources.forEach((resource) => {
+                WorkedElement = document.createElement('p');
+                WorkedElement.innerHTML = resource[1].toString();
+                ChildrenOfElement.push(WorkedElement);
+                WorkedElement = document.createElement('img');
+                (WorkedElement as HTMLImageElement).src = "Icons/" +ResourceTypes[resource[0]]+ ".png";
+                ChildrenOfElement.push(WorkedElement);
+            })
+
+            DivResourceFrom.replaceChildren(...ChildrenOfElement);
+            ChildrenOfElement = [];
+
             
-            WorkedElement = document.createElement('img');
-            (WorkedElement as HTMLImageElement).src = "Icons/right-arrow.png";
-            WorkedElement.classList.add("arrow");
-            ButtonChildren.push(WorkedElement);
+            const ArrowElement: HTMLImageElement = document.createElement('img');
+            ArrowElement.src = "Icons/right-arrow.png";
+            ArrowElement.classList.add("arrow");
+
+            const DivResourceTo = document.createElement('div');
+            DivResourceTo.classList.add("result");
 
             WorkedElement = document.createElement('p');
             WorkedElement.innerHTML = recipe.ResourceTo[1].toString();
-            ButtonChildren.push(WorkedElement);
+            ChildrenOfElement.push(WorkedElement);
             WorkedElement = document.createElement('img');
             (WorkedElement as HTMLImageElement).src = "Icons/" +ResourceTypes[recipe.ResourceTo[0]]+ ".png";
-            ButtonChildren.push(WorkedElement);
+            ChildrenOfElement.push(WorkedElement);
+            DivResourceTo.replaceChildren(...ChildrenOfElement);
+            ChildrenOfElement = [];
 
-            button.replaceChildren(...ButtonChildren);
+            button.replaceChildren(DivResourceFrom, ArrowElement, DivResourceTo);
             RecipeElements.push(button);
         });
     
@@ -88,7 +100,7 @@ class RecipeHandler{
     }
     Craft(id: number){
         const CraftedRecipe = this.AllRecipes[id];
-        Resources.RemoveResource(CraftedRecipe.ResourceFrom[0], CraftedRecipe.ResourceFrom[1]);
+        Resources.RemoveResourceList(CraftedRecipe.ResourceFrom);
         Resources.AddResource(CraftedRecipe.ResourceTo[0], CraftedRecipe.ResourceTo[1]);
         this.DisplayAvalibleRecipes();
     }
