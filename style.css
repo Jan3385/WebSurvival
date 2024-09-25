@@ -87,6 +87,7 @@
                 background-color: rgb(202, 202, 202);
                 border-radius: 5px;
                 align-items: center;
+                width: 95%;
             }
             button:hover{
                 background-color: rgb(178, 178, 178);
@@ -215,7 +216,7 @@
     }
     button{
         margin: 5px;
-        min-height: 30px;
+        min-height: 30px;       
         height: auto;
         aspect-ratio: 2/1;
     }
