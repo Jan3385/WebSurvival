@@ -127,6 +127,7 @@ class LightData extends BuildingData{
         return light;
     }
     BurnOut(){
+        this.OverlaidPixel.Indoors = this.Indoors;
         Terrain.ModifyMapData(this.x, this.y, this.OverlaidPixel);
     }
 }
