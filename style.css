@@ -241,6 +241,7 @@
     ul{
         padding: 0;
         margin-top: 0;
+        margin-bottom: 2px;
     }
     li{
         list-style-type:none;
