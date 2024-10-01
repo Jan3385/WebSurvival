@@ -6,6 +6,16 @@ class Vector2 {
         this.x = x;
         this.y = y;
     }
+    flip() {
+        return new Vector2(this.x * -1, this.y * -1);
+    }
+    normalize() {
+        const mag = this.magnitude();
+        return new Vector2(Math.floor(this.x / mag), Math.floor(this.y / mag));
+    }
+    magnitude() {
+        return Math.sqrt(this.x ** 2 + this.y ** 2);
+    }
 }
 const SidesDir = [
     new Vector2(0, 1), new Vector2(-1, 0), new Vector2(1, 0), new Vector2(0, -1)
@@ -584,29 +594,42 @@ class LightData extends BuildingData {
     }
 }
 function castRay(sX, sY, angle, intensity, radius) {
-    const dx = Math.cos(angle);
-    const dy = Math.sin(angle);
+    let dx = Math.cos(angle);
+    let dy = Math.sin(angle);
     //movement with angle for small deviations
     let x = sX - (dx / 100);
     let y = sY - (dy / 100);
-    for (let i = 0; i < radius; i++) {
-        x += dx * .7;
-        y += dy * .7;
-        const ix = Math.floor(x);
-        const iy = Math.floor(y);
+    for (let i = 0; i < radius * 2; i++) {
+        x += dx * .5;
+        y += dy * .5;
+        const ix = Math.round(x);
+        const iy = Math.round(y);
         //stop the light out of bounds
         if (ix < 0 || ix >= mapData.length || iy < 0 || iy >= mapData[0].length)
             break;
         const distance = Math.sqrt((ix - sX) ** 2 + (iy - sY) ** 2);
         const lightIntensity = Math.max(0, intensity - distance);
         mapData[ix][iy].Brightness = Math.max(lightIntensity, mapData[ix][iy].Brightness);
-        //blocks light
-        if (BlocksLight(mapData[ix][iy]))
-            break;
+        //reflects light
+        if (BlocksLight(mapData[ix][iy])) {
+            const hitNormal = new Vector2(dx, dy);
+            if (true) { //flip along Y - idk fix
+                hitNormal.y *= -1;
+                angle = Math.atan2(hitNormal.y, hitNormal.x);
+                dx = Math.cos(angle);
+                dy = Math.sin(angle);
+            }
+            else { //flip along X
+                hitNormal.x *= -1;
+                angle = Math.atan2(hitNormal.y, hitNormal.x);
+                dx = Math.cos(angle);
+                dy = Math.sin(angle);
+            }
+            Render.DrawGizmoLine(new Vector2(x, y), new Vector2(x + dx, y + dy));
+        }
     }
 }
-function castSunRay(// cestuje a pokud něco najde, tak se na chvili vypne pro iluzi stinu
-sX, sY, angle, intensity) {
+function castSunRay(sX, sY, angle, intensity) {
     const constIntensity = intensity;
     let ShadowTravel = 0;
     let HitBuilding = false;
@@ -659,7 +682,7 @@ function CalculateLightMap() {
         for (let i = 0; i < numRays; i++) {
             const angle = (Math.PI * 2 / numRays) * i;
             //send ray from the middle of the block
-            castRay(light.x, light.y, angle, light.intensity, light.radius);
+            castRay(light.x + .5, light.y + .5, angle, light.intensity, light.radius);
         }
     }
     //sun
@@ -672,9 +695,9 @@ function CalculateLightMap() {
         castSunRay(i, 0, sunAngle, gTime.lightLevel);
     }
     //player emits a little light
-    for (let i = 0; i < numRays; i++) {
-        const angle = (Math.PI * 2 / numRays) * i;
-        castRay(Player.x, Player.y, angle, 2, 2);
+    for (let i = 0; i < (numRays / 2); i++) {
+        const angle = (Math.PI * 2 / (numRays / 2)) * i;
+        castRay(Player.x + .0, Player.y + .0, angle, 2, 2);
     }
 }
 //Class for terrain modification
@@ -1599,6 +1622,22 @@ class Renderer {
         ctx.strokeStyle = Player.HighlightColor.getWithLight(Math.max(0.35, mapData[Player.x][Player.y].Brightness));
         ctx.lineWidth = 2;
         ctx.strokeRect(Player.x * canvasScale + 1, Player.y * canvasScale + 1, canvasScale - 2, canvasScale - 2);
+        if (this.LineGizmos.length != 0) {
+            ctx.beginPath();
+            this.LineGizmos.forEach(element => {
+                ctx.moveTo(element[0].x, element[0].y);
+                ctx.lineTo(element[1].x, element[1].y);
+            });
+            ctx.stroke();
+            this.LineGizmos = [];
+        }
+    }
+    LineGizmos = [];
+    DrawGizmoLine(from, to) {
+        this.LineGizmos.push([
+            new Vector2(from.x * canvasScale, from.y * canvasScale),
+            new Vector2(to.x * canvasScale, to.y * canvasScale)
+        ]);
     }
     DrawInteractIndicator() {
         if (canvasScale < 6.5)

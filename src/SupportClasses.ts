@@ -5,6 +5,16 @@ class Vector2{
         this.x = x;
         this.y = y;
     }
+    flip(): Vector2{
+        return new Vector2(this.x * -1, this.y * - 1);
+    }
+    normalize(): Vector2{
+        const mag = this.magnitude();
+        return new Vector2(Math.floor(this.x / mag), Math.floor(this.y / mag));
+    }
+    magnitude(): number{
+        return Math.sqrt(this.x ** 2 + this.y ** 2);
+    }
 }
 
 const SidesDir: Vector2[] = [

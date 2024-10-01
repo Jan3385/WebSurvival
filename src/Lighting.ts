@@ -137,18 +137,18 @@ function castRay(
     intensity: number,
     radius: number
 ): void{
-    const dx = Math.cos(angle);
-    const dy = Math.sin(angle);
+    let dx = Math.cos(angle);
+    let dy = Math.sin(angle);
 
     //movement with angle for small deviations
     let x = sX - (dx/100);
     let y = sY - (dy/100);
 
-    for(let i = 0; i < radius; i++){
-        x += dx*.7;
-        y += dy*.7;
-        const ix = Math.floor(x);
-        const iy = Math.floor(y);
+    for(let i = 0; i < radius*2; i++){
+        x += dx*.5;
+        y += dy*.5;
+        const ix = Math.round(x);
+        const iy = Math.round(y);
 
         //stop the light out of bounds
         if(ix < 0 || ix >= mapData.length || iy < 0 || iy >= mapData[0].length) break;
@@ -157,11 +157,26 @@ function castRay(
         const lightIntensity = Math.max(0, intensity - distance);
         mapData[ix][iy].Brightness = Math.max(lightIntensity, mapData[ix][iy].Brightness);
 
-        //blocks light
-        if(BlocksLight(mapData[ix][iy])) break;
+        //reflects light
+        if(BlocksLight(mapData[ix][iy])){
+            const hitNormal = new Vector2(dx, dy);
+
+            if(true){ //flip along Y - idk fix
+                hitNormal.y *= -1;
+                angle = Math.atan2(hitNormal.y, hitNormal.x);
+                dx = Math.cos(angle);
+                dy = Math.sin(angle);
+            }else{ //flip along X
+                hitNormal.x *= -1;
+                angle = Math.atan2(hitNormal.y, hitNormal.x);
+                dx = Math.cos(angle);
+                dy = Math.sin(angle);
+            }
+            Render.DrawGizmoLine(new Vector2(x,y), new Vector2(x + dx, y + dy));
+        }
     }
 }
-function castSunRay( // cestuje a pokud něco najde, tak se na chvili vypne pro iluzi stinu
+function castSunRay(
     sX: number, sY: number,
     angle: number,
     intensity: number
@@ -220,7 +235,7 @@ function CalculateLightMap(){
         for(let i = 0; i < numRays; i++){
             const angle = (Math.PI * 2 / numRays) * i;
             //send ray from the middle of the block
-            castRay(light.x, light.y, angle, light.intensity, light.radius);
+            castRay(light.x+.5, light.y+.5, angle, light.intensity, light.radius);
         }
     }
 
@@ -235,9 +250,9 @@ function CalculateLightMap(){
     }
 
     //player emits a little light
-    for(let i = 0; i < numRays; i++){
-        const angle = (Math.PI * 2 / numRays) * i;
-        castRay(Player.x, Player.y, angle, 2, 2);
+    for(let i = 0; i < (numRays/2); i++){
+        const angle = (Math.PI * 2 / (numRays/2)) * i;
+        castRay(Player.x+.0, Player.y+.0, angle, 2, 2);
     }
 
 }

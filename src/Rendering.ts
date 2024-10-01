@@ -49,6 +49,22 @@ class Renderer{
         ctx.strokeStyle = Player.HighlightColor.getWithLight(Math.max(0.35,mapData[Player.x][Player.y].Brightness));
         ctx.lineWidth = 2;
         ctx.strokeRect(Player.x*canvasScale+1, Player.y*canvasScale+1, canvasScale-2, canvasScale-2);
+
+        if(this.LineGizmos.length != 0){
+            ctx.beginPath();
+            this.LineGizmos.forEach(element => {
+                ctx.moveTo(element[0].x, element[0].y);
+                ctx.lineTo(element[1].x, element[1].y);
+            });
+            ctx.stroke();
+            this.LineGizmos = [];
+        }
+    }
+    LineGizmos: [from: Vector2, to:Vector2][] = [];
+    DrawGizmoLine(from: Vector2, to:Vector2){
+        this.LineGizmos.push([
+            new Vector2(from.x * canvasScale, from.y * canvasScale), 
+            new Vector2(to.x * canvasScale, to.y * canvasScale)]);
     }
     DrawInteractIndicator(){
         if(canvasScale < 6.5) return;
