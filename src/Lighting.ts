@@ -144,7 +144,8 @@ function castRay(
     let x = sX - (dx/100);
     let y = sY - (dy/100);
 
-    for(let i = 0; i < radius*2; i++){
+    let distance = 0;
+    for(let i = 0; distance <= radius; i++){
         x += dx*.5;
         y += dy*.5;
         const ix = Math.round(x);
@@ -153,14 +154,14 @@ function castRay(
         //stop the light out of bounds
         if(ix < 0 || ix >= mapData.length || iy < 0 || iy >= mapData[0].length) break;
 
-        const distance = Math.sqrt((ix - sX) ** 2 + (iy - sY) ** 2);
+        distance = Math.sqrt((ix - sX) ** 2 + (iy - sY) ** 2);
         const lightIntensity = Math.max(0, intensity - distance);
         mapData[ix][iy].Brightness = Math.max(lightIntensity, mapData[ix][iy].Brightness);
 
         //reflects light
         if(BlocksLight(mapData[ix][iy])){
-            const hitNormal = new Vector2(dx, dy);
-
+            return;
+            /* refraction sucks :(
             if(true){ //flip along Y - idk fix
                 hitNormal.y *= -1;
                 angle = Math.atan2(hitNormal.y, hitNormal.x);
@@ -173,6 +174,7 @@ function castRay(
                 dy = Math.sin(angle);
             }
             Render.DrawGizmoLine(new Vector2(x,y), new Vector2(x + dx, y + dy));
+            */
         }
     }
 }
@@ -252,7 +254,7 @@ function CalculateLightMap(){
     //player emits a little light
     for(let i = 0; i < (numRays/2); i++){
         const angle = (Math.PI * 2 / (numRays/2)) * i;
-        castRay(Player.x+.0, Player.y+.0, angle, 2, 2);
+        castRay(Player.x+.1, Player.y+.1, angle, 2, 2);
     }
 
 }
