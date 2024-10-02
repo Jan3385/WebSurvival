@@ -136,6 +136,7 @@ class ResourceData extends PixelData implements IDamageable, IHighlightable{
     y: number;
     Highlight: HighlightPixel;
     HighlightColor: rgb = new rgb(60, 60, 60);
+    DefaultColor: rgb;
     ResourceType: ResourceTypes;
     OverlaidPixel: PixelData;
     OnResourceDestroy: () => void;
@@ -144,6 +145,7 @@ class ResourceData extends PixelData implements IDamageable, IHighlightable{
         Highlight: HighlightPixel, ResourceType: ResourceTypes, OverlaidPixel: PixelData ,OnResourceDestroy: () => void
     ){
         super(color, status);
+        this.DefaultColor = color.new();
         this.Health = Health;
         this.MaxHealth = Health;
         this.x = x;
@@ -155,7 +157,7 @@ class ResourceData extends PixelData implements IDamageable, IHighlightable{
     }
     Damage(damage: number): boolean{
         this.Health -= damage;
-        this.color.Darken(1.2);
+        this.color = this.DefaultColor.Lerp(this.DefaultColor.Darker(), 1-this.Health/this.MaxHealth);
         if(this.Health <= 0){
             this.Destroy();
             return true;
@@ -195,7 +197,7 @@ class BuildingData extends PixelData implements IDamageable, IHighlightable{
     }
     Damage(damage: number): boolean{
         this.Health -= damage;
-        this.color.Darken(1.07); //TODO: update the Darken method and execution
+        this.color = this.DefaultColor.Lerp(this.DefaultColor.Darker(), 1-this.Health/this.MaxHealth);
         if(this.Health <= 0){
             this.Destroy();
             return true;
@@ -208,7 +210,7 @@ class BuildingData extends PixelData implements IDamageable, IHighlightable{
     }
     DamageNoDestroy(damage: number): boolean{
         this.Health -= damage;
-        this.color.Darken(1.07);
+        this.color = this.DefaultColor.Lerp(this.DefaultColor.Darker(), 1-this.Health/this.MaxHealth);
         if(this.Health <= 0){
             return true;
         }

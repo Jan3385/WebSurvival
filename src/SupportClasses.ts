@@ -67,11 +67,14 @@ class rgb{
     /**
      * Makes the rgb value darker by the value
      * @param {number} val 
+     *
      */
-    Darken(val = 1.5): void{
-        this.r /= val;
-        this.g /= val;
-        this.b /= val;
+    Darker(): rgb{
+        return new rgb(
+            this.r / 2,
+            this.g / 2,
+            this.b / 2
+        )
     }
     Lerp(other: rgb, t: number): rgb{
         return new rgb(

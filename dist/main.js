@@ -62,11 +62,10 @@ class rgb {
     /**
      * Makes the rgb value darker by the value
      * @param {number} val
+     *
      */
-    Darken(val = 1.5) {
-        this.r /= val;
-        this.g /= val;
-        this.b /= val;
+    Darker() {
+        return new rgb(this.r / 2, this.g / 2, this.b / 2);
     }
     Lerp(other, t) {
         return new rgb(Math.floor(lerp(this.r, other.r, t)), Math.floor(lerp(this.g, other.g, t)), Math.floor(lerp(this.b, other.b, t)));
@@ -316,11 +315,13 @@ class ResourceData extends PixelData {
     y;
     Highlight;
     HighlightColor = new rgb(60, 60, 60);
+    DefaultColor;
     ResourceType;
     OverlaidPixel;
     OnResourceDestroy;
     constructor(color, status, Health, x, y, Highlight, ResourceType, OverlaidPixel, OnResourceDestroy) {
         super(color, status);
+        this.DefaultColor = color.new();
         this.Health = Health;
         this.MaxHealth = Health;
         this.x = x;
@@ -332,7 +333,7 @@ class ResourceData extends PixelData {
     }
     Damage(damage) {
         this.Health -= damage;
-        this.color.Darken(1.2);
+        this.color = this.DefaultColor.Lerp(this.DefaultColor.Darker(), 1 - this.Health / this.MaxHealth);
         if (this.Health <= 0) {
             this.Destroy();
             return true;
@@ -368,7 +369,7 @@ class BuildingData extends PixelData {
     }
     Damage(damage) {
         this.Health -= damage;
-        this.color.Darken(1.07); //TODO: update the Darken method and execution
+        this.color = this.DefaultColor.Lerp(this.DefaultColor.Darker(), 1 - this.Health / this.MaxHealth);
         if (this.Health <= 0) {
             this.Destroy();
             return true;
@@ -381,7 +382,7 @@ class BuildingData extends PixelData {
     }
     DamageNoDestroy(damage) {
         this.Health -= damage;
-        this.color.Darken(1.07);
+        this.color = this.DefaultColor.Lerp(this.DefaultColor.Darker(), 1 - this.Health / this.MaxHealth);
         if (this.Health <= 0) {
             return true;
         }
