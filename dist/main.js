@@ -521,7 +521,7 @@ class GameTime {
     OnNightStart() {
         if (this.triggeredNight)
             return;
-        //spawns enemies
+        //spawns enemies - TODO
         this.triggeredNight = true;
     }
     OnDayStart() {
@@ -616,7 +616,7 @@ function castRay(sX, sY, angle, intensity, radius) {
         if (BlocksLight(mapData[ix][iy])) {
             return;
             /* refraction sucks :(
-            if(true){ //flip along Y - idk fix
+            if(true){ //flip along Y - idk fix TODO: try again ?
                 hitNormal.y *= -1;
                 angle = Math.atan2(hitNormal.y, hitNormal.x);
                 dx = Math.cos(angle);
@@ -991,12 +991,12 @@ let Building = [
         label: "Cheap but weak"
     },
     {
-        build: new BuildingData("Wooden Wall", new rgb(127, 79, 36), PixelStatus.breakable, 3, 1, 1, HighlightPixel.border),
+        build: new BuildingData("Wooden Wall", new rgb(127, 79, 36), PixelStatus.breakable, 9, 1, 1, HighlightPixel.border),
         cost: new ResourceList().Add(ResourceTypes.wood, 10),
         label: "Stronger but more expensive"
     },
     {
-        build: new BuildingData("Stone Wall", new rgb(85, 85, 85), PixelStatus.breakable, 3, 1, 1, HighlightPixel.border),
+        build: new BuildingData("Stone Wall", new rgb(85, 85, 85), PixelStatus.breakable, 16, 1, 1, HighlightPixel.border),
         cost: new ResourceList().Add(ResourceTypes.wood, 2).Add(ResourceTypes.stone, 15),
         label: "Strong but expensive"
     },
@@ -1036,7 +1036,7 @@ let Building = [
         label: "Lights up the night, burns out by sunrise"
     },
     {
-        build: new LightData("Lantern", new rgb(255, 255, 0), 1, 1, 4, 7, 7),
+        build: new LightData("Lantern", new rgb(255, 255, 0), 1, 1, 6, 7, 7),
         cost: new ResourceList().Add(ResourceTypes.wood, 30).Add(ResourceTypes.stone, 7),
         label: "Lasts a lifetime!"
     },
@@ -1056,7 +1056,7 @@ let Building = [
         label: "Smelts stuff"
     },
     {
-        build: new BuildingData("Large Furnace", new rgb(214, 48, 49), PixelStatus.breakable, 20, 1, 1, HighlightPixel.thickBorder, new rgb(20, 20, 20)),
+        build: new BuildingData("Large Furnace", new rgb(214, 48, 49), PixelStatus.breakable, 30, 1, 1, HighlightPixel.thickBorder, new rgb(20, 20, 20)),
         cost: new ResourceList().Add(ResourceTypes.wood, 60).Add(ResourceTypes.stone, 120),
         label: "Smelts stuff"
     }

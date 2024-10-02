@@ -60,7 +60,8 @@ class GameTime{
 
     OnNightStart(){
         if(this.triggeredNight) return;
-        //spawns enemies
+        //spawns enemies - TODO
+
         this.triggeredNight = true;
     }
     OnDayStart(){
@@ -162,7 +163,7 @@ function castRay(
         if(BlocksLight(mapData[ix][iy])){
             return;
             /* refraction sucks :(
-            if(true){ //flip along Y - idk fix
+            if(true){ //flip along Y - idk fix TODO: try again ?
                 hitNormal.y *= -1;
                 angle = Math.atan2(hitNormal.y, hitNormal.x);
                 dx = Math.cos(angle);
