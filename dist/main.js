@@ -93,6 +93,7 @@ class ResourceManager {
     resources = [];
     DisplayStoredResources() {
         const ResouceElements = [];
+        this.resources.sort((a, b) => a[0] - b[0]);
         this.resources.forEach(x => {
             const container = document.createElement('div');
             const image = document.createElement('img');
