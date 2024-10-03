@@ -52,7 +52,7 @@
         min-width: 5svw;
         user-select: none;
         overflow-y: auto;
-        max-height: 40dvh;
+        max-height: 50dvh;
 
         display: flex;
         flex-direction: column;
@@ -254,14 +254,14 @@
         border-radius: 5px;
         margin: 3px auto 7px auto;
 
-        width: 390px;
+        width: 330px;
     }
     .Non-Material-Building-List{
         background-color: whitesmoke;
         border-radius: 5px;
         margin-top: 3px;
 
-        width: 30dvw;
+        width: 37dvw;
 
         overflow-x: auto;
 

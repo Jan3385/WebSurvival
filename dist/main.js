@@ -86,7 +86,8 @@ var ResourceTypes;
     ResourceTypes[ResourceTypes["stone"] = 1] = "stone";
     ResourceTypes[ResourceTypes["sand"] = 2] = "sand";
     ResourceTypes[ResourceTypes["glass"] = 3] = "glass";
-    ResourceTypes[ResourceTypes["iron"] = 4] = "iron";
+    ResourceTypes[ResourceTypes["iron_ore"] = 4] = "iron_ore";
+    ResourceTypes[ResourceTypes["iron"] = 5] = "iron";
 })(ResourceTypes || (ResourceTypes = {}));
 class ResourceManager {
     resources = [];
@@ -896,17 +897,16 @@ class TerrainManipulator {
                     return;
             }
         }
-        const OnBreak = () => { Resources.AddResource(ResourceTypes.stone, Math.floor(1 + Math.random() * 3)); }; // 1 - 3
         let sPixel;
-        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x, y, HighlightPixel.border, ResourceTypes.stone, mapData[x][y], OnBreak);
+        sPixel = this.GenerateStonePixel(x, y);
         Terrain.InsertResourcePixel(sPixel);
-        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x + 1, y, HighlightPixel.border, ResourceTypes.stone, mapData[x + 1][y], OnBreak);
+        sPixel = this.GenerateStonePixel(x + 1, y);
         Terrain.InsertResourcePixel(sPixel);
-        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x - 1, y, HighlightPixel.border, ResourceTypes.stone, mapData[x - 1][y], OnBreak);
+        sPixel = this.GenerateStonePixel(x - 1, y);
         Terrain.InsertResourcePixel(sPixel);
-        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x, y + 1, HighlightPixel.border, ResourceTypes.stone, mapData[x][y + 1], OnBreak);
+        sPixel = this.GenerateStonePixel(x, y + 1);
         Terrain.InsertResourcePixel(sPixel);
-        sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x, y - 1, HighlightPixel.border, ResourceTypes.stone, mapData[x][y - 1], OnBreak);
+        sPixel = this.GenerateStonePixel(x, y - 1);
         Terrain.InsertResourcePixel(sPixel);
         let stoneVec = { x: 1, y: 1 };
         let repeats = Math.floor(Math.random() * 3) + 1;
@@ -917,8 +917,24 @@ class TerrainManipulator {
                 stoneVec.x = 1;
             if (stoneVec.y == 0)
                 stoneVec.y = 1;
-            sPixel = new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x + stoneVec.x, y + stoneVec.y, HighlightPixel.border, ResourceTypes.stone, mapData[x + stoneVec.x][y + stoneVec.y], OnBreak);
+            //prevents spawning two resources in the same space
+            if (mapData[x + stoneVec.x][y + stoneVec.y] instanceof ResourceData)
+                continue;
+            sPixel = this.GenerateStonePixel(x + stoneVec.x, y + stoneVec.y);
             Terrain.InsertResourcePixel(sPixel);
+        }
+    }
+    GenerateStonePixel(x, y) {
+        const ironChance = Math.floor(1 + Math.random() * 5); // 1 - 5
+        if (ironChance == 1) {
+            //Generate iron
+            const OnBreak = () => { Resources.AddResource(ResourceTypes.iron_ore, Math.floor(1 + Math.random() * 3)); }; // 1 - 3
+            return new ResourceData(new rgb(221, 161, 94), PixelStatus.breakable, 9, x, y, HighlightPixel.border, ResourceTypes.stone, mapData[x][y], OnBreak);
+        }
+        else {
+            //Generate stone
+            const OnBreak = () => { Resources.AddResource(ResourceTypes.stone, Math.floor(1 + Math.random() * 5)); }; // 1 - 5
+            return new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x, y, HighlightPixel.border, ResourceTypes.stone, mapData[x][y], OnBreak);
         }
     }
     CheckBuildSpace(x, y, sizeX, sizeY) {
@@ -1277,7 +1293,8 @@ const AvalibleRecipes = [];
 class RecipeHandler {
     AllRecipes = [
         new Recipe(new ResourceList().Add(ResourceTypes.sand, 3).Add(ResourceTypes.wood, 1), ResourceTypes.glass, 1, RecipeTriggerType.Furnace),
-        new Recipe(new ResourceList().Add(ResourceTypes.iron, 4).Add(ResourceTypes.wood, 3), ResourceTypes.iron, 1, RecipeTriggerType.Furnace),
+        new Recipe(new ResourceList().Add(ResourceTypes.iron_ore, 3).Add(ResourceTypes.wood, 3), ResourceTypes.iron, 1, RecipeTriggerType.Furnace),
+        new Recipe(new ResourceList().Add(ResourceTypes.iron_ore, 10), ResourceTypes.iron, 8, RecipeTriggerType.LargeFurnace),
         new Recipe(new ResourceList().Add(ResourceTypes.sand, 20), ResourceTypes.glass, 10, RecipeTriggerType.LargeFurnace),
     ];
     AvalibleRecipes = [];

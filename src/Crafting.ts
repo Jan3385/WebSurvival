@@ -17,7 +17,8 @@ const AvalibleRecipes: Recipe[] = [];
 class RecipeHandler{
     AllRecipes: Recipe[] = [
         new Recipe(new ResourceList().Add(ResourceTypes.sand, 3).Add(ResourceTypes.wood, 1), ResourceTypes.glass, 1, RecipeTriggerType.Furnace),
-        new Recipe(new ResourceList().Add(ResourceTypes.iron, 4).Add(ResourceTypes.wood, 3), ResourceTypes.iron, 1, RecipeTriggerType.Furnace),
+        new Recipe(new ResourceList().Add(ResourceTypes.iron_ore, 3).Add(ResourceTypes.wood, 3), ResourceTypes.iron, 1, RecipeTriggerType.Furnace),
+        new Recipe(new ResourceList().Add(ResourceTypes.iron_ore, 10), ResourceTypes.iron, 8, RecipeTriggerType.LargeFurnace),
         new Recipe(new ResourceList().Add(ResourceTypes.sand, 20), ResourceTypes.glass, 10, RecipeTriggerType.LargeFurnace),
     ];
     AvalibleRecipes: Recipe[] = [];
