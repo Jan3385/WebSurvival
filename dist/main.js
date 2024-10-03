@@ -664,7 +664,7 @@ function castSunRay(sX, sY, angle, intensity) {
         if (BlocksLight(mapData[ix][iy])) {
             if (mapData[ix][iy] instanceof BuildingData)
                 HitBuilding = true;
-            ShadowTravel = 4;
+            ShadowTravel = 6;
             intensity = constIntensity / 1.4;
         }
         ;
@@ -1302,6 +1302,9 @@ class RecipeHandler {
         let UsedLargeFurnaceRecipes = false;
         const PlayerPos = new Vector2(Player.x, Player.y);
         AroundDir.forEach(dir => {
+            if (PlayerPos.x + dir.x < 0 || PlayerPos.x + dir.x >= mapData.length
+                || PlayerPos.y + dir.y < 0 || PlayerPos.y + dir.y >= mapData[0].length)
+                return;
             const Tile = mapData[PlayerPos.x + dir.x][PlayerPos.y + dir.y];
             if (Tile instanceof BuildingData) {
                 if (Tile.name == "Furnace" && !UsedFurnaceRecipes) {
@@ -1717,7 +1720,7 @@ let canvasScale = 10;
 const gTime = new GameTime();
 let mapData = [];
 const ResourceTerrain = new ResourceList();
-const MaxTResource = new ResourceList().Add(ResourceTypes.wood, 20).Add(ResourceTypes.stone, 30);
+const MaxTResource = new ResourceList().Add(ResourceTypes.wood, 60).Add(ResourceTypes.stone, 55);
 //sets player position in the middle of the map
 const Player = new PlayerData(new rgb(0, 0, 0), new rgb(255, 255, 255), Math.floor(canvas.width / canvasScale / 2), Math.floor(canvas.height / canvasScale / 2), 10);
 const Render = new Renderer();
@@ -1729,7 +1732,7 @@ function Start() {
     Render.Draw();
     //TODO: Maybe fix?
     //Terrain.GenerateRandomStructures(2, RandomUsingSeed(Seed));
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 40; i++) {
         Terrain.GenerateRandomResource();
     }
     Resources.DisplayCostResources(SelectedBuilding.cost);
@@ -1738,6 +1741,11 @@ function Start() {
 let isBuilding = false;
 function Update() {
     //movement checker
+    if (Player.x + MovementVector.x < 0 || Player.x + MovementVector.x >= mapData.length ||
+        Player.y + MovementVector.y < 0 || Player.y + MovementVector.y >= mapData[0].length) {
+        //player will not move out of bounds
+        MovementVector = new Vector2(0, 0);
+    }
     const moveTile = mapData[Player.x + MovementVector.x][Player.y + MovementVector.y];
     //placement logic
     isBuilding = false;

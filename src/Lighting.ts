@@ -213,7 +213,7 @@ function castSunRay(
         //blocks light 
         if(BlocksLight(mapData[ix][iy])){
             if(mapData[ix][iy] instanceof BuildingData) HitBuilding = true;
-            ShadowTravel = 4;
+            ShadowTravel = 6;
             intensity = constIntensity/1.4;
         };
         if(ShadowTravel > 0){

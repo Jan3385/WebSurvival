@@ -29,6 +29,9 @@ class RecipeHandler{
 
         const PlayerPos: Vector2 = new Vector2(Player.x, Player.y);
         AroundDir.forEach(dir => {
+            if(PlayerPos.x + dir.x < 0 || PlayerPos.x + dir.x >= mapData.length 
+                || PlayerPos.y + dir.y < 0 || PlayerPos.y + dir.y >= mapData[0].length) return;
+                
             const Tile = mapData[PlayerPos.x + dir.x][PlayerPos.y + dir.y];
             if(Tile instanceof BuildingData){
                 if(Tile.name == "Furnace" && !UsedFurnaceRecipes){

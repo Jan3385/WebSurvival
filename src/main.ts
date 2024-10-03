@@ -15,7 +15,7 @@ let mapData: PixelData[][] = [];
 
 
 const ResourceTerrain = new ResourceList();
-const MaxTResource = new ResourceList().Add(ResourceTypes.wood, 20).Add(ResourceTypes.stone,30);
+const MaxTResource = new ResourceList().Add(ResourceTypes.wood, 60).Add(ResourceTypes.stone,55);
 
 //sets player position in the middle of the map
 const Player: PlayerData = new PlayerData(new rgb(0, 0, 0), new rgb(255, 255, 255), 
@@ -34,7 +34,7 @@ function Start(){
     //TODO: Maybe fix?
     //Terrain.GenerateRandomStructures(2, RandomUsingSeed(Seed));
 
-    for(let i = 0; i < 20; i++){
+    for(let i = 0; i < 40; i++){
         Terrain.GenerateRandomResource();
     }
 
@@ -46,6 +46,13 @@ function Start(){
 let isBuilding = false;
 function Update(){
     //movement checker
+    if(
+        Player.x + MovementVector.x < 0 || Player.x + MovementVector.x >= mapData.length || 
+        Player.y + MovementVector.y < 0 || Player.y + MovementVector.y >= mapData[0].length
+    ){
+        //player will not move out of bounds
+        MovementVector = new Vector2(0, 0);
+    }
     const moveTile = mapData[Player.x + MovementVector.x][Player.y + MovementVector.y];
 
 
