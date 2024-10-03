@@ -859,26 +859,23 @@ class TerrainManipulator {
         if (ResourceTerrain.GetResourceAmount(ResourceTypes.wood) + 5 > MaxTResource.GetResourceAmount(ResourceTypes.wood))
             return;
         //check if there is a space for the tree in a 3x3 grid
-        for (let i = x - 1; i <= x + 1; i++) {
-            if (i < 0 || i > mapData.length)
-                return;
-            for (let j = y - 1; j <= y + 1; j++) {
-                if (j < 0 || j > mapData[0].length || mapData[i][j].status != PixelStatus.walkable)
-                    return;
-            }
+        if (this.CheckGridSpace(x, y, 3) == false)
+            return;
+        Terrain.InsertResourcePixel(this.GeneratetreePixel(x, y, true));
+        Terrain.InsertResourcePixel(this.GeneratetreePixel(x + 1, y, false));
+        Terrain.InsertResourcePixel(this.GeneratetreePixel(x - 1, y, false));
+        Terrain.InsertResourcePixel(this.GeneratetreePixel(x, y + 1, false));
+        Terrain.InsertResourcePixel(this.GeneratetreePixel(x, y - 1, false));
+    }
+    GeneratetreePixel(x, y, isLog) {
+        if (isLog) {
+            const OnBreak = () => { Resources.AddResource(ResourceTypes.wood, Math.floor(1 + Math.random() * 4)); }; // 1 - 4
+            return new ResourceData(new rgb(200, 70, 50), PixelStatus.breakable, 6, x, y, HighlightPixel.border, ResourceTypes.wood, mapData[x][y], OnBreak);
         }
-        let OnBreak = () => { Resources.AddResource(ResourceTypes.wood, Math.floor(1 + Math.random() * 4)); }; // 1 - 4
-        const tPixel = new ResourceData(new rgb(200, 70, 50), PixelStatus.breakable, 6, x, y, HighlightPixel.border, ResourceTypes.wood, mapData[x][y], OnBreak);
-        Terrain.InsertResourcePixel(tPixel);
-        OnBreak = () => { Resources.AddResource(ResourceTypes.wood, Math.floor(Math.random() * 1.7)); }; // 0 - 1
-        let lPixel = new ResourceData(new rgb(49, 87, 44), PixelStatus.breakable, 2, x + 1, y, HighlightPixel.border, ResourceTypes.wood, mapData[x + 1][y], OnBreak);
-        Terrain.InsertResourcePixel(lPixel);
-        lPixel = new ResourceData(new rgb(49, 87, 44), PixelStatus.breakable, 2, x - 1, y, HighlightPixel.border, ResourceTypes.wood, mapData[x - 1][y], OnBreak);
-        Terrain.InsertResourcePixel(lPixel);
-        lPixel = new ResourceData(new rgb(49, 87, 44), PixelStatus.breakable, 2, x, y + 1, HighlightPixel.border, ResourceTypes.wood, mapData[x][y + 1], OnBreak);
-        Terrain.InsertResourcePixel(lPixel);
-        lPixel = new ResourceData(new rgb(49, 87, 44), PixelStatus.breakable, 2, x, y - 1, HighlightPixel.border, ResourceTypes.wood, mapData[x][y - 1], OnBreak);
-        Terrain.InsertResourcePixel(lPixel);
+        else {
+            const OnBreak = () => { Resources.AddResource(ResourceTypes.wood, Math.floor(Math.random() * 1.7)); }; // 0 - 1
+            return new ResourceData(new rgb(49, 87, 44), PixelStatus.breakable, 2, x, y, HighlightPixel.border, ResourceTypes.wood, mapData[x][y], OnBreak);
+        }
     }
     /**
      * Generates a stone at the given position (mainly for internal use)
@@ -889,25 +886,13 @@ class TerrainManipulator {
         if (ResourceTerrain.GetResourceAmount(ResourceTypes.stone) + 5 > MaxTResource.GetResourceAmount(ResourceTypes.stone))
             return;
         //check if stone can freely spawn in a 3x3 grid
-        for (let i = x - 1; i <= x + 1; i++) {
-            if (i < 0 || i > mapData.length)
-                return;
-            for (let j = y - 1; j <= y + 1; j++) {
-                if (j < 0 || j > mapData[0].length || mapData[i][j].status != PixelStatus.walkable)
-                    return;
-            }
-        }
-        let sPixel;
-        sPixel = this.GenerateStonePixel(x, y);
-        Terrain.InsertResourcePixel(sPixel);
-        sPixel = this.GenerateStonePixel(x + 1, y);
-        Terrain.InsertResourcePixel(sPixel);
-        sPixel = this.GenerateStonePixel(x - 1, y);
-        Terrain.InsertResourcePixel(sPixel);
-        sPixel = this.GenerateStonePixel(x, y + 1);
-        Terrain.InsertResourcePixel(sPixel);
-        sPixel = this.GenerateStonePixel(x, y - 1);
-        Terrain.InsertResourcePixel(sPixel);
+        if (this.CheckGridSpace(x, y, 3) == false)
+            return;
+        Terrain.InsertResourcePixel(this.GenerateStonePixel(x, y));
+        Terrain.InsertResourcePixel(this.GenerateStonePixel(x + 1, y));
+        Terrain.InsertResourcePixel(this.GenerateStonePixel(x - 1, y));
+        Terrain.InsertResourcePixel(this.GenerateStonePixel(x, y + 1));
+        Terrain.InsertResourcePixel(this.GenerateStonePixel(x, y - 1));
         let stoneVec = { x: 1, y: 1 };
         let repeats = Math.floor(Math.random() * 3) + 1;
         for (let i = 0; i < repeats; i++) {
@@ -920,8 +905,7 @@ class TerrainManipulator {
             //prevents spawning two resources in the same space
             if (mapData[x + stoneVec.x][y + stoneVec.y] instanceof ResourceData)
                 continue;
-            sPixel = this.GenerateStonePixel(x + stoneVec.x, y + stoneVec.y);
-            Terrain.InsertResourcePixel(sPixel);
+            Terrain.InsertResourcePixel(this.GenerateStonePixel(x + stoneVec.x, y + stoneVec.y));
         }
     }
     GenerateStonePixel(x, y) {
@@ -936,6 +920,19 @@ class TerrainManipulator {
             const OnBreak = () => { Resources.AddResource(ResourceTypes.stone, Math.floor(1 + Math.random() * 5)); }; // 1 - 5
             return new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x, y, HighlightPixel.border, ResourceTypes.stone, mapData[x][y], OnBreak);
         }
+    }
+    CheckGridSpace(x, y, size) {
+        if (size % 2 == 0)
+            size++;
+        for (let i = x - Math.floor(size / 2); i <= x + Math.floor(size / 2); i++) {
+            if (i < 0 || i > mapData.length)
+                return false;
+            for (let j = y - Math.floor(size / 2); j <= y + Math.floor(size / 2); j++) {
+                if (j < 0 || j > mapData[0].length || mapData[i][j].status != PixelStatus.walkable)
+                    return false;
+            }
+        }
+        return true;
     }
     CheckBuildSpace(x, y, sizeX, sizeY) {
         for (let i = x; i < x + sizeX; i++) {
