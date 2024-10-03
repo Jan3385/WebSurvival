@@ -24,7 +24,6 @@ const AroundDir: Vector2[] = [
     new Vector2(0, 1), new Vector2(-1, 0), new Vector2(1, 0), new Vector2(0, -1),
     new Vector2(1, 1), new Vector2(-1, 1), new Vector2(1, -1), new Vector2(-1, -1)
 ];
-
 class rgb{
     /**
      * @constructor
@@ -119,6 +118,7 @@ class ResourceManager{
             const text = document.createElement('p');
 
             image.src = 'Icons/' + ResourceTypes[x[0]] + '.png';
+            image.title = ResourceTypes[x[0]].toString().replace('_',' ');
             text.innerHTML = x[1].toString();
             container.appendChild(image);
             container.appendChild(text);
@@ -139,7 +139,9 @@ class ResourceManager{
 
         resources.resources.forEach(x => {
             const container = document.createElement('p');
-            container.innerHTML = '<img src="Icons/' + ResourceTypes[x[0]] +'.png">: ' + x[1];
+            container.innerHTML = 
+                '<img src="Icons/' +ResourceTypes[x[0]]+'.png" title="'+ResourceTypes[x[0]].toString().replace('_',' ')+'">: ' + x[1];
+            
             ResouceElements.push(container);
         });
 

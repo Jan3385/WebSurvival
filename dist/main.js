@@ -99,6 +99,7 @@ class ResourceManager {
             const image = document.createElement('img');
             const text = document.createElement('p');
             image.src = 'Icons/' + ResourceTypes[x[0]] + '.png';
+            image.title = ResourceTypes[x[0]].toString().replace('_', ' ');
             text.innerHTML = x[1].toString();
             container.appendChild(image);
             container.appendChild(text);
@@ -115,7 +116,8 @@ class ResourceManager {
         ResouceElements.push(text);
         resources.resources.forEach(x => {
             const container = document.createElement('p');
-            container.innerHTML = '<img src="Icons/' + ResourceTypes[x[0]] + '.png">: ' + x[1];
+            container.innerHTML =
+                '<img src="Icons/' + ResourceTypes[x[0]] + '.png" title="' + ResourceTypes[x[0]].toString().replace('_', ' ') + '">: ' + x[1];
             ResouceElements.push(container);
         });
         document.getElementsByClassName("Cost-List")[0].replaceChildren(...ResouceElements);
@@ -1071,8 +1073,8 @@ let Building = [
     },
     {
         build: new BuildingData("Large Furnace", new rgb(214, 48, 49), PixelStatus.breakable, 30, 1, 1, HighlightPixel.thickBorder, new rgb(20, 20, 20)),
-        cost: new ResourceList().Add(ResourceTypes.wood, 60).Add(ResourceTypes.stone, 120),
-        label: "Smelts stuff"
+        cost: new ResourceList().Add(ResourceTypes.wood, 60).Add(ResourceTypes.stone, 105).Add(ResourceTypes.iron, 7).Add(ResourceTypes.glass, 10),
+        label: "Smelts but better!"
     }
 ];
 function FindBuilding(buildingName) {
@@ -1562,31 +1564,32 @@ class PerlinNoise {
     }
     perlinColorTerrain(x, y) {
         const value = this.perlin(x, y);
-        //ocean
+        //ocean <1 - 0.7)
+        let t = (value - 0.7) / 0.3; //from 0.7 - 1 to 0 - 1
         if (value > 0.7)
             return {
-                r: value * 10,
-                g: value * 10,
-                b: value * 400,
+                r: this.lerp(11, 4, t),
+                g: this.lerp(89, 60, t),
+                b: this.lerp(214, 201, t),
                 s: PixelStatus.block,
                 t: TerrainType.water
             };
-        //sand
+        //sand <0.7 - 0.62)
+        t = (value - 0.62) / 0.08; //from 0.62 - 0.7 to 0 - 1
         if (value > 0.62)
             return {
-                r: value * 255 + 30,
-                g: value * 255 + 30,
-                b: value * 10,
+                r: this.lerp(232, 204, t),
+                g: this.lerp(217, 191, t),
+                b: this.lerp(12, 8, t),
                 s: PixelStatus.walkable,
                 t: TerrainType.sand
             };
-        //hills or rock (probably delete later)
-        //if(value < 0.25) return `rgb(${255 - value * 170}, ${255 - value * 170}, ${255 - value * 170})`;
-        //grass
+        //grass <0.62 - 0>
+        t = (value - 0) / 0.62; //from 0 - 0.62 to 0 - 1
         return {
-            r: value * 50,
-            g: 240 - value * 90,
-            b: value * 50,
+            r: this.lerp(22, 42, t),
+            g: this.lerp(153, 176, t),
+            b: this.lerp(5, 25, t),
             s: PixelStatus.walkable,
             t: TerrainType.ground
         };

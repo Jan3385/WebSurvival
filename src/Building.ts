@@ -81,8 +81,8 @@ let Building = [
     },
     {   //Large Furnace
         build: new BuildingData("Large Furnace", new rgb(214, 48, 49), PixelStatus.breakable, 30, 1,1, HighlightPixel.thickBorder, new rgb(20, 20, 20)),
-        cost: new ResourceList().Add(ResourceTypes.wood, 60).Add(ResourceTypes.stone, 120),
-        label: "Smelts stuff"
+        cost: new ResourceList().Add(ResourceTypes.wood, 60).Add(ResourceTypes.stone, 105).Add(ResourceTypes.iron, 7).Add(ResourceTypes.glass, 10),
+        label: "Smelts but better!"
     }
 ];
 

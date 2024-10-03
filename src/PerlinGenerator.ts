@@ -78,29 +78,31 @@ class PerlinNoise {
 
     perlinColorTerrain(x: number, y: number) {
         const value = this.perlin(x, y);
-        //ocean
+        //ocean <1 - 0.7)
+        let t: number = (value - 0.7) / 0.3; //from 0.7 - 1 to 0 - 1
         if(value > 0.7) return {
-            r: value*10,
-            g: value*10,
-            b: value*400,
+            r: this.lerp(11,4, t),
+            g: this.lerp(89,60, t),
+            b: this.lerp(214,201, t),
             s: PixelStatus.block,
             t: TerrainType.water
         }
-        //sand
+        //sand <0.7 - 0.62)
+        t = (value - 0.62) / 0.08; //from 0.62 - 0.7 to 0 - 1
         if(value > 0.62) return {
-            r: value*255 + 30,
-            g: value * 255 + 30,
-            b: value*10,
+            r: this.lerp(232,204, t),
+            g: this.lerp(217,191, t),
+            b: this.lerp(12,8, t),
             s: PixelStatus.walkable,
             t: TerrainType.sand
         }
-        //hills or rock (probably delete later)
-        //if(value < 0.25) return `rgb(${255 - value * 170}, ${255 - value * 170}, ${255 - value * 170})`;
-        //grass
+
+        //grass <0.62 - 0>
+        t = (value - 0) / 0.62; //from 0 - 0.62 to 0 - 1
         return {
-            r: value*50,
-            g: 240 - value*90,
-            b: value*50,
+            r: this.lerp(22, 42,t),
+            g: this.lerp(153, 176,t),
+            b: this.lerp(5, 25,t),
             s: PixelStatus.walkable,
             t: TerrainType.ground            
         };
