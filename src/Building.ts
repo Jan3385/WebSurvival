@@ -174,22 +174,16 @@ function Build(
 }
 function BuildLandfill(x: number, y: number): void{
     let didBuild: boolean = false;
-    let BuildVectors: Vector2[] = [
-        new Vector2(1, 0),
-        new Vector2(0, 1),
-        new Vector2(-1, 0),
-        new Vector2(0, -1)
-    ];
 
-    for(let i = 0; i < BuildVectors.length; i++){
-        if(x+BuildVectors[i].x < 0 || x+BuildVectors[i].x >= mapData.length) continue;
-        if(y+BuildVectors[i].y < 0 || y+BuildVectors[i].y >= mapData[0].length) continue;
+    for(let i = 0; i < SidesDir.length; i++){
+        if(x+SidesDir[i].x < 0 || x+SidesDir[i].x >= mapData.length) continue;
+        if(y+SidesDir[i].y < 0 || y+SidesDir[i].y >= mapData[0].length) continue;
         
         if(
-            mapData[x+BuildVectors[i].x][y+BuildVectors[i].y] instanceof TerrainData && 
-            (<TerrainData>mapData[x+BuildVectors[i].x][y+BuildVectors[i].y]).type == TerrainType.water
+            mapData[x+SidesDir[i].x][y+SidesDir[i].y] instanceof TerrainData && 
+            (<TerrainData>mapData[x+SidesDir[i].x][y+SidesDir[i].y]).type == TerrainType.water
         ){
-            mapData[x+BuildVectors[i].x][y+BuildVectors[i].y] = new TerrainData(Building[11].build.color.newSlightlyRandom(10), PixelStatus.walkable, TerrainType.ground);
+            mapData[x+SidesDir[i].x][y+SidesDir[i].y] = new TerrainData(Building[11].build.color.newSlightlyRandom(10), PixelStatus.walkable, TerrainType.ground);
             didBuild = true;
         }
     }
