@@ -80,127 +80,6 @@ class rgb {
 function lerp(a, b, t) {
     return a + t * (b - a);
 }
-var ResourceTypes;
-(function (ResourceTypes) {
-    ResourceTypes[ResourceTypes["wood"] = 0] = "wood";
-    ResourceTypes[ResourceTypes["stone"] = 1] = "stone";
-    ResourceTypes[ResourceTypes["sand"] = 2] = "sand";
-    ResourceTypes[ResourceTypes["glass"] = 3] = "glass";
-    ResourceTypes[ResourceTypes["iron_ore"] = 4] = "iron_ore";
-    ResourceTypes[ResourceTypes["iron"] = 5] = "iron";
-})(ResourceTypes || (ResourceTypes = {}));
-class ResourceManager {
-    resources = [];
-    DisplayStoredResources() {
-        const ResouceElements = [];
-        this.resources.sort((a, b) => a[0] - b[0]);
-        this.resources.forEach(x => {
-            const container = document.createElement('div');
-            const image = document.createElement('img');
-            const text = document.createElement('p');
-            image.src = 'Icons/' + ResourceTypes[x[0]] + '.png';
-            image.title = ResourceTypes[x[0]].toString().replace('_', ' ');
-            text.innerHTML = x[1].toString();
-            container.appendChild(image);
-            container.appendChild(text);
-            ResouceElements.push(container);
-        });
-        document.getElementById("resources").replaceChildren(...ResouceElements);
-        Recipes.DisplayAvalibleRecipes();
-    }
-    DisplayCostResources(resources) {
-        const ResouceElements = [];
-        const text = document.createElement('p');
-        text.classList.add('Cost-Build');
-        text.innerHTML = "Cost:";
-        ResouceElements.push(text);
-        resources.resources.forEach(x => {
-            const container = document.createElement('p');
-            container.innerHTML =
-                '<img src="Icons/' + ResourceTypes[x[0]] + '.png" title="' + ResourceTypes[x[0]].toString().replace('_', ' ') + '">: ' + x[1];
-            ResouceElements.push(container);
-        });
-        document.getElementsByClassName("Cost-List")[0].replaceChildren(...ResouceElements);
-    }
-    Cheat() {
-        this.AddResourceList(new ResourceList()
-            .Add(ResourceTypes.wood, 1000)
-            .Add(ResourceTypes.stone, 1000)
-            .Add(ResourceTypes.glass, 1000));
-    }
-    GetResourceAmount(type) {
-        const resource = this.resources.filter(x => x[0] == type)[0];
-        if (resource == undefined)
-            return 0;
-        return resource[1];
-    }
-    AddResource(type, amount) {
-        const resource = this.resources.filter(x => x[0] == type)[0];
-        if (resource == undefined)
-            this.resources.push([type, amount]);
-        else
-            this.resources.filter(x => x[0] == type)[0][1] += amount;
-        this.DisplayStoredResources();
-    }
-    AddResourceList(list) {
-        list.resources.forEach(x => this.AddResource(x[0], x[1]));
-    }
-    RemoveResource(type, amount) {
-        const resource = this.resources.filter(x => x[0] == type)[0];
-        if (resource == undefined)
-            return false;
-        else
-            this.resources.filter(x => x[0] == type)[0][1] -= amount;
-        if (this.resources.filter(x => x[0] == type)[0][1] <= 0) {
-            const resourceIndex = this.resources.findIndex(x => x[0] == type);
-            this.resources.splice(resourceIndex, 1);
-            this.DisplayStoredResources();
-            return false;
-        }
-        this.DisplayStoredResources();
-        return true;
-    }
-    RemoveResourceList(list) {
-        let RemovedSuccesfully = true;
-        for (let i = 0; i < list.resources.length; i++) {
-            if (!this.RemoveResource(list.resources[i][0], list.resources[i][1]))
-                RemovedSuccesfully = false;
-        }
-        return RemovedSuccesfully;
-    }
-    HasResources(list) {
-        for (let i = 0; i < list.resources.length; i++) {
-            if (this.GetResourceAmount(list.resources[i][0]) < list.resources[i][1])
-                return false;
-        }
-        return true;
-    }
-}
-class ResourceList {
-    resources = [];
-    Add(type, amount) {
-        const resourceIndex = this.resources.findIndex(x => x[0] == type);
-        if (resourceIndex != -1)
-            this.resources[resourceIndex][1] += amount;
-        else
-            this.resources.push([type, amount]);
-        return this;
-    }
-    Remove(type, amount) {
-        const resourceIndex = this.resources.findIndex(x => x[0] == type);
-        if (resourceIndex != -1)
-            this.resources[resourceIndex][1] -= amount;
-        else
-            console.log("Tried to remove non-existant resource from ResourceList");
-        return this;
-    }
-    GetResourceAmount(type) {
-        const resource = this.resources.filter(x => x[0] == type)[0];
-        if (resource == undefined)
-            return 0;
-        return resource[1];
-    }
-}
 /// <reference path="SupportClasses.ts" />
 var PixelStatus;
 /// <reference path="SupportClasses.ts" />
@@ -707,6 +586,127 @@ function CalculateLightMap() {
         castRay(Player.x + .1, Player.y + .1, angle, 2, 2);
     }
 }
+var ResourceTypes;
+(function (ResourceTypes) {
+    ResourceTypes[ResourceTypes["wood"] = 0] = "wood";
+    ResourceTypes[ResourceTypes["stone"] = 1] = "stone";
+    ResourceTypes[ResourceTypes["sand"] = 2] = "sand";
+    ResourceTypes[ResourceTypes["glass"] = 3] = "glass";
+    ResourceTypes[ResourceTypes["iron_ore"] = 4] = "iron_ore";
+    ResourceTypes[ResourceTypes["iron"] = 5] = "iron";
+})(ResourceTypes || (ResourceTypes = {}));
+class ResourceManager {
+    resources = [];
+    DisplayStoredResources() {
+        const ResouceElements = [];
+        this.resources.sort((a, b) => a[0] - b[0]);
+        this.resources.forEach(x => {
+            const container = document.createElement('div');
+            const image = document.createElement('img');
+            const text = document.createElement('p');
+            image.src = 'Icons/' + ResourceTypes[x[0]] + '.png';
+            image.title = ResourceTypes[x[0]].toString().replace('_', ' ');
+            text.innerHTML = x[1].toString();
+            container.appendChild(image);
+            container.appendChild(text);
+            ResouceElements.push(container);
+        });
+        document.getElementById("resources").replaceChildren(...ResouceElements);
+        Recipes.DisplayAvalibleRecipes();
+    }
+    DisplayCostResources(resources) {
+        const ResouceElements = [];
+        const text = document.createElement('p');
+        text.classList.add('Cost-Build');
+        text.innerHTML = "Cost:";
+        ResouceElements.push(text);
+        resources.resources.forEach(x => {
+            const container = document.createElement('p');
+            container.innerHTML =
+                '<img src="Icons/' + ResourceTypes[x[0]] + '.png" title="' + ResourceTypes[x[0]].toString().replace('_', ' ') + '">: ' + x[1];
+            ResouceElements.push(container);
+        });
+        document.getElementsByClassName("Cost-List")[0].replaceChildren(...ResouceElements);
+    }
+    Cheat() {
+        this.AddResourceList(new ResourceList()
+            .Add(ResourceTypes.wood, 1000)
+            .Add(ResourceTypes.stone, 1000)
+            .Add(ResourceTypes.glass, 1000));
+    }
+    GetResourceAmount(type) {
+        const resource = this.resources.filter(x => x[0] == type)[0];
+        if (resource == undefined)
+            return 0;
+        return resource[1];
+    }
+    AddResource(type, amount) {
+        const resource = this.resources.filter(x => x[0] == type)[0];
+        if (resource == undefined)
+            this.resources.push([type, amount]);
+        else
+            this.resources.filter(x => x[0] == type)[0][1] += amount;
+        this.DisplayStoredResources();
+    }
+    AddResourceList(list) {
+        list.resources.forEach(x => this.AddResource(x[0], x[1]));
+    }
+    RemoveResource(type, amount) {
+        const resource = this.resources.filter(x => x[0] == type)[0];
+        if (resource == undefined)
+            return false;
+        else
+            this.resources.filter(x => x[0] == type)[0][1] -= amount;
+        if (this.resources.filter(x => x[0] == type)[0][1] <= 0) {
+            const resourceIndex = this.resources.findIndex(x => x[0] == type);
+            this.resources.splice(resourceIndex, 1);
+            this.DisplayStoredResources();
+            return false;
+        }
+        this.DisplayStoredResources();
+        return true;
+    }
+    RemoveResourceList(list) {
+        let RemovedSuccesfully = true;
+        for (let i = 0; i < list.resources.length; i++) {
+            if (!this.RemoveResource(list.resources[i][0], list.resources[i][1]))
+                RemovedSuccesfully = false;
+        }
+        return RemovedSuccesfully;
+    }
+    HasResources(list) {
+        for (let i = 0; i < list.resources.length; i++) {
+            if (this.GetResourceAmount(list.resources[i][0]) < list.resources[i][1])
+                return false;
+        }
+        return true;
+    }
+}
+class ResourceList {
+    resources = [];
+    Add(type, amount) {
+        const resourceIndex = this.resources.findIndex(x => x[0] == type);
+        if (resourceIndex != -1)
+            this.resources[resourceIndex][1] += amount;
+        else
+            this.resources.push([type, amount]);
+        return this;
+    }
+    Remove(type, amount) {
+        const resourceIndex = this.resources.findIndex(x => x[0] == type);
+        if (resourceIndex != -1)
+            this.resources[resourceIndex][1] -= amount;
+        else
+            console.log("Tried to remove non-existant resource from ResourceList");
+        return this;
+    }
+    GetResourceAmount(type) {
+        const resource = this.resources.filter(x => x[0] == type)[0];
+        if (resource == undefined)
+            return 0;
+        return resource[1];
+    }
+}
 //Class for terrain modification
 class TerrainManipulator {
     /**
@@ -993,7 +993,7 @@ class TerrainManipulator {
 }
 /// <reference path="PixelData.ts" />
 /// <reference path="Lighting.ts" />
-/// <reference path="SupportClasses.ts" />
+/// <reference path="Resources.ts" />
 /// <reference path="Terrain.ts" />
 let buildButtons = document.getElementsByClassName("Selection-Button-Div")[0].querySelectorAll("button");
 const BuildType = {
