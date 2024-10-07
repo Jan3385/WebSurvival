@@ -1656,6 +1656,14 @@ class ResourceQuest extends Quest {
         }
     }
 }
+class RandomResourceQuest extends ResourceQuest {
+    constructor(questID) {
+        const questRequirement = "WOOD!!!";
+        const numberOfSteps = 10;
+        const resourceType = ResourceTypes.wood;
+        super(questID, questRequirement, numberOfSteps, resourceType);
+    }
+}
 class QuestManager {
     static ins;
     constructor() {
@@ -1679,21 +1687,21 @@ class QuestManager {
         if (currentQuest.questRequirementStep >= currentQuest.questRequirementStepsMax) {
             await new Promise(r => setTimeout(r, 1000));
             this.activeQuestId++;
-            if (this.activeQuestId - 1 >= this.quests.length)
-                this.activeQuestId = 1000;
+            if (this.activeQuestId >= this.quests.length)
+                this.quests.push(new RandomResourceQuest(this.activeQuestId));
             this.UpdateDisplayQuest();
         }
     }
     UpdateDisplayQuest() {
         const currentQuest = this.GetActiveQuest();
-        if (this.activeQuestId < 1000 && currentQuest != null) {
+        if (currentQuest != null) {
             document.getElementById("Quest-ID").innerText = currentQuest.questID.toString() + ")";
             document.getElementById("Quest-Description").innerText = currentQuest.questRequirement;
             document.getElementById("Quest-Completion").innerText = currentQuest.questRequirementStep + "/" + currentQuest.questRequirementStepsMax;
         }
         else {
             document.getElementById("Quest-ID").innerText = "";
-            document.getElementById("Quest-Description").innerText = "All quests completed!";
+            document.getElementById("Quest-Description").innerText = "No active quests";
             document.getElementById("Quest-Completion").innerText = "";
         }
     }
