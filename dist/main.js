@@ -1650,25 +1650,29 @@ class QuestManager {
     activeQuestId = 0;
     quests = Quest.GetQuests();
     GetActiveQuest() {
+        if (this.activeQuestId >= this.quests.length)
+            return null;
         return this.quests[this.activeQuestId];
     }
     async UpdateQuestProgress(progress) {
         if (progress == undefined)
             progress = 1;
         const currentQuest = this.GetActiveQuest();
+        if (currentQuest == null)
+            return;
         currentQuest.questRequirementStep = Math.min(progress + currentQuest.questRequirementStep, currentQuest.questRequirementStepsMax);
         document.getElementById("Quest-Completion").innerText = currentQuest.questRequirementStep + "/" + currentQuest.questRequirementStepsMax;
         if (currentQuest.questRequirementStep >= currentQuest.questRequirementStepsMax) {
             await new Promise(r => setTimeout(r, 1000));
             this.activeQuestId++;
-            if (this.activeQuestId - 1 >= Quest.length)
+            if (this.activeQuestId - 1 >= this.quests.length)
                 this.activeQuestId = 1000;
             this.UpdateDisplayQuest();
         }
     }
     UpdateDisplayQuest() {
-        if (this.activeQuestId < 1000) {
-            const currentQuest = this.GetActiveQuest();
+        const currentQuest = this.GetActiveQuest();
+        if (this.activeQuestId < 1000 && currentQuest != null) {
             document.getElementById("Quest-ID").innerText = currentQuest.questID.toString() + ")";
             document.getElementById("Quest-Description").innerText = currentQuest.questRequirement;
             document.getElementById("Quest-Completion").innerText = currentQuest.questRequirementStep + "/" + currentQuest.questRequirementStepsMax;
