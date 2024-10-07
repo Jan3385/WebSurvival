@@ -67,7 +67,6 @@ class ResourceManager{
         this.DisplayStoredResources();
 
         //Quests:
-        //TODO: tf is this
         if(QuestManager.instance.GetActiveQuest() instanceof ResourceQuest){
             const quest = <ResourceQuest>QuestManager.instance.GetActiveQuest();
             quest.CheckCompleteQuest(type, amount);

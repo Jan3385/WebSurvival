@@ -650,7 +650,6 @@ class ResourceManager {
             this.resources.filter(x => x[0] == type)[0][1] += amount;
         this.DisplayStoredResources();
         //Quests:
-        //TODO: tf is this
         if (QuestManager.instance.GetActiveQuest() instanceof ResourceQuest) {
             const quest = QuestManager.instance.GetActiveQuest();
             quest.CheckCompleteQuest(type, amount);
