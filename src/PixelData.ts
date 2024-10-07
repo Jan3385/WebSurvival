@@ -117,7 +117,7 @@ class PlayerData extends EntityData{
 
         //have to change both colors
         this.color = new rgb(255, 0, 0);
-        mapData[this.x][this.y].color = new rgb(255, 0, 0);
+        Terrain.ins.mapData[this.x][this.y].color = new rgb(255, 0, 0);
     }
 }
 class EnemyData extends EntityData{
@@ -126,7 +126,7 @@ class EnemyData extends EntityData{
     }
     Die(): void{
         console.log('Enemy has died');
-        mapData[this.x][this.y] = this.OverlapPixel;
+        Terrain.ins.ModifyMapData(this.x,this.y, this.OverlapPixel);
     }
 }
 class ResourceData extends PixelData implements IDamageable, IHighlightable{
@@ -165,7 +165,7 @@ class ResourceData extends PixelData implements IDamageable, IHighlightable{
         return false;
     }
     Destroy(): void {
-        Terrain.DeleteResourcePixel(this.x, this.y, this.OverlaidPixel);
+        Terrain.ins.DeleteResourcePixel(this.x, this.y, this.OverlaidPixel);
         this.OnResourceDestroy();
 
         CheckDeleteInterior(this.x, this.y);
@@ -205,7 +205,7 @@ class BuildingData extends PixelData implements IDamageable, IHighlightable{
         return false;
     }
     Destroy(): void {
-        Terrain.ModifyMapData(this.x, this.y, this.OverlaidPixel);
+        Terrain.ins.ModifyMapData(this.x, this.y, this.OverlaidPixel);
         CheckDeleteInterior(this.x, this.y);
     }
     DamageNoDestroy(damage: number): boolean{
@@ -225,7 +225,7 @@ class BuildingData extends PixelData implements IDamageable, IHighlightable{
     at(x: number,y: number): BuildingData{
         const build = new BuildingData(this.name, this.DefaultColor.newSlightlyRandom(30), this.status, this.MaxHealth ,x, y, this.Highlight, this.HighlightColor);
         if(Player.x == x && Player.y == y) build.OverlaidPixel = Player.OverlapPixel;
-        else build.OverlaidPixel = mapData[x][y];
+        else build.OverlaidPixel = Terrain.ins.mapData[x][y];
         return build;
     }
     FullyHeal(){
@@ -252,7 +252,7 @@ class DoorData extends BuildingData implements IInteractable{
     at(x: number,y: number){
         const door = new DoorData(this.name, this.DefaultColor.newSlightlyRandom(30), x, y, this.MaxHealth, this.Highlight);
         if(Player.x == x && Player.y == y) door.OverlaidPixel = Player.OverlapPixel;
-        else door.OverlaidPixel = mapData[x][y];
+        else door.OverlaidPixel = Terrain.ins.mapData[x][y];
         return door;
     }
     Interact(): void {
@@ -283,7 +283,7 @@ class GlassData extends BuildingData{
     at(x: number,y: number){
         const glass = new GlassData(this.name, this.DefaultColor.newSlightlyRandom(30), x, y, this.MaxHealth);
         if(Player.x == x && Player.y == y) glass.OverlaidPixel = Player.OverlapPixel;
-        else glass.OverlaidPixel = mapData[x][y];
+        else glass.OverlaidPixel = Terrain.ins.mapData[x][y];
         return glass;
     }
 }

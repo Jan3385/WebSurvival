@@ -131,7 +131,7 @@ function UpdateSelectedBuilding(){
     //update label
     document.getElementById("Selected-Building-Label")!.innerHTML = SelectedBuilding.build.name + " - " + SelectedBuilding.label;
     //update cost display
-    Resources.DisplayCostResources(SelectedBuilding.cost);
+    ResourceManager.ins.DisplayCostResources(SelectedBuilding.cost);
 }
 function canPlaceBuildingOn(pixel: PixelData): boolean{
     //cannot place floor on floor
@@ -148,17 +148,17 @@ function Build(
         cost: ResourceList;
         label: string;
     }): void{
-    if(Resources.HasResources(BuildedBuilding.cost)){
+    if(ResourceManager.ins.HasResources(BuildedBuilding.cost)){
             //if placing landfill
             if(BuildedBuilding.build.name == "Landfill"){
                 BuildLandfill(Player.x, Player.y);
                 return;
             }
             //Quest check for building a furnace
-            if(QuestManager.instance.activeQuestId == 3 && BuildedBuilding.build.name == "Furnace")
-                QuestManager.instance.UpdateQuestProgress();
+            if(QuestManager.ins.activeQuestId == 3 && BuildedBuilding.build.name == "Furnace")
+                QuestManager.ins.UpdateQuestProgress();
             
-            Resources.RemoveResourceList(BuildedBuilding.cost);
+            ResourceManager.ins.RemoveResourceList(BuildedBuilding.cost);
 
             const didBuildIndoors : boolean = Player.OverlapPixel.Indoors;
             Player.OverlapPixel = BuildedBuilding.build.at(Player.x, Player.y);
@@ -172,8 +172,8 @@ function Build(
             //check if build is enclosed
             GetEnclosedSpacesAround(Player.x, Player.y).forEach((vec: Vector2) => {
                 //Quest check for building enclosed space
-                if(QuestManager.instance.activeQuestId == 2) 
-                    QuestManager.instance.UpdateQuestProgress();
+                if(QuestManager.ins.activeQuestId == 2) 
+                    QuestManager.ins.UpdateQuestProgress();
 
                 fillInterior(vec.x, vec.y);
             });
@@ -183,20 +183,20 @@ function BuildLandfill(x: number, y: number): void{
     let didBuild: boolean = false;
 
     for(let i = 0; i < SidesDir.length; i++){
-        if(x+SidesDir[i].x < 0 || x+SidesDir[i].x >= mapData.length) continue;
-        if(y+SidesDir[i].y < 0 || y+SidesDir[i].y >= mapData[0].length) continue;
+        if(x+SidesDir[i].x < 0 || x+SidesDir[i].x >= Terrain.ins.MapX()) continue;
+        if(y+SidesDir[i].y < 0 || y+SidesDir[i].y >= Terrain.ins.MapY()) continue;
         
         if(
-            mapData[x+SidesDir[i].x][y+SidesDir[i].y] instanceof TerrainData && 
-            (<TerrainData>mapData[x+SidesDir[i].x][y+SidesDir[i].y]).type == TerrainType.water
+            Terrain.ins.mapData[x+SidesDir[i].x][y+SidesDir[i].y] instanceof TerrainData && 
+            (<TerrainData>Terrain.ins.mapData[x+SidesDir[i].x][y+SidesDir[i].y]).type == TerrainType.water
         ){
-            mapData[x+SidesDir[i].x][y+SidesDir[i].y] = new TerrainData(Building[11].build.color.newSlightlyRandom(10), PixelStatus.walkable, TerrainType.ground);
+            Terrain.ins.mapData[x+SidesDir[i].x][y+SidesDir[i].y] = new TerrainData(Building[11].build.color.newSlightlyRandom(10), PixelStatus.walkable, TerrainType.ground);
             didBuild = true;
         }
     }
 
     if(didBuild){
-        Resources.RemoveResourceList(Building[11].cost);
+        ResourceManager.ins.RemoveResourceList(Building[11].cost);
     }
 }
 /**
@@ -206,7 +206,7 @@ function BuildLandfill(x: number, y: number): void{
  */
 function GetEnclosedSpacesAround(x: number, y: number): Vector2[] {
     function checkEnclosedSpace(x: number, y: number): boolean{
-        const CheckedPixel = mapData[x][y] instanceof PlayerData ? Player.OverlapPixel : mapData[x][y];
+        const CheckedPixel = Terrain.ins.mapData[x][y] instanceof PlayerData ? Player.OverlapPixel : Terrain.ins.mapData[x][y];
         if(CheckedPixel.status != PixelStatus.walkable) return false;
 
         const queue: Vector2[] = [new Vector2(x, y)];
@@ -224,7 +224,7 @@ function GetEnclosedSpacesAround(x: number, y: number): Vector2[] {
                     return false; // Found border of the map -> not enclosed
                 }
                 
-                const NextCheckPixel = mapData[nx][ny] instanceof PlayerData ? Player.OverlapPixel : mapData[nx][ny];
+                const NextCheckPixel = Terrain.ins.mapData[nx][ny] instanceof PlayerData ? Player.OverlapPixel : Terrain.ins.mapData[nx][ny];
                 if (NextCheckPixel.status == PixelStatus.walkable && !visited[nx][ny]) {
                     visited[nx][ny] = true;
                     queue.push(new Vector2(nx, ny));
@@ -234,8 +234,8 @@ function GetEnclosedSpacesAround(x: number, y: number): Vector2[] {
         return true;
     }
 
-    const rows = mapData.length;
-    const cols = mapData[0].length;
+    const rows = Terrain.ins.MapX();
+    const cols = Terrain.ins.MapY();
 
     const EnclosedVectors: Vector2[] = [];
 
@@ -247,7 +247,7 @@ function GetEnclosedSpacesAround(x: number, y: number): Vector2[] {
             continue;
         }
 
-        const CheckedPixel = mapData[nx][ny] instanceof PlayerData ? Player.OverlapPixel : mapData[nx][ny];
+        const CheckedPixel = Terrain.ins.mapData[nx][ny] instanceof PlayerData ? Player.OverlapPixel : Terrain.ins.mapData[nx][ny];
         if(CheckedPixel.status == PixelStatus.walkable) {
             if(checkEnclosedSpace(nx, ny)){
                 EnclosedVectors.push(new Vector2(nx, ny));
@@ -259,10 +259,10 @@ function GetEnclosedSpacesAround(x: number, y: number): Vector2[] {
 }
 const InteriorFillColor: rgb = new rgb(109, 76, 65);
 async function fillInterior(x: number, y:number): Promise<void>{
-    if(mapData[x][y].Indoors) return;
-    if(mapData[x][y].status != PixelStatus.walkable) return;
+    if(Terrain.ins.mapData[x][y].Indoors) return;
+    if(Terrain.ins.mapData[x][y].status != PixelStatus.walkable) return;
 
-    mapData[x][y].Indoors = true;
+    Terrain.ins.mapData[x][y].Indoors = true;
     InteriorFillVisual(x,y);
 
     await sleep(40);
@@ -272,9 +272,9 @@ async function fillInterior(x: number, y:number): Promise<void>{
     }
 
     async function InteriorFillVisual(x: number, y:number): Promise<void>{
-        const OriginalColor: rgb = mapData[x][y].color.new();
+        const OriginalColor: rgb = Terrain.ins.mapData[x][y].color.new();
 
-        const FillPixel = mapData[x][y] instanceof PlayerData ? Player.OverlapPixel : mapData[x][y];
+        const FillPixel = Terrain.ins.mapData[x][y] instanceof PlayerData ? Player.OverlapPixel : Terrain.ins.mapData[x][y];
 
         for(let i = 0; i < 1; i+= .1){
             FillPixel.color = FillPixel.color.Lerp(InteriorFillColor, i);
@@ -292,13 +292,13 @@ function CheckDeleteInterior(x: number, y: number): void{
 
     for(const vec of SidesDir){
         if(EnclosedSpaces.find((v: Vector2) => v.x == x+vec.x && v.y == y+vec.y) == undefined){
-            if(x+vec.x < 0 || x+vec.x >= mapData.length || y+vec.y < 0 || y+vec.y > mapData[0].length) continue;
+            if(x+vec.x < 0 || x+vec.x >= Terrain.ins.mapData.length || y+vec.y < 0 || y+vec.y > Terrain.ins.mapData[0].length) continue;
             deleteInterior(x+vec.x, y+vec.y);
         }
     }
 }
 function deleteInterior(x: number,y: number): void{
-    const InteriorPixel: PixelData = mapData[x][y] instanceof PlayerData ? Player.OverlapPixel : mapData[x][y];
+    const InteriorPixel: PixelData = Terrain.ins.mapData[x][y] instanceof PlayerData ? Player.OverlapPixel : Terrain.ins.mapData[x][y];
 
     if(!InteriorPixel.Indoors) return;
 
@@ -306,9 +306,9 @@ function deleteInterior(x: number,y: number): void{
 
     let p: PixelData;
     for(const dVec of SidesDir){
-        if(x+dVec.x < 0 || x+dVec.x >= mapData.length || y+dVec.y < 0 || y+dVec.y > mapData[0].length) continue;
+        if(x+dVec.x < 0 || x+dVec.x >= Terrain.ins.MapX() || y+dVec.y < 0 || y+dVec.y > Terrain.ins.MapY()) continue;
 
-        p = mapData[x+dVec.x][y+dVec.y] instanceof PlayerData ? Player.OverlapPixel : mapData[x+dVec.x][y+dVec.y];
+        p = Terrain.ins.mapData[x+dVec.x][y+dVec.y] instanceof PlayerData ? Player.OverlapPixel : Terrain.ins.mapData[x+dVec.x][y+dVec.y];
         if(p .Indoors){
             deleteInterior(x+dVec.x, y+dVec.y);
         }

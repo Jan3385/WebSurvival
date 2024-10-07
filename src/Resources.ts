@@ -7,6 +7,7 @@ enum ResourceTypes{
     iron,
 }
 class ResourceManager{
+    public static ins: ResourceManager;
     resources: [ResourceTypes, number][] = [];
     DisplayStoredResources(): void{
         const ResouceElements: HTMLElement[] = [];
@@ -28,7 +29,7 @@ class ResourceManager{
 
         document.getElementById("resources")!.replaceChildren(...ResouceElements);
 
-        Recipes.DisplayAvalibleRecipes();
+        RecipeHandler.ins.DisplayAvalibleRecipes();
     }
     DisplayCostResources(resources: ResourceList): void{
         const ResouceElements: HTMLElement[] = [];
@@ -67,8 +68,8 @@ class ResourceManager{
         this.DisplayStoredResources();
 
         //Quests:
-        if(QuestManager.instance.GetActiveQuest() instanceof ResourceQuest){
-            const quest = <ResourceQuest>QuestManager.instance.GetActiveQuest();
+        if(QuestManager.ins.GetActiveQuest() instanceof ResourceQuest){
+            const quest = <ResourceQuest>QuestManager.ins.GetActiveQuest();
             quest.CheckCompleteQuest(type, amount);
         }
     }

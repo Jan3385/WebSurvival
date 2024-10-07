@@ -15,6 +15,7 @@ class Recipe{
 }
 const AvalibleRecipes: Recipe[] = [];
 class RecipeHandler{
+    public static ins: RecipeHandler;
     AllRecipes: Recipe[] = [
         new Recipe(new ResourceList().Add(ResourceTypes.sand, 3).Add(ResourceTypes.wood, 1), ResourceTypes.glass, 1, RecipeTriggerType.Furnace),
         new Recipe(new ResourceList().Add(ResourceTypes.iron_ore, 3).Add(ResourceTypes.wood, 3), ResourceTypes.iron, 1, RecipeTriggerType.Furnace),
@@ -29,10 +30,10 @@ class RecipeHandler{
 
         const PlayerPos: Vector2 = new Vector2(Player.x, Player.y);
         AroundDir.forEach(dir => {
-            if(PlayerPos.x + dir.x < 0 || PlayerPos.x + dir.x >= mapData.length 
-                || PlayerPos.y + dir.y < 0 || PlayerPos.y + dir.y >= mapData[0].length) return;
+            if(PlayerPos.x + dir.x < 0 || PlayerPos.x + dir.x >= Terrain.ins.MapX() 
+                || PlayerPos.y + dir.y < 0 || PlayerPos.y + dir.y >= Terrain.ins.MapY()) return;
                 
-            const Tile = mapData[PlayerPos.x + dir.x][PlayerPos.y + dir.y];
+            const Tile = Terrain.ins.mapData[PlayerPos.x + dir.x][PlayerPos.y + dir.y];
             if(Tile instanceof BuildingData){
                 if(Tile.name == "Furnace" && !UsedFurnaceRecipes){
                     this.AvalibleRecipes.push(...this.AllRecipes.filter(x => x.TriggerBlocks == RecipeTriggerType.Furnace));
@@ -54,7 +55,7 @@ class RecipeHandler{
     
         this.AvalibleRecipes.forEach(recipe => {
             const button = document.createElement('button');
-            if(Resources.HasResources(recipe.ResourceFrom)){
+            if(ResourceManager.ins.HasResources(recipe.ResourceFrom)){
                 const PosInArray = this.AllRecipes.indexOf(recipe);
                 button.onclick = () => this.Craft(PosInArray);
             }else{
@@ -104,8 +105,8 @@ class RecipeHandler{
     }
     Craft(id: number){
         const CraftedRecipe = this.AllRecipes[id];
-        Resources.RemoveResourceList(CraftedRecipe.ResourceFrom);
-        Resources.AddResource(CraftedRecipe.ResourceTo[0], CraftedRecipe.ResourceTo[1]);
+        ResourceManager.ins.RemoveResourceList(CraftedRecipe.ResourceFrom);
+        ResourceManager.ins.AddResource(CraftedRecipe.ResourceTo[0], CraftedRecipe.ResourceTo[1]);
         this.DisplayAvalibleRecipes();
     }
 }

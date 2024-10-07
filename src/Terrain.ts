@@ -1,5 +1,7 @@
 //Class for terrain modification
-class TerrainManipulator{
+class Terrain{
+    public static ins: Terrain;
+    mapData: PixelData[][] = [];
     /**
      * Inserts a pixel at the given position
      * @param {number} x 
@@ -7,7 +9,20 @@ class TerrainManipulator{
      * @param {PixelData} PixelData 
      */
     ModifyMapData(x: number, y: number, PixelData: PixelData): void{
-        mapData[x][y] = PixelData;
+        this.mapData[x][y] = PixelData;
+    }
+    MapX(): number{
+        return this.mapData.length;
+    }
+    MapY(): number{
+        return this.mapData[0].length;
+    }
+    IterateMap(callback: (pixel: PixelData, x: number, y: number) => void): void{
+        for(let i = 0; i < this.mapData.length; i++){
+            for(let j = 0; j < this.mapData[0].length; j++){
+                callback(this.mapData[i][j], i, j);
+            }
+        }
     }
     /**
      * 
@@ -15,19 +30,19 @@ class TerrainManipulator{
      * @returns 
      */
     InsertMapDataRaw(NewMapData: Array<Array<PixelData>>): void{
-        if(mapData.length != NewMapData.length || mapData[0].length != NewMapData[0].length) {
+        if(this.mapData.length != NewMapData.length || this.mapData[0].length != NewMapData[0].length) {
             console.error('Map size is not matched');
             return;
         }
 
-        mapData = NewMapData;
+        this.mapData = NewMapData;
     }
     /**
      * Inserts a interactable pixel at the pixel inner position
      * @param {InteractData} Pixel 
      */
     InsertResourcePixel(Pixel: ResourceData): void{
-        Terrain.ModifyMapData(Pixel.x, Pixel.y, Pixel);
+        this.ModifyMapData(Pixel.x, Pixel.y, Pixel);
 
         ResourceTerrain.Add(Pixel.ResourceType, 1);
     }
@@ -38,7 +53,7 @@ class TerrainManipulator{
      * @throws {ReferenceError} No interactable type at that location
      */
     DeleteResourcePixel(pX: number, pY: number, replacement: PixelData): void{
-        ResourceTerrain.Remove((<ResourceData>mapData[pX][pY]).ResourceType, 1);
+        ResourceTerrain.Remove((<ResourceData>this.mapData[pX][pY]).ResourceType, 1);
 
         this.ModifyMapData(pX, pY, replacement);
     }
@@ -46,12 +61,9 @@ class TerrainManipulator{
      * Clears the map and fills it with perlin noise
      */
     Clear(): void{
-
-        for (let i = 0; i < mapData.length; i++) {
-            for (let j = 0; j < mapData[0].length; j++) {
-                mapData[i][j] = PerlinPixel(i, j);
-            }
-        }
+        this.IterateMap((pixel, x, y) => {
+            pixel = PerlinPixel(x, y);
+        });
     }
     /**
      * Hadles safe player movement
@@ -62,11 +74,11 @@ class TerrainManipulator{
     MovePlayer(Player: PlayerData, x: number, y: number): void{
         //if player is not building allow diagonal movement else only move non-diagonaly
         if(!isBuilding){
-            Terrain.MovePlayerRaw(Player, MovementVector.x, 0);
-            Terrain.MovePlayerRaw(Player, 0, MovementVector.y);
+            this.MovePlayerRaw(Player, MovementVector.x, 0);
+            this.MovePlayerRaw(Player, 0, MovementVector.y);
         }else{
             if(MovementVector.x != 0) MovementVector.y = 0;
-            Terrain.MovePlayerRaw(Player, MovementVector.x, MovementVector.y);
+            this.MovePlayerRaw(Player, MovementVector.x, MovementVector.y);
         }
     }
     /**
@@ -76,7 +88,7 @@ class TerrainManipulator{
      * @param {Number} y 
      */
     MovePlayerRaw(Player: PlayerData, x: number, y: number): void{
-        let mPixel: PixelData = mapData[Player.x + x][Player.y + y];
+        let mPixel: PixelData = this.mapData[Player.x + x][Player.y + y];
         //check if the player can move to the given position
         if(mPixel.status == PixelStatus.walkable){
 
@@ -86,7 +98,7 @@ class TerrainManipulator{
             this.ModifyMapData(Player.x, Player.y, Player.OverlapPixel);
             Player.x += x;
             Player.y += y;
-            Player.OverlapPixel = mapData[Player.x][Player.y];
+            Player.OverlapPixel = this.mapData[Player.x][Player.y];
             this.ModifyMapData(Player.x, Player.y, new PlayerData(Player.color, Player.HighlightColor, Player.x, Player.y, Player.Health));
 
         }else if(mPixel.status == PixelStatus.interact && mPixel instanceof DoorData){
@@ -103,7 +115,7 @@ class TerrainManipulator{
         this.ModifyMapData(Player.x, Player.y, Player.OverlapPixel);
         Player.x += x;
         Player.y += y;
-        Player.OverlapPixel = mapData[Player.x][Player.y];
+        Player.OverlapPixel = this.mapData[Player.x][Player.y];
         this.ModifyMapData(Player.x, Player.y, new PlayerData(Player.color, Player.HighlightColor, Player.x, Player.y, Player.Health));
     }
 
@@ -115,16 +127,16 @@ class TerrainManipulator{
         const spawnArea = 12;
 
         let centerVec = {
-            x: Math.floor(mapData.length / 2),
-            y: Math.floor(mapData[0].length / 2),
+            x: Math.floor(this.mapData.length / 2),
+            y: Math.floor(this.mapData[0].length / 2),
         }
         let pX;
         let pY;
 
         //gets a position outside of spawn area
         do{
-            pX = Math.floor((Math.random() * mapData.length- 2) + 1);
-            pY = Math.floor((Math.random() * mapData[0].length -2) + 1);
+            pX = Math.floor((Math.random() * this.mapData.length- 2) + 1);
+            pY = Math.floor((Math.random() * this.mapData[0].length -2) + 1);
         }while(((pX > centerVec.x-spawnArea && pX < centerVec.x + spawnArea) && (pY > centerVec.y-spawnArea && pY < centerVec.y + spawnArea)))
 
         if(rand < (ResourceTerrain.GetResourceAmount(ResourceTypes.wood)/ResourceTerrain.GetResourceAmount(ResourceTypes.stone))/3)
@@ -138,16 +150,16 @@ class TerrainManipulator{
             const spawnArea = 12;
 
             let centerVec = {
-                x: Math.floor(mapData.length / 2),
-                y: Math.floor(mapData[0].length / 2),
+                x: Math.floor(this.mapData.length / 2),
+                y: Math.floor(this.mapData[0].length / 2),
             }
             let pX;
             let pY;
 
             //gets a position outside of spawn area
             do{
-                pX = Math.floor((RandomGenerator() * mapData.length- 2) + 1);
-                pY = Math.floor((RandomGenerator() * mapData[0].length -2) + 1);
+                pX = Math.floor((RandomGenerator() * this.mapData.length- 2) + 1);
+                pY = Math.floor((RandomGenerator() * this.mapData[0].length -2) + 1);
             }while(((pX > centerVec.x-spawnArea && pX < centerVec.x + spawnArea) && (pY > centerVec.y-spawnArea && pY < centerVec.y + spawnArea))
                 && !this.CheckBuildSpace(pX, pY, 5, 5));
 
@@ -165,21 +177,21 @@ class TerrainManipulator{
         //check if there is a space for the tree in a 3x3 grid
         if(this.CheckGridSpace(x,y, 3) == false) return;
 
-        Terrain.InsertResourcePixel(this.GeneratetreePixel(x,y,true));        
-        Terrain.InsertResourcePixel(this.GeneratetreePixel(x+1,y,false));
-        Terrain.InsertResourcePixel(this.GeneratetreePixel(x-1,y,false));
-        Terrain.InsertResourcePixel(this.GeneratetreePixel(x,y+1,false));
-        Terrain.InsertResourcePixel(this.GeneratetreePixel(x,y-1,false));
+        this.InsertResourcePixel(this.GeneratetreePixel(x,y,true));        
+        this.InsertResourcePixel(this.GeneratetreePixel(x+1,y,false));
+        this.InsertResourcePixel(this.GeneratetreePixel(x-1,y,false));
+        this.InsertResourcePixel(this.GeneratetreePixel(x,y+1,false));
+        this.InsertResourcePixel(this.GeneratetreePixel(x,y-1,false));
     }
     private GeneratetreePixel(x: number,y: number, isLog: boolean): ResourceData{
         if(isLog){
-            const OnBreak = () =>{ Resources.AddResource(ResourceTypes.wood, Math.floor(1 + Math.random()*4)); }; // 1 - 4
+            const OnBreak = () =>{ ResourceManager.ins.AddResource(ResourceTypes.wood, Math.floor(1 + Math.random()*4)); }; // 1 - 4
             return new ResourceData(new rgb(200, 70, 50), PixelStatus.breakable, 
-                6, x, y, HighlightPixel.border, ResourceTypes.wood, mapData[x][y], OnBreak);
+                6, x, y, HighlightPixel.border, ResourceTypes.wood, this.mapData[x][y], OnBreak);
         }else{
-            const OnBreak = () =>{ Resources.AddResource(ResourceTypes.wood, Math.floor(Math.random()*1.7)); }; // 0 - 1
+            const OnBreak = () =>{ ResourceManager.ins.AddResource(ResourceTypes.wood, Math.floor(Math.random()*1.7)); }; // 0 - 1
             return new ResourceData(new rgb(49, 87, 44),PixelStatus.breakable, 
-                2, x, y, HighlightPixel.border, ResourceTypes.wood, mapData[x][y], OnBreak);        }
+                2, x, y, HighlightPixel.border, ResourceTypes.wood, this.mapData[x][y], OnBreak);        }
     }
     /**
      * Generates a stone at the given position (mainly for internal use)
@@ -192,11 +204,11 @@ class TerrainManipulator{
         //check if stone can freely spawn in a 3x3 grid
         if(this.CheckGridSpace(x,y, 3) == false) return;
         
-        Terrain.InsertResourcePixel(this.GenerateStonePixel(x,y));
-        Terrain.InsertResourcePixel(this.GenerateStonePixel(x+1,y));
-        Terrain.InsertResourcePixel(this.GenerateStonePixel(x-1,y));
-        Terrain.InsertResourcePixel(this.GenerateStonePixel(x,y+1));
-        Terrain.InsertResourcePixel(this.GenerateStonePixel(x,y-1));
+        this.InsertResourcePixel(this.GenerateStonePixel(x,y));
+        this.InsertResourcePixel(this.GenerateStonePixel(x+1,y));
+        this.InsertResourcePixel(this.GenerateStonePixel(x-1,y));
+        this.InsertResourcePixel(this.GenerateStonePixel(x,y+1));
+        this.InsertResourcePixel(this.GenerateStonePixel(x,y-1));
 
         let stoneVec = {x: 1, y: 1}
         let repeats = Math.floor(Math.random()*3)+1;
@@ -207,32 +219,32 @@ class TerrainManipulator{
             if(stoneVec.y == 0) stoneVec.y = 1;
 
             //prevents spawning two resources in the same space
-            if(mapData[x+stoneVec.x][y+stoneVec.y] instanceof ResourceData) continue;
+            if(this.mapData[x+stoneVec.x][y+stoneVec.y] instanceof ResourceData) continue;
 
-            Terrain.InsertResourcePixel(this.GenerateStonePixel(x+stoneVec.x,y+stoneVec.y));
+            this.InsertResourcePixel(this.GenerateStonePixel(x+stoneVec.x,y+stoneVec.y));
         }
     }
     private GenerateStonePixel(x: number,y: number): ResourceData{
         const ironChance = Math.floor(1 + Math.random()*5); // 1 - 5
         if(ironChance == 1){
             //Generate iron
-            const OnBreak = () =>{ Resources.AddResource(ResourceTypes.iron_ore, Math.floor(1 + Math.random()*3)); }; // 1 - 3
+            const OnBreak = () =>{ ResourceManager.ins.AddResource(ResourceTypes.iron_ore, Math.floor(1 + Math.random()*3)); }; // 1 - 3
             return new ResourceData(new rgb(221, 161, 94), PixelStatus.breakable, 9, 
-                x, y,HighlightPixel.border, ResourceTypes.stone, mapData[x][y], OnBreak); 
+                x, y,HighlightPixel.border, ResourceTypes.stone, this.mapData[x][y], OnBreak); 
         }else{
             //Generate stone
-            const OnBreak = () =>{ Resources.AddResource(ResourceTypes.stone, Math.floor(1 + Math.random()*5)); }; // 1 - 5
+            const OnBreak = () =>{ ResourceManager.ins.AddResource(ResourceTypes.stone, Math.floor(1 + Math.random()*5)); }; // 1 - 5
             return new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, 
-                x, y,HighlightPixel.border, ResourceTypes.stone, mapData[x][y], OnBreak); 
+                x, y,HighlightPixel.border, ResourceTypes.stone, this.mapData[x][y], OnBreak); 
         }
     }
     private CheckGridSpace(x: number, y: number, size: number): boolean{
         if(size % 2 == 0) size++;
 
         for(let i = x-Math.floor(size/2); i <= x+Math.floor(size/2); i++){
-            if(i < 0 || i > mapData.length) return false;
+            if(i < 0 || i > this.mapData.length) return false;
             for(let j = y-Math.floor(size/2); j<=y+Math.floor(size/2); j++){
-                if(j < 0 || j > mapData[0].length || mapData[i][j].status != PixelStatus.walkable) return false;
+                if(j < 0 || j > this.mapData[0].length || this.mapData[i][j].status != PixelStatus.walkable) return false;
             }
         }
 
@@ -241,7 +253,7 @@ class TerrainManipulator{
     CheckBuildSpace(x: number, y:number, sizeX: number, sizeY: number): boolean{
         for(let i = x; i < x+sizeX; i++){
             for(let j = y; j < y+sizeY; j++){
-                if(i < 0 || i > mapData.length || j < 0 || j > mapData[0].length || mapData[i][j].status != PixelStatus.walkable) return false;
+                if(i < 0 || i > this.mapData.length || j < 0 || j > this.mapData[0].length || this.mapData[i][j].status != PixelStatus.walkable) return false;
             }
         }
         return true;

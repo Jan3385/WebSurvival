@@ -179,7 +179,7 @@ class PlayerData extends EntityData {
         console.log('Player has died, GAME OVER');
         //have to change both colors
         this.color = new rgb(255, 0, 0);
-        mapData[this.x][this.y].color = new rgb(255, 0, 0);
+        Terrain.ins.mapData[this.x][this.y].color = new rgb(255, 0, 0);
     }
 }
 class EnemyData extends EntityData {
@@ -188,7 +188,7 @@ class EnemyData extends EntityData {
     }
     Die() {
         console.log('Enemy has died');
-        mapData[this.x][this.y] = this.OverlapPixel;
+        Terrain.ins.ModifyMapData(this.x, this.y, this.OverlapPixel);
     }
 }
 class ResourceData extends PixelData {
@@ -224,7 +224,7 @@ class ResourceData extends PixelData {
         return false;
     }
     Destroy() {
-        Terrain.DeleteResourcePixel(this.x, this.y, this.OverlaidPixel);
+        Terrain.ins.DeleteResourcePixel(this.x, this.y, this.OverlaidPixel);
         this.OnResourceDestroy();
         CheckDeleteInterior(this.x, this.y);
     }
@@ -260,7 +260,7 @@ class BuildingData extends PixelData {
         return false;
     }
     Destroy() {
-        Terrain.ModifyMapData(this.x, this.y, this.OverlaidPixel);
+        Terrain.ins.ModifyMapData(this.x, this.y, this.OverlaidPixel);
         CheckDeleteInterior(this.x, this.y);
     }
     DamageNoDestroy(damage) {
@@ -282,7 +282,7 @@ class BuildingData extends PixelData {
         if (Player.x == x && Player.y == y)
             build.OverlaidPixel = Player.OverlapPixel;
         else
-            build.OverlaidPixel = mapData[x][y];
+            build.OverlaidPixel = Terrain.ins.mapData[x][y];
         return build;
     }
     FullyHeal() {
@@ -305,7 +305,7 @@ class DoorData extends BuildingData {
         if (Player.x == x && Player.y == y)
             door.OverlaidPixel = Player.OverlapPixel;
         else
-            door.OverlaidPixel = mapData[x][y];
+            door.OverlaidPixel = Terrain.ins.mapData[x][y];
         return door;
     }
     Interact() {
@@ -340,7 +340,7 @@ class GlassData extends BuildingData {
         if (Player.x == x && Player.y == y)
             glass.OverlaidPixel = Player.OverlapPixel;
         else
-            glass.OverlaidPixel = mapData[x][y];
+            glass.OverlaidPixel = Terrain.ins.mapData[x][y];
         return glass;
     }
 }
@@ -351,6 +351,7 @@ function clamp(min, max, value) {
     return Math.min(max, Math.max(min, value));
 }
 class GameTime {
+    static ins;
     /**
      * Creates a time object
      * @constructor
@@ -368,8 +369,8 @@ class GameTime {
      * Updates the time object
      */
     Tick() {
-        if (QuestManager.instance.activeQuestId > 2)
-            this.time++;
+        //if(QuestManager.ins.activeQuestId > 2) might be dumb
+        this.time++;
         if (this.GetDayProgress() <= 0.2) { //day starts (sun rises)
             this.lightLevel = this.GetDayProgress() * 25;
         }
@@ -413,12 +414,12 @@ class GameTime {
             return;
         this.triggeredDay = true;
         //heals buildings and deletes all torches
-        for (let i = 0; i < mapData.length; i++) {
-            for (let j = 0; j < mapData[0].length; j++) {
-                if (mapData[i][j] instanceof BuildingData) {
-                    mapData[i][j].FullyHeal();
-                    if (mapData[i][j].name == "Torch") {
-                        mapData[i][j].BurnOut();
+        for (let i = 0; i < Terrain.ins.MapX(); i++) {
+            for (let j = 0; j < Terrain.ins.MapY(); j++) {
+                if (Terrain.ins.mapData[i][j] instanceof BuildingData) {
+                    Terrain.ins.mapData[i][j].FullyHeal();
+                    if (Terrain.ins.mapData[i][j].name == "Torch") {
+                        Terrain.ins.mapData[i][j].BurnOut();
                     }
                 }
             }
@@ -470,12 +471,12 @@ class LightData extends BuildingData {
         if (Player.x == x && Player.y == y)
             light.OverlaidPixel = Player.OverlapPixel;
         else
-            light.OverlaidPixel = mapData[x][y];
+            light.OverlaidPixel = Terrain.ins.mapData[x][y];
         return light;
     }
     BurnOut() {
         this.OverlaidPixel.Indoors = this.Indoors;
-        Terrain.ModifyMapData(this.x, this.y, this.OverlaidPixel);
+        Terrain.ins.ModifyMapData(this.x, this.y, this.OverlaidPixel);
     }
 }
 function castRay(sX, sY, angle, intensity, radius) {
@@ -491,13 +492,13 @@ function castRay(sX, sY, angle, intensity, radius) {
         const ix = Math.round(x);
         const iy = Math.round(y);
         //stop the light out of bounds
-        if (ix < 0 || ix >= mapData.length || iy < 0 || iy >= mapData[0].length)
+        if (ix < 0 || ix >= Terrain.ins.MapX() || iy < 0 || iy >= Terrain.ins.MapY())
             break;
         distance = Math.sqrt((ix - sX) ** 2 + (iy - sY) ** 2);
         const lightIntensity = Math.max(0, intensity - distance);
-        mapData[ix][iy].Brightness = Math.max(lightIntensity, mapData[ix][iy].Brightness);
+        Terrain.ins.mapData[ix][iy].Brightness = Math.max(lightIntensity, Terrain.ins.mapData[ix][iy].Brightness);
         //reflects light
-        if (BlocksLight(mapData[ix][iy])) {
+        if (BlocksLight(Terrain.ins.mapData[ix][iy])) {
             return;
             /* refraction sucks :(
             if(true){ //flip along Y - idk fix TODO: try again ?
@@ -529,22 +530,22 @@ function castSunRay(sX, sY, angle, intensity) {
         y += dy * .5;
         const ix = Math.floor(x);
         const iy = Math.floor(y);
-        if (ix < 0 || ix >= mapData.length || iy < 0 || iy >= mapData[0].length)
+        if (ix < 0 || ix >= Terrain.ins.MapX() || iy < 0 || iy >= Terrain.ins.MapY())
             break;
         if (ShadowTravel == 0)
             intensity = constIntensity;
         //indoor light is very dim
-        if (!mapData[ix][iy].Indoors)
-            mapData[ix][iy].Brightness = clamp(mapData[ix][iy].Brightness, 5, intensity);
+        if (!Terrain.ins.mapData[ix][iy].Indoors)
+            Terrain.ins.mapData[ix][iy].Brightness = clamp(Terrain.ins.mapData[ix][iy].Brightness, 5, intensity);
         else {
             if (HitBuilding)
-                mapData[ix][iy].Brightness = clamp(mapData[ix][iy].Brightness, Math.max(mapData[ix][iy].Brightness, 3), constIntensity / 1.5);
+                Terrain.ins.mapData[ix][iy].Brightness = clamp(Terrain.ins.mapData[ix][iy].Brightness, Math.max(Terrain.ins.mapData[ix][iy].Brightness, 3), constIntensity / 1.5);
             else
-                mapData[ix][iy].Brightness = clamp(mapData[ix][iy].Brightness, 5, intensity);
+                Terrain.ins.mapData[ix][iy].Brightness = clamp(Terrain.ins.mapData[ix][iy].Brightness, 5, intensity);
         }
         //blocks light 
-        if (BlocksLight(mapData[ix][iy])) {
-            if (mapData[ix][iy] instanceof BuildingData)
+        if (BlocksLight(Terrain.ins.mapData[ix][iy])) {
+            if (Terrain.ins.mapData[ix][iy] instanceof BuildingData)
                 HitBuilding = true;
             ShadowTravel = 6;
             intensity = constIntensity / 1.4;
@@ -558,13 +559,11 @@ function castSunRay(sX, sY, angle, intensity) {
 function CalculateLightMap() {
     const numRays = 72;
     let lightSources = [];
-    for (let i = 0; i < mapData.length; i++) {
-        for (let j = 0; j < mapData[0].length; j++) {
-            mapData[i][j].Brightness = 0;
-            if (mapData[i][j] instanceof LightData)
-                lightSources.push(mapData[i][j]);
-        }
-    }
+    Terrain.ins.IterateMap((pixel, x, y) => {
+        pixel.Brightness = 0;
+        if (pixel instanceof LightData)
+            lightSources.push(pixel);
+    });
     for (const light of lightSources) {
         for (let i = 0; i < numRays; i++) {
             const angle = (Math.PI * 2 / numRays) * i;
@@ -573,13 +572,13 @@ function CalculateLightMap() {
         }
     }
     //sun
-    const sunAngle = (Math.floor(Math.PI * gTime.GetDayProgress() * 100 / 5) / 100) * 5;
-    for (let i = 0; i < mapData[0].length; i++) {
-        castSunRay(0, i, sunAngle, gTime.lightLevel);
-        castSunRay(mapData.length, i, sunAngle, gTime.lightLevel);
+    const sunAngle = (Math.floor(Math.PI * GameTime.ins.GetDayProgress() * 100 / 5) / 100) * 5;
+    for (let i = 0; i < Terrain.ins.MapY(); i++) {
+        castSunRay(0, i, sunAngle, GameTime.ins.lightLevel);
+        castSunRay(Terrain.ins.MapX(), i, sunAngle, GameTime.ins.lightLevel);
     }
-    for (let i = 0; i < mapData.length; i++) {
-        castSunRay(i, 0, sunAngle, gTime.lightLevel);
+    for (let i = 0; i < Terrain.ins.MapX(); i++) {
+        castSunRay(i, 0, sunAngle, GameTime.ins.lightLevel);
     }
     //player emits a little light
     for (let i = 0; i < (numRays / 2); i++) {
@@ -597,6 +596,7 @@ var ResourceTypes;
     ResourceTypes[ResourceTypes["iron"] = 5] = "iron";
 })(ResourceTypes || (ResourceTypes = {}));
 class ResourceManager {
+    static ins;
     resources = [];
     DisplayStoredResources() {
         const ResouceElements = [];
@@ -613,7 +613,7 @@ class ResourceManager {
             ResouceElements.push(container);
         });
         document.getElementById("resources").replaceChildren(...ResouceElements);
-        Recipes.DisplayAvalibleRecipes();
+        RecipeHandler.ins.DisplayAvalibleRecipes();
     }
     DisplayCostResources(resources) {
         const ResouceElements = [];
@@ -650,8 +650,8 @@ class ResourceManager {
             this.resources.filter(x => x[0] == type)[0][1] += amount;
         this.DisplayStoredResources();
         //Quests:
-        if (QuestManager.instance.GetActiveQuest() instanceof ResourceQuest) {
-            const quest = QuestManager.instance.GetActiveQuest();
+        if (QuestManager.ins.GetActiveQuest() instanceof ResourceQuest) {
+            const quest = QuestManager.ins.GetActiveQuest();
             quest.CheckCompleteQuest(type, amount);
         }
     }
@@ -715,7 +715,9 @@ class ResourceList {
     }
 }
 //Class for terrain modification
-class TerrainManipulator {
+class Terrain {
+    static ins;
+    mapData = [];
     /**
      * Inserts a pixel at the given position
      * @param {number} x
@@ -723,7 +725,20 @@ class TerrainManipulator {
      * @param {PixelData} PixelData
      */
     ModifyMapData(x, y, PixelData) {
-        mapData[x][y] = PixelData;
+        this.mapData[x][y] = PixelData;
+    }
+    MapX() {
+        return this.mapData.length;
+    }
+    MapY() {
+        return this.mapData[0].length;
+    }
+    IterateMap(callback) {
+        for (let i = 0; i < this.mapData.length; i++) {
+            for (let j = 0; j < this.mapData[0].length; j++) {
+                callback(this.mapData[i][j], i, j);
+            }
+        }
     }
     /**
      *
@@ -731,18 +746,18 @@ class TerrainManipulator {
      * @returns
      */
     InsertMapDataRaw(NewMapData) {
-        if (mapData.length != NewMapData.length || mapData[0].length != NewMapData[0].length) {
+        if (this.mapData.length != NewMapData.length || this.mapData[0].length != NewMapData[0].length) {
             console.error('Map size is not matched');
             return;
         }
-        mapData = NewMapData;
+        this.mapData = NewMapData;
     }
     /**
      * Inserts a interactable pixel at the pixel inner position
      * @param {InteractData} Pixel
      */
     InsertResourcePixel(Pixel) {
-        Terrain.ModifyMapData(Pixel.x, Pixel.y, Pixel);
+        this.ModifyMapData(Pixel.x, Pixel.y, Pixel);
         ResourceTerrain.Add(Pixel.ResourceType, 1);
     }
     /**
@@ -752,18 +767,16 @@ class TerrainManipulator {
      * @throws {ReferenceError} No interactable type at that location
      */
     DeleteResourcePixel(pX, pY, replacement) {
-        ResourceTerrain.Remove(mapData[pX][pY].ResourceType, 1);
+        ResourceTerrain.Remove(this.mapData[pX][pY].ResourceType, 1);
         this.ModifyMapData(pX, pY, replacement);
     }
     /**
      * Clears the map and fills it with perlin noise
      */
     Clear() {
-        for (let i = 0; i < mapData.length; i++) {
-            for (let j = 0; j < mapData[0].length; j++) {
-                mapData[i][j] = PerlinPixel(i, j);
-            }
-        }
+        this.IterateMap((pixel, x, y) => {
+            pixel = PerlinPixel(x, y);
+        });
     }
     /**
      * Hadles safe player movement
@@ -774,13 +787,13 @@ class TerrainManipulator {
     MovePlayer(Player, x, y) {
         //if player is not building allow diagonal movement else only move non-diagonaly
         if (!isBuilding) {
-            Terrain.MovePlayerRaw(Player, MovementVector.x, 0);
-            Terrain.MovePlayerRaw(Player, 0, MovementVector.y);
+            this.MovePlayerRaw(Player, MovementVector.x, 0);
+            this.MovePlayerRaw(Player, 0, MovementVector.y);
         }
         else {
             if (MovementVector.x != 0)
                 MovementVector.y = 0;
-            Terrain.MovePlayerRaw(Player, MovementVector.x, MovementVector.y);
+            this.MovePlayerRaw(Player, MovementVector.x, MovementVector.y);
         }
     }
     /**
@@ -790,7 +803,7 @@ class TerrainManipulator {
      * @param {Number} y
      */
     MovePlayerRaw(Player, x, y) {
-        let mPixel = mapData[Player.x + x][Player.y + y];
+        let mPixel = this.mapData[Player.x + x][Player.y + y];
         //check if the player can move to the given position
         if (mPixel.status == PixelStatus.walkable) {
             //if is player exiting a door, lock it
@@ -799,7 +812,7 @@ class TerrainManipulator {
             this.ModifyMapData(Player.x, Player.y, Player.OverlapPixel);
             Player.x += x;
             Player.y += y;
-            Player.OverlapPixel = mapData[Player.x][Player.y];
+            Player.OverlapPixel = this.mapData[Player.x][Player.y];
             this.ModifyMapData(Player.x, Player.y, new PlayerData(Player.color, Player.HighlightColor, Player.x, Player.y, Player.Health));
         }
         else if (mPixel.status == PixelStatus.interact && mPixel instanceof DoorData) {
@@ -816,7 +829,7 @@ class TerrainManipulator {
         this.ModifyMapData(Player.x, Player.y, Player.OverlapPixel);
         Player.x += x;
         Player.y += y;
-        Player.OverlapPixel = mapData[Player.x][Player.y];
+        Player.OverlapPixel = this.mapData[Player.x][Player.y];
         this.ModifyMapData(Player.x, Player.y, new PlayerData(Player.color, Player.HighlightColor, Player.x, Player.y, Player.Health));
     }
     /**
@@ -826,15 +839,15 @@ class TerrainManipulator {
         let rand = Math.random();
         const spawnArea = 12;
         let centerVec = {
-            x: Math.floor(mapData.length / 2),
-            y: Math.floor(mapData[0].length / 2),
+            x: Math.floor(this.mapData.length / 2),
+            y: Math.floor(this.mapData[0].length / 2),
         };
         let pX;
         let pY;
         //gets a position outside of spawn area
         do {
-            pX = Math.floor((Math.random() * mapData.length - 2) + 1);
-            pY = Math.floor((Math.random() * mapData[0].length - 2) + 1);
+            pX = Math.floor((Math.random() * this.mapData.length - 2) + 1);
+            pY = Math.floor((Math.random() * this.mapData[0].length - 2) + 1);
         } while (((pX > centerVec.x - spawnArea && pX < centerVec.x + spawnArea) && (pY > centerVec.y - spawnArea && pY < centerVec.y + spawnArea)));
         if (rand < (ResourceTerrain.GetResourceAmount(ResourceTypes.wood) / ResourceTerrain.GetResourceAmount(ResourceTypes.stone)) / 3)
             this.GenerateStone(pX, pY);
@@ -846,15 +859,15 @@ class TerrainManipulator {
             let rand = RandomGenerator();
             const spawnArea = 12;
             let centerVec = {
-                x: Math.floor(mapData.length / 2),
-                y: Math.floor(mapData[0].length / 2),
+                x: Math.floor(this.mapData.length / 2),
+                y: Math.floor(this.mapData[0].length / 2),
             };
             let pX;
             let pY;
             //gets a position outside of spawn area
             do {
-                pX = Math.floor((RandomGenerator() * mapData.length - 2) + 1);
-                pY = Math.floor((RandomGenerator() * mapData[0].length - 2) + 1);
+                pX = Math.floor((RandomGenerator() * this.mapData.length - 2) + 1);
+                pY = Math.floor((RandomGenerator() * this.mapData[0].length - 2) + 1);
             } while (((pX > centerVec.x - spawnArea && pX < centerVec.x + spawnArea) && (pY > centerVec.y - spawnArea && pY < centerVec.y + spawnArea))
                 && !this.CheckBuildSpace(pX, pY, 5, 5));
             this.GenerateHouse(pX, pY, RandomGenerator);
@@ -871,20 +884,20 @@ class TerrainManipulator {
         //check if there is a space for the tree in a 3x3 grid
         if (this.CheckGridSpace(x, y, 3) == false)
             return;
-        Terrain.InsertResourcePixel(this.GeneratetreePixel(x, y, true));
-        Terrain.InsertResourcePixel(this.GeneratetreePixel(x + 1, y, false));
-        Terrain.InsertResourcePixel(this.GeneratetreePixel(x - 1, y, false));
-        Terrain.InsertResourcePixel(this.GeneratetreePixel(x, y + 1, false));
-        Terrain.InsertResourcePixel(this.GeneratetreePixel(x, y - 1, false));
+        this.InsertResourcePixel(this.GeneratetreePixel(x, y, true));
+        this.InsertResourcePixel(this.GeneratetreePixel(x + 1, y, false));
+        this.InsertResourcePixel(this.GeneratetreePixel(x - 1, y, false));
+        this.InsertResourcePixel(this.GeneratetreePixel(x, y + 1, false));
+        this.InsertResourcePixel(this.GeneratetreePixel(x, y - 1, false));
     }
     GeneratetreePixel(x, y, isLog) {
         if (isLog) {
-            const OnBreak = () => { Resources.AddResource(ResourceTypes.wood, Math.floor(1 + Math.random() * 4)); }; // 1 - 4
-            return new ResourceData(new rgb(200, 70, 50), PixelStatus.breakable, 6, x, y, HighlightPixel.border, ResourceTypes.wood, mapData[x][y], OnBreak);
+            const OnBreak = () => { ResourceManager.ins.AddResource(ResourceTypes.wood, Math.floor(1 + Math.random() * 4)); }; // 1 - 4
+            return new ResourceData(new rgb(200, 70, 50), PixelStatus.breakable, 6, x, y, HighlightPixel.border, ResourceTypes.wood, this.mapData[x][y], OnBreak);
         }
         else {
-            const OnBreak = () => { Resources.AddResource(ResourceTypes.wood, Math.floor(Math.random() * 1.7)); }; // 0 - 1
-            return new ResourceData(new rgb(49, 87, 44), PixelStatus.breakable, 2, x, y, HighlightPixel.border, ResourceTypes.wood, mapData[x][y], OnBreak);
+            const OnBreak = () => { ResourceManager.ins.AddResource(ResourceTypes.wood, Math.floor(Math.random() * 1.7)); }; // 0 - 1
+            return new ResourceData(new rgb(49, 87, 44), PixelStatus.breakable, 2, x, y, HighlightPixel.border, ResourceTypes.wood, this.mapData[x][y], OnBreak);
         }
     }
     /**
@@ -898,11 +911,11 @@ class TerrainManipulator {
         //check if stone can freely spawn in a 3x3 grid
         if (this.CheckGridSpace(x, y, 3) == false)
             return;
-        Terrain.InsertResourcePixel(this.GenerateStonePixel(x, y));
-        Terrain.InsertResourcePixel(this.GenerateStonePixel(x + 1, y));
-        Terrain.InsertResourcePixel(this.GenerateStonePixel(x - 1, y));
-        Terrain.InsertResourcePixel(this.GenerateStonePixel(x, y + 1));
-        Terrain.InsertResourcePixel(this.GenerateStonePixel(x, y - 1));
+        this.InsertResourcePixel(this.GenerateStonePixel(x, y));
+        this.InsertResourcePixel(this.GenerateStonePixel(x + 1, y));
+        this.InsertResourcePixel(this.GenerateStonePixel(x - 1, y));
+        this.InsertResourcePixel(this.GenerateStonePixel(x, y + 1));
+        this.InsertResourcePixel(this.GenerateStonePixel(x, y - 1));
         let stoneVec = { x: 1, y: 1 };
         let repeats = Math.floor(Math.random() * 3) + 1;
         for (let i = 0; i < repeats; i++) {
@@ -913,32 +926,32 @@ class TerrainManipulator {
             if (stoneVec.y == 0)
                 stoneVec.y = 1;
             //prevents spawning two resources in the same space
-            if (mapData[x + stoneVec.x][y + stoneVec.y] instanceof ResourceData)
+            if (this.mapData[x + stoneVec.x][y + stoneVec.y] instanceof ResourceData)
                 continue;
-            Terrain.InsertResourcePixel(this.GenerateStonePixel(x + stoneVec.x, y + stoneVec.y));
+            this.InsertResourcePixel(this.GenerateStonePixel(x + stoneVec.x, y + stoneVec.y));
         }
     }
     GenerateStonePixel(x, y) {
         const ironChance = Math.floor(1 + Math.random() * 5); // 1 - 5
         if (ironChance == 1) {
             //Generate iron
-            const OnBreak = () => { Resources.AddResource(ResourceTypes.iron_ore, Math.floor(1 + Math.random() * 3)); }; // 1 - 3
-            return new ResourceData(new rgb(221, 161, 94), PixelStatus.breakable, 9, x, y, HighlightPixel.border, ResourceTypes.stone, mapData[x][y], OnBreak);
+            const OnBreak = () => { ResourceManager.ins.AddResource(ResourceTypes.iron_ore, Math.floor(1 + Math.random() * 3)); }; // 1 - 3
+            return new ResourceData(new rgb(221, 161, 94), PixelStatus.breakable, 9, x, y, HighlightPixel.border, ResourceTypes.stone, this.mapData[x][y], OnBreak);
         }
         else {
             //Generate stone
-            const OnBreak = () => { Resources.AddResource(ResourceTypes.stone, Math.floor(1 + Math.random() * 5)); }; // 1 - 5
-            return new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x, y, HighlightPixel.border, ResourceTypes.stone, mapData[x][y], OnBreak);
+            const OnBreak = () => { ResourceManager.ins.AddResource(ResourceTypes.stone, Math.floor(1 + Math.random() * 5)); }; // 1 - 5
+            return new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x, y, HighlightPixel.border, ResourceTypes.stone, this.mapData[x][y], OnBreak);
         }
     }
     CheckGridSpace(x, y, size) {
         if (size % 2 == 0)
             size++;
         for (let i = x - Math.floor(size / 2); i <= x + Math.floor(size / 2); i++) {
-            if (i < 0 || i > mapData.length)
+            if (i < 0 || i > this.mapData.length)
                 return false;
             for (let j = y - Math.floor(size / 2); j <= y + Math.floor(size / 2); j++) {
-                if (j < 0 || j > mapData[0].length || mapData[i][j].status != PixelStatus.walkable)
+                if (j < 0 || j > this.mapData[0].length || this.mapData[i][j].status != PixelStatus.walkable)
                     return false;
             }
         }
@@ -947,7 +960,7 @@ class TerrainManipulator {
     CheckBuildSpace(x, y, sizeX, sizeY) {
         for (let i = x; i < x + sizeX; i++) {
             for (let j = y; j < y + sizeY; j++) {
-                if (i < 0 || i > mapData.length || j < 0 || j > mapData[0].length || mapData[i][j].status != PixelStatus.walkable)
+                if (i < 0 || i > this.mapData.length || j < 0 || j > this.mapData[0].length || this.mapData[i][j].status != PixelStatus.walkable)
                     return false;
             }
         }
@@ -1124,7 +1137,7 @@ function UpdateSelectedBuilding() {
     //update label
     document.getElementById("Selected-Building-Label").innerHTML = SelectedBuilding.build.name + " - " + SelectedBuilding.label;
     //update cost display
-    Resources.DisplayCostResources(SelectedBuilding.cost);
+    ResourceManager.ins.DisplayCostResources(SelectedBuilding.cost);
 }
 function canPlaceBuildingOn(pixel) {
     //cannot place floor on floor
@@ -1137,16 +1150,16 @@ function canPlaceBuildingOn(pixel) {
     return false;
 }
 function Build(BuildedBuilding) {
-    if (Resources.HasResources(BuildedBuilding.cost)) {
+    if (ResourceManager.ins.HasResources(BuildedBuilding.cost)) {
         //if placing landfill
         if (BuildedBuilding.build.name == "Landfill") {
             BuildLandfill(Player.x, Player.y);
             return;
         }
         //Quest check for building a furnace
-        if (QuestManager.instance.activeQuestId == 3 && BuildedBuilding.build.name == "Furnace")
-            QuestManager.instance.UpdateQuestProgress();
-        Resources.RemoveResourceList(BuildedBuilding.cost);
+        if (QuestManager.ins.activeQuestId == 3 && BuildedBuilding.build.name == "Furnace")
+            QuestManager.ins.UpdateQuestProgress();
+        ResourceManager.ins.RemoveResourceList(BuildedBuilding.cost);
         const didBuildIndoors = Player.OverlapPixel.Indoors;
         Player.OverlapPixel = BuildedBuilding.build.at(Player.x, Player.y);
         isBuilding = true;
@@ -1158,8 +1171,8 @@ function Build(BuildedBuilding) {
         //check if build is enclosed
         GetEnclosedSpacesAround(Player.x, Player.y).forEach((vec) => {
             //Quest check for building enclosed space
-            if (QuestManager.instance.activeQuestId == 2)
-                QuestManager.instance.UpdateQuestProgress();
+            if (QuestManager.ins.activeQuestId == 2)
+                QuestManager.ins.UpdateQuestProgress();
             fillInterior(vec.x, vec.y);
         });
     }
@@ -1167,18 +1180,18 @@ function Build(BuildedBuilding) {
 function BuildLandfill(x, y) {
     let didBuild = false;
     for (let i = 0; i < SidesDir.length; i++) {
-        if (x + SidesDir[i].x < 0 || x + SidesDir[i].x >= mapData.length)
+        if (x + SidesDir[i].x < 0 || x + SidesDir[i].x >= Terrain.ins.MapX())
             continue;
-        if (y + SidesDir[i].y < 0 || y + SidesDir[i].y >= mapData[0].length)
+        if (y + SidesDir[i].y < 0 || y + SidesDir[i].y >= Terrain.ins.MapY())
             continue;
-        if (mapData[x + SidesDir[i].x][y + SidesDir[i].y] instanceof TerrainData &&
-            mapData[x + SidesDir[i].x][y + SidesDir[i].y].type == TerrainType.water) {
-            mapData[x + SidesDir[i].x][y + SidesDir[i].y] = new TerrainData(Building[11].build.color.newSlightlyRandom(10), PixelStatus.walkable, TerrainType.ground);
+        if (Terrain.ins.mapData[x + SidesDir[i].x][y + SidesDir[i].y] instanceof TerrainData &&
+            Terrain.ins.mapData[x + SidesDir[i].x][y + SidesDir[i].y].type == TerrainType.water) {
+            Terrain.ins.mapData[x + SidesDir[i].x][y + SidesDir[i].y] = new TerrainData(Building[11].build.color.newSlightlyRandom(10), PixelStatus.walkable, TerrainType.ground);
             didBuild = true;
         }
     }
     if (didBuild) {
-        Resources.RemoveResourceList(Building[11].cost);
+        ResourceManager.ins.RemoveResourceList(Building[11].cost);
     }
 }
 /**
@@ -1188,7 +1201,7 @@ function BuildLandfill(x, y) {
  */
 function GetEnclosedSpacesAround(x, y) {
     function checkEnclosedSpace(x, y) {
-        const CheckedPixel = mapData[x][y] instanceof PlayerData ? Player.OverlapPixel : mapData[x][y];
+        const CheckedPixel = Terrain.ins.mapData[x][y] instanceof PlayerData ? Player.OverlapPixel : Terrain.ins.mapData[x][y];
         if (CheckedPixel.status != PixelStatus.walkable)
             return false;
         const queue = [new Vector2(x, y)];
@@ -1202,7 +1215,7 @@ function GetEnclosedSpacesAround(x, y) {
                 if (nx < 0 || ny < 0 || nx >= rows || ny >= cols) {
                     return false; // Found border of the map -> not enclosed
                 }
-                const NextCheckPixel = mapData[nx][ny] instanceof PlayerData ? Player.OverlapPixel : mapData[nx][ny];
+                const NextCheckPixel = Terrain.ins.mapData[nx][ny] instanceof PlayerData ? Player.OverlapPixel : Terrain.ins.mapData[nx][ny];
                 if (NextCheckPixel.status == PixelStatus.walkable && !visited[nx][ny]) {
                     visited[nx][ny] = true;
                     queue.push(new Vector2(nx, ny));
@@ -1211,8 +1224,8 @@ function GetEnclosedSpacesAround(x, y) {
         }
         return true;
     }
-    const rows = mapData.length;
-    const cols = mapData[0].length;
+    const rows = Terrain.ins.MapX();
+    const cols = Terrain.ins.MapY();
     const EnclosedVectors = [];
     for (const dVec of SidesDir) {
         const nx = x + dVec.x;
@@ -1220,7 +1233,7 @@ function GetEnclosedSpacesAround(x, y) {
         if (nx < 0 || ny < 0 || nx >= rows || ny >= cols) {
             continue;
         }
-        const CheckedPixel = mapData[nx][ny] instanceof PlayerData ? Player.OverlapPixel : mapData[nx][ny];
+        const CheckedPixel = Terrain.ins.mapData[nx][ny] instanceof PlayerData ? Player.OverlapPixel : Terrain.ins.mapData[nx][ny];
         if (CheckedPixel.status == PixelStatus.walkable) {
             if (checkEnclosedSpace(nx, ny)) {
                 EnclosedVectors.push(new Vector2(nx, ny));
@@ -1231,19 +1244,19 @@ function GetEnclosedSpacesAround(x, y) {
 }
 const InteriorFillColor = new rgb(109, 76, 65);
 async function fillInterior(x, y) {
-    if (mapData[x][y].Indoors)
+    if (Terrain.ins.mapData[x][y].Indoors)
         return;
-    if (mapData[x][y].status != PixelStatus.walkable)
+    if (Terrain.ins.mapData[x][y].status != PixelStatus.walkable)
         return;
-    mapData[x][y].Indoors = true;
+    Terrain.ins.mapData[x][y].Indoors = true;
     InteriorFillVisual(x, y);
     await sleep(40);
     for (const dVec of SidesDir) {
         fillInterior(x + dVec.x, y + dVec.y);
     }
     async function InteriorFillVisual(x, y) {
-        const OriginalColor = mapData[x][y].color.new();
-        const FillPixel = mapData[x][y] instanceof PlayerData ? Player.OverlapPixel : mapData[x][y];
+        const OriginalColor = Terrain.ins.mapData[x][y].color.new();
+        const FillPixel = Terrain.ins.mapData[x][y] instanceof PlayerData ? Player.OverlapPixel : Terrain.ins.mapData[x][y];
         for (let i = 0; i < 1; i += .1) {
             FillPixel.color = FillPixel.color.Lerp(InteriorFillColor, i);
             await sleep(5);
@@ -1259,22 +1272,22 @@ function CheckDeleteInterior(x, y) {
     const EnclosedSpaces = GetEnclosedSpacesAround(x, y);
     for (const vec of SidesDir) {
         if (EnclosedSpaces.find((v) => v.x == x + vec.x && v.y == y + vec.y) == undefined) {
-            if (x + vec.x < 0 || x + vec.x >= mapData.length || y + vec.y < 0 || y + vec.y > mapData[0].length)
+            if (x + vec.x < 0 || x + vec.x >= Terrain.ins.mapData.length || y + vec.y < 0 || y + vec.y > Terrain.ins.mapData[0].length)
                 continue;
             deleteInterior(x + vec.x, y + vec.y);
         }
     }
 }
 function deleteInterior(x, y) {
-    const InteriorPixel = mapData[x][y] instanceof PlayerData ? Player.OverlapPixel : mapData[x][y];
+    const InteriorPixel = Terrain.ins.mapData[x][y] instanceof PlayerData ? Player.OverlapPixel : Terrain.ins.mapData[x][y];
     if (!InteriorPixel.Indoors)
         return;
     InteriorPixel.Indoors = false;
     let p;
     for (const dVec of SidesDir) {
-        if (x + dVec.x < 0 || x + dVec.x >= mapData.length || y + dVec.y < 0 || y + dVec.y > mapData[0].length)
+        if (x + dVec.x < 0 || x + dVec.x >= Terrain.ins.MapX() || y + dVec.y < 0 || y + dVec.y > Terrain.ins.MapY())
             continue;
-        p = mapData[x + dVec.x][y + dVec.y] instanceof PlayerData ? Player.OverlapPixel : mapData[x + dVec.x][y + dVec.y];
+        p = Terrain.ins.mapData[x + dVec.x][y + dVec.y] instanceof PlayerData ? Player.OverlapPixel : Terrain.ins.mapData[x + dVec.x][y + dVec.y];
         if (p.Indoors) {
             deleteInterior(x + dVec.x, y + dVec.y);
         }
@@ -1298,6 +1311,7 @@ class Recipe {
 }
 const AvalibleRecipes = [];
 class RecipeHandler {
+    static ins;
     AllRecipes = [
         new Recipe(new ResourceList().Add(ResourceTypes.sand, 3).Add(ResourceTypes.wood, 1), ResourceTypes.glass, 1, RecipeTriggerType.Furnace),
         new Recipe(new ResourceList().Add(ResourceTypes.iron_ore, 3).Add(ResourceTypes.wood, 3), ResourceTypes.iron, 1, RecipeTriggerType.Furnace),
@@ -1311,10 +1325,10 @@ class RecipeHandler {
         let UsedLargeFurnaceRecipes = false;
         const PlayerPos = new Vector2(Player.x, Player.y);
         AroundDir.forEach(dir => {
-            if (PlayerPos.x + dir.x < 0 || PlayerPos.x + dir.x >= mapData.length
-                || PlayerPos.y + dir.y < 0 || PlayerPos.y + dir.y >= mapData[0].length)
+            if (PlayerPos.x + dir.x < 0 || PlayerPos.x + dir.x >= Terrain.ins.MapX()
+                || PlayerPos.y + dir.y < 0 || PlayerPos.y + dir.y >= Terrain.ins.MapY())
                 return;
-            const Tile = mapData[PlayerPos.x + dir.x][PlayerPos.y + dir.y];
+            const Tile = Terrain.ins.mapData[PlayerPos.x + dir.x][PlayerPos.y + dir.y];
             if (Tile instanceof BuildingData) {
                 if (Tile.name == "Furnace" && !UsedFurnaceRecipes) {
                     this.AvalibleRecipes.push(...this.AllRecipes.filter(x => x.TriggerBlocks == RecipeTriggerType.Furnace));
@@ -1334,7 +1348,7 @@ class RecipeHandler {
         const RecipeElements = [];
         this.AvalibleRecipes.forEach(recipe => {
             const button = document.createElement('button');
-            if (Resources.HasResources(recipe.ResourceFrom)) {
+            if (ResourceManager.ins.HasResources(recipe.ResourceFrom)) {
                 const PosInArray = this.AllRecipes.indexOf(recipe);
                 button.onclick = () => this.Craft(PosInArray);
             }
@@ -1378,8 +1392,8 @@ class RecipeHandler {
     }
     Craft(id) {
         const CraftedRecipe = this.AllRecipes[id];
-        Resources.RemoveResourceList(CraftedRecipe.ResourceFrom);
-        Resources.AddResource(CraftedRecipe.ResourceTo[0], CraftedRecipe.ResourceTo[1]);
+        ResourceManager.ins.RemoveResourceList(CraftedRecipe.ResourceFrom);
+        ResourceManager.ins.AddResource(CraftedRecipe.ResourceTo[0], CraftedRecipe.ResourceTo[1]);
         this.DisplayAvalibleRecipes();
     }
 }
@@ -1638,12 +1652,12 @@ class ResourceQuest extends Quest {
     resourceType;
     CheckCompleteQuest(ResourceType, amount) {
         if (this.resourceType == ResourceType) {
-            QuestManager.instance.UpdateQuestProgress(amount);
+            QuestManager.ins.UpdateQuestProgress(amount);
         }
     }
 }
 class QuestManager {
-    static instance;
+    static ins;
     constructor() {
         this.UpdateDisplayQuest();
     }
@@ -1686,6 +1700,7 @@ class QuestManager {
 }
 //Class for rendering the game
 class Renderer {
+    static ins;
     /**
      * Creates a renderer object for the canvas
      * @constructor
@@ -1702,32 +1717,28 @@ class Renderer {
             console.error('Canvas size is not divisible by scale');
         // 16 : 10 resolution | 80x50 pixel map
         for (let i = 0; i < 80; i++) {
-            mapData[i] = [];
+            Terrain.ins.mapData[i] = [];
             for (let j = 0; j < 50; j++) {
-                mapData[i][j] = PerlinPixel(i, j);
+                Terrain.ins.mapData[i][j] = PerlinPixel(i, j);
             }
         }
         window.addEventListener('resize', this.UpdateWindowSize);
         this.UpdateWindowSize();
-        console.log("initialised canvas with array of X:" + mapData.length + " Y:" + mapData[0].length);
     }
     /**
      * Executes a draw call on the canvas, rendering everyting
      */
     Draw() {
         ctx.beginPath(); //Clear ctx from prev. frame
-        for (let i = 0; i < canvas.width / canvasScale; i++) {
-            for (let j = 0; j < canvas.height / canvasScale; j++) {
-                const pixel = mapData[i][j];
-                if (!(pixel instanceof GlassData))
-                    ctx.fillStyle = pixel.color.getWithLight(pixel.Brightness);
-                else
-                    ctx.fillStyle = pixel.OverlaidPixel.color.MixWith(pixel.color, 0.4).getWithLight(pixel.Brightness);
-                ctx.fillRect(i * canvasScale, j * canvasScale, canvasScale, canvasScale);
-            }
-        }
+        Terrain.ins.IterateMap((pixel, x, y) => {
+            if (!(pixel instanceof GlassData))
+                ctx.fillStyle = pixel.color.getWithLight(pixel.Brightness);
+            else
+                ctx.fillStyle = pixel.OverlaidPixel.color.MixWith(pixel.color, 0.4).getWithLight(pixel.Brightness);
+            ctx.fillRect(x * canvasScale, y * canvasScale, canvasScale, canvasScale);
+        });
         this.DrawInteractIndicator();
-        ctx.strokeStyle = Player.HighlightColor.getWithLight(Math.max(0.35, mapData[Player.x][Player.y].Brightness));
+        ctx.strokeStyle = Player.HighlightColor.getWithLight(Math.max(0.35, Terrain.ins.mapData[Player.x][Player.y].Brightness));
         ctx.lineWidth = 2;
         ctx.strokeRect(Player.x * canvasScale + 1, Player.y * canvasScale + 1, canvasScale - 2, canvasScale - 2);
         if (this.LineGizmos.length != 0) {
@@ -1751,48 +1762,45 @@ class Renderer {
         if (canvasScale < 6.5)
             return;
         ctx.beginPath();
-        for (let i = 0; i < mapData.length; i++) {
-            for (let j = 0; j < mapData[0].length; j++) {
-                const pixel = mapData[i][j];
-                if (IsHighlightable(pixel)) {
-                    switch (pixel.Highlight) {
-                        case HighlightPixel.none:
-                            break;
-                        case HighlightPixel.lightBorder:
-                            ctx.strokeStyle = pixel.HighlightColor.getWithLight(pixel.Brightness);
-                            ctx.lineWidth = 1;
-                            ctx.strokeRect(i * canvasScale, j * canvasScale, canvasScale - 1, canvasScale - 1);
-                            break;
-                        case HighlightPixel.border:
-                            ctx.strokeStyle = pixel.HighlightColor.getWithLight(pixel.Brightness);
-                            ctx.lineWidth = 2;
-                            ctx.strokeRect(i * canvasScale + 1, j * canvasScale + 1, canvasScale - 2, canvasScale - 2);
-                            break;
-                        case HighlightPixel.thickBorder:
-                            ctx.strokeStyle = pixel.HighlightColor.getWithLight(pixel.Brightness);
-                            ctx.lineWidth = 4;
-                            ctx.strokeRect(i * canvasScale + 2, j * canvasScale + 2, canvasScale - 4, canvasScale - 4);
-                            break;
-                        case HighlightPixel.slash:
-                            ctx.strokeStyle = pixel.HighlightColor.getWithLight(pixel.Brightness);
-                            ctx.lineWidth = 2;
-                            ctx.strokeRect(i * canvasScale + 1, j * canvasScale + 1, canvasScale - 2, canvasScale - 2);
-                            ctx.moveTo(i * canvasScale + 1, j * canvasScale + 1);
-                            ctx.lineTo(i * canvasScale + canvasScale - 1, j * canvasScale + canvasScale - 1);
-                            break;
-                    }
+        Terrain.ins.IterateMap((pixel, x, y) => {
+            if (IsHighlightable(pixel)) {
+                switch (pixel.Highlight) {
+                    case HighlightPixel.none:
+                        break;
+                    case HighlightPixel.lightBorder:
+                        ctx.strokeStyle = pixel.HighlightColor.getWithLight(pixel.Brightness);
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(x * canvasScale, y * canvasScale, canvasScale - 1, canvasScale - 1);
+                        break;
+                    case HighlightPixel.border:
+                        ctx.strokeStyle = pixel.HighlightColor.getWithLight(pixel.Brightness);
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(x * canvasScale + 1, y * canvasScale + 1, canvasScale - 2, canvasScale - 2);
+                        break;
+                    case HighlightPixel.thickBorder:
+                        ctx.strokeStyle = pixel.HighlightColor.getWithLight(pixel.Brightness);
+                        ctx.lineWidth = 4;
+                        ctx.strokeRect(x * canvasScale + 2, y * canvasScale + 2, canvasScale - 4, canvasScale - 4);
+                        break;
+                    case HighlightPixel.slash:
+                        ctx.strokeStyle = pixel.HighlightColor.getWithLight(pixel.Brightness);
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(x * canvasScale + 1, y * canvasScale + 1, canvasScale - 2, canvasScale - 2);
+                        ctx.moveTo(x * canvasScale + 1, y * canvasScale + 1);
+                        ctx.lineTo(x * canvasScale + canvasScale - 1, y * canvasScale + canvasScale - 1);
+                        break;
                 }
             }
-        }
+        });
         ctx.lineWidth = 2;
         ctx.stroke(); //write all the diagonal lines
     }
     UpdateWindowSize() {
         canvasScale = Math.floor(window.innerWidth / 140);
-        if (mapData[0].length * canvasScale > window.innerHeight * 0.8)
-            canvasScale = Math.floor(window.innerHeight * 0.7 / mapData[0].length);
-        canvas.width = mapData.length * canvasScale;
-        canvas.height = mapData[0].length * canvasScale;
+        if (Terrain.ins.MapY() * canvasScale > window.innerHeight * 0.8)
+            canvasScale = Math.floor(window.innerHeight * 0.7 / Terrain.ins.MapY());
+        canvas.width = Terrain.ins.MapX() * canvasScale;
+        canvas.height = Terrain.ins.MapY() * canvasScale;
     }
 }
 /// <reference path="Terrain.ts" />
@@ -1804,42 +1812,41 @@ document.getElementById("Mobile-Blocker").style.display = isMobile ? "block" : "
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d', { alpha: false });
 let canvasScale = 10;
-const gTime = new GameTime();
-let mapData = [];
 const ResourceTerrain = new ResourceList();
 const MaxTResource = new ResourceList().Add(ResourceTypes.wood, 60).Add(ResourceTypes.stone, 55);
 //sets player position in the middle of the map
 const Player = new PlayerData(new rgb(0, 0, 0), new rgb(255, 255, 255), Math.floor(canvas.width / canvasScale / 2), Math.floor(canvas.height / canvasScale / 2), 10);
-const Render = new Renderer();
-const Terrain = new TerrainManipulator();
-const Resources = new ResourceManager();
-const Recipes = new RecipeHandler();
 function Start() {
-    QuestManager.instance = new QuestManager(); //redo all systems like this
-    Terrain.MovePlayer(Player, 0, 0); //Draw player
-    Render.Draw();
+    GameTime.ins = new GameTime();
+    ResourceManager.ins = new ResourceManager();
+    RecipeHandler.ins = new RecipeHandler();
+    Terrain.ins = new Terrain();
+    Renderer.ins = new Renderer();
+    QuestManager.ins = new QuestManager();
+    Terrain.ins.MovePlayer(Player, 0, 0); //Draw player
+    Renderer.ins.Draw();
     //TODO: Maybe fix?
     //Terrain.GenerateRandomStructures(2, RandomUsingSeed(Seed));
     for (let i = 0; i < 40; i++) {
-        Terrain.GenerateRandomResource();
+        Terrain.ins.GenerateRandomResource();
     }
-    Resources.DisplayCostResources(SelectedBuilding.cost);
-    Resources.Cheat();
+    ResourceManager.ins.DisplayCostResources(SelectedBuilding.cost);
+    ResourceManager.ins.Cheat();
 }
 let isBuilding = false;
 function Update() {
     //movement checker
-    if (Player.x + MovementVector.x < 0 || Player.x + MovementVector.x >= mapData.length ||
-        Player.y + MovementVector.y < 0 || Player.y + MovementVector.y >= mapData[0].length) {
+    if (Player.x + MovementVector.x < 0 || Player.x + MovementVector.x >= Terrain.ins.mapData.length ||
+        Player.y + MovementVector.y < 0 || Player.y + MovementVector.y >= Terrain.ins.mapData[0].length) {
         //player will not move out of bounds
         MovementVector = new Vector2(0, 0);
     }
-    const moveTile = mapData[Player.x + MovementVector.x][Player.y + MovementVector.y];
+    const moveTile = Terrain.ins.mapData[Player.x + MovementVector.x][Player.y + MovementVector.y];
     //placement logic
     isBuilding = false;
     if (inputPresses.includes(69) && canPlaceBuildingOn(Player.OverlapPixel)) {
         Build(SelectedBuilding);
-        Recipes.UpdatevAvalibleRecipes();
+        RecipeHandler.ins.UpdatevAvalibleRecipes();
     }
     //digging underneath player logic
     if (inputPresses.includes(81)) {
@@ -1850,13 +1857,13 @@ function Update() {
                 Player.OverlapPixel = Player.OverlapPixel.OverlaidPixel;
                 //removes the interior if building below player is destroyed
                 CheckDeleteInterior(Player.x, Player.y);
-                Recipes.UpdatevAvalibleRecipes();
+                RecipeHandler.ins.UpdatevAvalibleRecipes();
             }
         }
         if (Player.OverlapPixel instanceof TerrainData) {
             if (Player.OverlapPixel.type == TerrainType.sand) {
                 if (Math.random() < 0.3)
-                    Resources.AddResource(ResourceTypes.sand, 1);
+                    ResourceManager.ins.AddResource(ResourceTypes.sand, 1);
             }
         }
     }
@@ -1867,25 +1874,22 @@ function Update() {
     else if (moveTile instanceof BuildingData && moveTile.status == PixelStatus.breakable) {
         if (IsDamageable(moveTile))
             moveTile.Damage(1);
-        Recipes.UpdatevAvalibleRecipes();
+        RecipeHandler.ins.UpdatevAvalibleRecipes();
     }
     else if (IsInteractable(moveTile) && moveTile.status == PixelStatus.interact)
         moveTile.Interact();
     else if (!(MovementVector.x == 0 && MovementVector.y == 0)) {
-        Terrain.MovePlayer(Player, MovementVector.x, MovementVector.y);
-        Recipes.UpdatevAvalibleRecipes();
+        Terrain.ins.MovePlayer(Player, MovementVector.x, MovementVector.y);
+        RecipeHandler.ins.UpdatevAvalibleRecipes();
     }
     UpdateInput();
-    document.getElementById("Time").innerHTML = gTime.GetDayTime(); //shows time
+    document.getElementById("Time").innerHTML = GameTime.ins.GetDayTime(); //shows time
     //Resource spawner
     if (Math.random() > 0.98) {
-        Terrain.GenerateRandomResource();
+        Terrain.ins.GenerateRandomResource();
     }
-    gTime.Tick();
-    Render.Draw();
-}
-function GetPixelInfo(x, y) {
-    return mapData[x][y];
+    GameTime.ins.Tick();
+    Renderer.ins.Draw();
 }
 Start();
 let tickSpeed = 7;

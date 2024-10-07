@@ -3,6 +3,7 @@ function clamp(min: number, max: number, value: number): number{
 }
 
 class GameTime{
+    public static ins: GameTime;
     /**
      * Creates a time object
      * @constructor
@@ -20,7 +21,7 @@ class GameTime{
      * Updates the time object
      */
     Tick(){
-        if(QuestManager.instance.activeQuestId > 2)
+        //if(QuestManager.ins.activeQuestId > 2) might be dumb
             this.time++;
 
         if(this.GetDayProgress() <= 0.2){ //day starts (sun rises)
@@ -71,13 +72,13 @@ class GameTime{
         this.triggeredDay = true;
 
         //heals buildings and deletes all torches
-        for(let i = 0; i < mapData.length; i++){
-            for(let j = 0; j < mapData[0].length; j++){
-                if(mapData[i][j] instanceof BuildingData){
-                    (<BuildingData>mapData[i][j]).FullyHeal();
+        for(let i = 0; i < Terrain.ins.MapX(); i++){
+            for(let j = 0; j < Terrain.ins.MapY(); j++){
+                if(Terrain.ins.mapData[i][j] instanceof BuildingData){
+                    (<BuildingData>Terrain.ins.mapData[i][j]).FullyHeal();
 
-                    if((<BuildingData>mapData[i][j]).name == "Torch"){
-                        (<LightData>mapData[i][j]).BurnOut();
+                    if((<BuildingData>Terrain.ins.mapData[i][j]).name == "Torch"){
+                        (<LightData>Terrain.ins.mapData[i][j]).BurnOut();
                     }
                 }
             }
@@ -125,12 +126,12 @@ class LightData extends BuildingData{
     at(x: number,y: number){
         const light = new LightData(this.name, this.color, x, y, this.MaxHealth, this.intensity, this.radius);
         if(Player.x == x && Player.y == y) light.OverlaidPixel = Player.OverlapPixel;
-        else light.OverlaidPixel = mapData[x][y];
+        else light.OverlaidPixel = Terrain.ins.mapData[x][y];
         return light;
     }
     BurnOut(){
         this.OverlaidPixel.Indoors = this.Indoors;
-        Terrain.ModifyMapData(this.x, this.y, this.OverlaidPixel);
+        Terrain.ins.ModifyMapData(this.x, this.y, this.OverlaidPixel);
     }
 }
 function castRay(
@@ -154,14 +155,14 @@ function castRay(
         const iy = Math.round(y);
 
         //stop the light out of bounds
-        if(ix < 0 || ix >= mapData.length || iy < 0 || iy >= mapData[0].length) break;
+        if(ix < 0 || ix >= Terrain.ins.MapX() || iy < 0 || iy >= Terrain.ins.MapY()) break;
 
         distance = Math.sqrt((ix - sX) ** 2 + (iy - sY) ** 2);
         const lightIntensity = Math.max(0, intensity - distance);
-        mapData[ix][iy].Brightness = Math.max(lightIntensity, mapData[ix][iy].Brightness);
+        Terrain.ins.mapData[ix][iy].Brightness = Math.max(lightIntensity, Terrain.ins.mapData[ix][iy].Brightness);
 
         //reflects light
-        if(BlocksLight(mapData[ix][iy])){
+        if(BlocksLight(Terrain.ins.mapData[ix][iy])){
             return;
             /* refraction sucks :(
             if(true){ //flip along Y - idk fix TODO: try again ?
@@ -200,20 +201,20 @@ function castSunRay(
         const ix = Math.floor(x);
         const iy = Math.floor(y);
 
-        if(ix < 0 || ix >= mapData.length || iy < 0 || iy >= mapData[0].length) break;
+        if(ix < 0 || ix >= Terrain.ins.MapX() || iy < 0 || iy >= Terrain.ins.MapY()) break;
 
         if(ShadowTravel == 0) intensity = constIntensity;
 
         //indoor light is very dim
-        if(!mapData[ix][iy].Indoors) mapData[ix][iy].Brightness = clamp(mapData[ix][iy].Brightness, 5, intensity);
+        if(!Terrain.ins.mapData[ix][iy].Indoors) Terrain.ins.mapData[ix][iy].Brightness = clamp(Terrain.ins.mapData[ix][iy].Brightness, 5, intensity);
         else{
-            if(HitBuilding) mapData[ix][iy].Brightness = clamp(mapData[ix][iy].Brightness, Math.max(mapData[ix][iy].Brightness, 3), constIntensity/1.5);
-            else mapData[ix][iy].Brightness = clamp(mapData[ix][iy].Brightness, 5, intensity);
+            if(HitBuilding) Terrain.ins.mapData[ix][iy].Brightness = clamp(Terrain.ins.mapData[ix][iy].Brightness, Math.max(Terrain.ins.mapData[ix][iy].Brightness, 3), constIntensity/1.5);
+            else Terrain.ins.mapData[ix][iy].Brightness = clamp(Terrain.ins.mapData[ix][iy].Brightness, 5, intensity);
         }
 
         //blocks light 
-        if(BlocksLight(mapData[ix][iy])){
-            if(mapData[ix][iy] instanceof BuildingData) HitBuilding = true;
+        if(BlocksLight(Terrain.ins.mapData[ix][iy])){
+            if(Terrain.ins.mapData[ix][iy] instanceof BuildingData) HitBuilding = true;
             ShadowTravel = 6;
             intensity = constIntensity/1.4;
         };
@@ -228,12 +229,10 @@ function CalculateLightMap(){
 
     let lightSources: LightData[] = [];
 
-    for(let i = 0; i < mapData.length; i++){
-        for(let j = 0; j < mapData[0].length; j++){
-            mapData[i][j].Brightness = 0;
-            if(mapData[i][j] instanceof LightData) lightSources.push(<LightData>mapData[i][j]);
-        }
-    }
+    Terrain.ins.IterateMap((pixel, x, y) => {
+        pixel.Brightness = 0;
+        if(pixel instanceof LightData) lightSources.push(<LightData>pixel);
+    });
 
     for(const light of lightSources){
         for(let i = 0; i < numRays; i++){
@@ -244,13 +243,13 @@ function CalculateLightMap(){
     }
 
     //sun
-    const sunAngle = (Math.floor(Math.PI * gTime.GetDayProgress() * 100 / 5) / 100) * 5;
-    for(let i = 0; i < mapData[0].length; i++){
-        castSunRay(0, i, sunAngle, gTime.lightLevel);
-        castSunRay(mapData.length, i, sunAngle, gTime.lightLevel);
+    const sunAngle = (Math.floor(Math.PI * GameTime.ins.GetDayProgress() * 100 / 5) / 100) * 5;
+    for(let i = 0; i < Terrain.ins.MapY(); i++){
+        castSunRay(0, i, sunAngle, GameTime.ins.lightLevel);
+        castSunRay(Terrain.ins.MapX(), i, sunAngle, GameTime.ins.lightLevel);
     }
-    for(let i = 0; i < mapData.length; i++){
-        castSunRay(i, 0, sunAngle, gTime.lightLevel);
+    for(let i = 0; i < Terrain.ins.MapX(); i++){
+        castSunRay(i, 0, sunAngle, GameTime.ins.lightLevel);
     }
 
     //player emits a little light

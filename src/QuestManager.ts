@@ -1,4 +1,4 @@
-class Quest{
+class Quest{ //TODO: maybe XP and maybe rewards and maybe endgame repetetive random quests
     public constructor(questID:number, questRequirement: string, numberOfSteps: number){
         this.questID = questID;
         this.questRequirement = questRequirement;
@@ -30,12 +30,12 @@ class ResourceQuest extends Quest{
     resourceType: ResourceTypes;
     public CheckCompleteQuest(ResourceType: ResourceTypes, amount: number): void{
         if(this.resourceType == ResourceType){
-            QuestManager.instance.UpdateQuestProgress(amount);
+            QuestManager.ins.UpdateQuestProgress(amount);
         }
     }
 }
 class QuestManager{
-    public static instance:QuestManager;
+    public static ins:QuestManager;
     public constructor(){
         this.UpdateDisplayQuest();
     }
