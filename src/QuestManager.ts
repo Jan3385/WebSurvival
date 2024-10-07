@@ -49,7 +49,7 @@ class QuestManager{
 
         const currentQuest = this.GetActiveQuest();
 
-        currentQuest.questRequirementStep+=progress;
+        currentQuest.questRequirementStep = Math.min(progress+currentQuest.questRequirementStep, currentQuest.questRequirementStepsMax);
         document.getElementById("Quest-Completion")!.innerText = currentQuest.questRequirementStep + "/" + currentQuest.questRequirementStepsMax;
 
         if(currentQuest.questRequirementStep >= currentQuest.questRequirementStepsMax){

@@ -1656,7 +1656,7 @@ class QuestManager {
         if (progress == undefined)
             progress = 1;
         const currentQuest = this.GetActiveQuest();
-        currentQuest.questRequirementStep += progress;
+        currentQuest.questRequirementStep = Math.min(progress + currentQuest.questRequirementStep, currentQuest.questRequirementStepsMax);
         document.getElementById("Quest-Completion").innerText = currentQuest.questRequirementStep + "/" + currentQuest.questRequirementStepsMax;
         if (currentQuest.questRequirementStep >= currentQuest.questRequirementStepsMax) {
             await new Promise(r => setTimeout(r, 1000));
