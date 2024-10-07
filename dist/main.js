@@ -632,7 +632,8 @@ class ResourceManager {
         this.AddResourceList(new ResourceList()
             .Add(ResourceTypes.wood, 1000)
             .Add(ResourceTypes.stone, 1000)
-            .Add(ResourceTypes.glass, 1000));
+            .Add(ResourceTypes.glass, 1000)
+            .Add(ResourceTypes.iron, 1000));
     }
     GetResourceAmount(type) {
         const resource = this.resources.filter(x => x[0] == type)[0];
@@ -647,6 +648,18 @@ class ResourceManager {
         else
             this.resources.filter(x => x[0] == type)[0][1] += amount;
         this.DisplayStoredResources();
+        //Quests:
+        //TODO: tf is this
+        if (QuestManager.instance.activeQuestId == 0 && type == ResourceTypes.wood)
+            QuestManager.instance.UpdateQuestProgress(amount);
+        else if (QuestManager.instance.activeQuestId == 1 && type == ResourceTypes.stone)
+            QuestManager.instance.UpdateQuestProgress(amount);
+        else if (QuestManager.instance.activeQuestId == 4 && type == ResourceTypes.glass)
+            QuestManager.instance.UpdateQuestProgress(amount);
+        else if (QuestManager.instance.activeQuestId == 5 && type == ResourceTypes.iron_ore)
+            QuestManager.instance.UpdateQuestProgress(amount);
+        else if (QuestManager.instance.activeQuestId == 6 && type == ResourceTypes.iron)
+            QuestManager.instance.UpdateQuestProgress(amount);
     }
     AddResourceList(list) {
         list.resources.forEach(x => this.AddResource(x[0], x[1]));
@@ -1136,6 +1149,9 @@ function Build(BuildedBuilding) {
             BuildLandfill(Player.x, Player.y);
             return;
         }
+        //Quest check for building a furnace
+        if (QuestManager.instance.activeQuestId == 3 && BuildedBuilding.build.name == "Furnace")
+            QuestManager.instance.UpdateQuestProgress();
         Resources.RemoveResourceList(BuildedBuilding.cost);
         const didBuildIndoors = Player.OverlapPixel.Indoors;
         Player.OverlapPixel = BuildedBuilding.build.at(Player.x, Player.y);
@@ -1147,6 +1163,9 @@ function Build(BuildedBuilding) {
         }
         //check if build is enclosed
         GetEnclosedSpacesAround(Player.x, Player.y).forEach((vec) => {
+            //Quest check for building enclosed space
+            if (QuestManager.instance.activeQuestId == 2)
+                QuestManager.instance.UpdateQuestProgress();
             fillInterior(vec.x, vec.y);
         });
     }
@@ -1594,6 +1613,67 @@ class PerlinNoise {
 }
 const Seed = Math.random() * 1000;
 let Perlin = new PerlinNoise(Seed); //TODO: add settable seed
+class Quest {
+    constructor(questID, questRequirement, numberOfSteps) {
+        this.questID = questID;
+        this.questRequirement = questRequirement;
+        this.questRequirementStepsMax = numberOfSteps;
+    }
+    questID;
+    questRequirement;
+    questRequirementStep = 0;
+    questRequirementStepsMax;
+    static GetQuests() {
+        let i = 0;
+        return [
+            new Quest(++i, "Gather 10 wood", 10), //id: 0
+            new Quest(++i, "Gather 5 stone", 5), //id: 1
+            new Quest(++i, "Build an inclosed space", 1),
+            new Quest(++i, "Build a furnace", 1),
+            new Quest(++i, "Smelt 10 glass", 10),
+            new Quest(++i, "Gather 12 iron ore", 12),
+            new Quest(++i, "Smelt 4 iron", 4),
+        ];
+    }
+}
+class QuestManager {
+    static instance;
+    constructor() {
+        this.UpdateDisplayQuest();
+    }
+    activeQuestId = 0;
+    quests = Quest.GetQuests();
+    GetActiveQuest() {
+        return this.quests[this.activeQuestId];
+    }
+    async UpdateQuestProgress(progress) {
+        if (progress == undefined)
+            progress = 1;
+        const currentQuest = this.GetActiveQuest();
+        currentQuest.questRequirementStep += progress;
+        document.getElementById("Quest-Completion").innerText = currentQuest.questRequirementStep + "/" + currentQuest.questRequirementStepsMax;
+        if (currentQuest.questRequirementStep >= currentQuest.questRequirementStepsMax) {
+            await new Promise(r => setTimeout(r, 1000));
+            this.activeQuestId++;
+            if (this.activeQuestId - 1 >= Quest.length)
+                this.activeQuestId = 1000;
+            this.UpdateDisplayQuest();
+        }
+    }
+    UpdateDisplayQuest() {
+        if (this.activeQuestId < 1000) {
+            const currentQuest = this.GetActiveQuest();
+            document.getElementById("Quest-ID").innerText = currentQuest.questID.toString() + ")";
+            document.getElementById("Quest-Description").innerText = currentQuest.questRequirement;
+            document.getElementById("Quest-Completion").innerText = currentQuest.questRequirementStep + "/" + currentQuest.questRequirementStepsMax;
+        }
+        else {
+            document.getElementById("Quest-ID").innerText = "";
+            document.getElementById("Quest-Description").innerText = "All quests completed!";
+            document.getElementById("Quest-Completion").innerText = "";
+        }
+    }
+}
 //Class for rendering the game
 class Renderer {
     /**
@@ -1725,6 +1805,7 @@ const Terrain = new TerrainManipulator();
 const Resources = new ResourceManager();
 const Recipes = new RecipeHandler();
 function Start() {
+    QuestManager.instance = new QuestManager(); //redo all systems like this
     Terrain.MovePlayer(Player, 0, 0); //Draw player
     Render.Draw();
     //TODO: Maybe fix?

@@ -52,7 +52,8 @@ class ResourceManager{
         this.AddResourceList(new ResourceList()
             .Add(ResourceTypes.wood, 1000)
             .Add(ResourceTypes.stone, 1000)
-            .Add(ResourceTypes.glass, 1000));
+            .Add(ResourceTypes.glass, 1000)
+            .Add(ResourceTypes.iron, 1000));
     }
     GetResourceAmount(type: ResourceTypes): number{
         const resource = this.resources.filter(x => x[0] == type)[0];
@@ -64,6 +65,19 @@ class ResourceManager{
         if(resource == undefined) this.resources.push([type, amount]);
         else this.resources.filter(x => x[0] == type)[0][1] += amount;
         this.DisplayStoredResources();
+
+        //Quests:
+        //TODO: tf is this
+        if(QuestManager.instance.activeQuestId == 0 && type == ResourceTypes.wood) 
+            QuestManager.instance.UpdateQuestProgress(amount);
+        else if(QuestManager.instance.activeQuestId == 1 && type == ResourceTypes.stone)
+            QuestManager.instance.UpdateQuestProgress(amount);
+        else if(QuestManager.instance.activeQuestId == 4 && type == ResourceTypes.glass)
+            QuestManager.instance.UpdateQuestProgress(amount);
+        else if(QuestManager.instance.activeQuestId == 5 && type == ResourceTypes.iron_ore)
+            QuestManager.instance.UpdateQuestProgress(amount);
+        else if(QuestManager.instance.activeQuestId == 6 && type == ResourceTypes.iron)
+            QuestManager.instance.UpdateQuestProgress(amount);
     }
     AddResourceList(list: ResourceList): void{
         list.resources.forEach(x => this.AddResource(x[0], x[1]));

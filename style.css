@@ -146,7 +146,8 @@
                     display: inline-block;
                     -webkit-user-drag: none;
                     vertical-align: middle;
-                    width: 30px;
+                    margin: 2px;
+                    width: 25px;
                     aspect-ratio: 1/1;
                 }
             }
@@ -187,26 +188,37 @@
     width: 10svw;
     padding: 5px;
     .Quest{
-        background-color: rgb(234, 106, 106);
+        background-color: rgb(240, 148, 148);
         padding: 4px;
         border-radius: 5px;
         h3{
             text-align: center;
             width: 70%;
             margin: auto;
-            padding: 5px;
+            padding: 0.1dvw;
             background-color: rgb(255, 255, 255);
-            border-radius: 5px;
-            font-size: 60%;
-            margin-bottom: 5px;
-            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            border-radius: 5px 5px 0px 0px;
+            border-bottom: 2px rgb(184, 184, 184) dashed;
+            font-size: 0.8dvw;
+            margin-bottom: 0px;
+            font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
         }
-        p{
-            text-align: center;
-            margin: 0;
-            padding: 5px;
+        div{
             background-color: white;
-            border-radius: 5px;
+            margin: 0;
+            border-radius: 3px;
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            display: grid;
+            align-items: center;
+            p{
+                grid-row: 1;
+                text-align: center;
+                margin: 0;
+                padding: 2px 0.1dvw 2px 0.1dvw;
+                font-size: 0.8dvw;
+                height: fit-content;
+            }
         }
     }
     .tutorial{

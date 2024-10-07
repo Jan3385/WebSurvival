@@ -154,6 +154,9 @@ function Build(
                 BuildLandfill(Player.x, Player.y);
                 return;
             }
+            //Quest check for building a furnace
+            if(QuestManager.instance.activeQuestId == 3 && BuildedBuilding.build.name == "Furnace")
+                QuestManager.instance.UpdateQuestProgress();
             
             Resources.RemoveResourceList(BuildedBuilding.cost);
 
@@ -168,6 +171,10 @@ function Build(
             }
             //check if build is enclosed
             GetEnclosedSpacesAround(Player.x, Player.y).forEach((vec: Vector2) => {
+                //Quest check for building enclosed space
+                if(QuestManager.instance.activeQuestId == 2) 
+                    QuestManager.instance.UpdateQuestProgress();
+
                 fillInterior(vec.x, vec.y);
             });
     }

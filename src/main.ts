@@ -21,13 +21,15 @@ const MaxTResource = new ResourceList().Add(ResourceTypes.wood, 60).Add(Resource
 const Player: PlayerData = new PlayerData(new rgb(0, 0, 0), new rgb(255, 255, 255), 
     Math.floor(canvas.width/canvasScale/2), Math.floor(canvas.height/canvasScale/2), 10);
 
-    const Render = new Renderer();
+const Render = new Renderer();
 const Terrain = new TerrainManipulator();
 
 const Resources = new ResourceManager();
 const Recipes = new RecipeHandler();
 
 function Start(){
+    QuestManager.instance = new QuestManager(); //redo all systems like this
+
     Terrain.MovePlayer(Player, 0, 0); //Draw player
     Render.Draw();
 
