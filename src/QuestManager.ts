@@ -12,14 +12,26 @@ class Quest{
     public static GetQuests(): Quest[]{
         let i = 0;
         return [
-            new Quest(++i, "Gather 10 wood", 10), //id: 0
-            new Quest(++i, "Gather 5 stone", 5),  //id: 1
+            new ResourceQuest(++i, "Gather 10 wood", 10, ResourceTypes.wood), //id: 0
+            new ResourceQuest(++i, "Gather 5 stone", 5, ResourceTypes.stone),  //id: 1
             new Quest(++i, "Build an inclosed space", 1),
             new Quest(++i, "Build a furnace", 1),
-            new Quest(++i, "Smelt 10 glass", 10),
-            new Quest(++i, "Gather 12 iron ore", 12),
-            new Quest(++i, "Smelt 4 iron", 4),
+            new ResourceQuest(++i, "Smelt 10 glass", 10, ResourceTypes.glass),
+            new ResourceQuest(++i, "Gather 12 iron ore", 12, ResourceTypes.iron_ore),
+            new ResourceQuest(++i, "Smelt 4 iron", 4, ResourceTypes.iron),
         ];
+    }
+}
+class ResourceQuest extends Quest{
+    public constructor(questID:number, questRequirement: string, numberOfSteps: number, resourceType: ResourceTypes){
+        super(questID, questRequirement, numberOfSteps);
+        this.resourceType = resourceType;
+    }
+    resourceType: ResourceTypes;
+    public CheckCompleteQuest(ResourceType: ResourceTypes, amount: number): void{
+        if(this.resourceType == ResourceType){
+            QuestManager.instance.UpdateQuestProgress(amount);
+        }
     }
 }
 class QuestManager{

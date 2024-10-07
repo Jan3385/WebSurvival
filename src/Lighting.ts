@@ -20,7 +20,8 @@ class GameTime{
      * Updates the time object
      */
     Tick(){
-        this.time++;
+        if(QuestManager.instance.activeQuestId > 2)
+            this.time++;
 
         if(this.GetDayProgress() <= 0.2){ //day starts (sun rises)
             this.lightLevel = this.GetDayProgress() * 25;

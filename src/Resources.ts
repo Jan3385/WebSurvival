@@ -68,16 +68,10 @@ class ResourceManager{
 
         //Quests:
         //TODO: tf is this
-        if(QuestManager.instance.activeQuestId == 0 && type == ResourceTypes.wood) 
-            QuestManager.instance.UpdateQuestProgress(amount);
-        else if(QuestManager.instance.activeQuestId == 1 && type == ResourceTypes.stone)
-            QuestManager.instance.UpdateQuestProgress(amount);
-        else if(QuestManager.instance.activeQuestId == 4 && type == ResourceTypes.glass)
-            QuestManager.instance.UpdateQuestProgress(amount);
-        else if(QuestManager.instance.activeQuestId == 5 && type == ResourceTypes.iron_ore)
-            QuestManager.instance.UpdateQuestProgress(amount);
-        else if(QuestManager.instance.activeQuestId == 6 && type == ResourceTypes.iron)
-            QuestManager.instance.UpdateQuestProgress(amount);
+        if(QuestManager.instance.GetActiveQuest() instanceof ResourceQuest){
+            const quest = <ResourceQuest>QuestManager.instance.GetActiveQuest();
+            quest.CheckCompleteQuest(type, amount);
+        }
     }
     AddResourceList(list: ResourceList): void{
         list.resources.forEach(x => this.AddResource(x[0], x[1]));
