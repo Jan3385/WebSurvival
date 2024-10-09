@@ -283,11 +283,11 @@
         tr{
             background-color: rgb(203, 203, 203);
             td{
-                font-size: 1.2vmin;
+                font-size: 1.4vmin;
                 text-align: center;
             }
             .key{
-                font-size: 1.3vmin;
+                font-size: 1.6vmin;
             }
         }
         tr:nth-child(even){
