@@ -1,3 +1,4 @@
+//returns a function that generates a random number between 0 and 1 exclusive using a seed
 function RandomUsingSeed(seed: number) {
     const m: number = 0x80000000; // 2**31
     const a: number = 1103515245;
@@ -5,6 +6,7 @@ function RandomUsingSeed(seed: number) {
 
     let state: number = seed;
 
+    //returns a random number between 0 and 1 (not including 1)
     return function() {
         state = (a * state + c) % m;
         return state / (m - 1);

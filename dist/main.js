@@ -1528,11 +1528,13 @@ function UpdateInput() {
 }
 window.addEventListener("keydown", onKeyDown, false);
 window.addEventListener("keyup", onKeyUp, false);
+//returns a function that generates a random number between 0 and 1 exclusive using a seed
 function RandomUsingSeed(seed) {
     const m = 0x80000000; // 2**31
     const a = 1103515245;
     const c = 12345;
     let state = seed;
+    //returns a random number between 0 and 1 (not including 1)
     return function () {
         state = (a * state + c) % m;
         return state / (m - 1);
@@ -1640,9 +1642,8 @@ class Quest {
     static GetQuests() {
         let i = 0;
         return [
-            new RandomResourceQuest(++i),
             new ResourceQuest(QuestManager.GetXPRewardFromID(++i), "Gather 10 wood", 10, ResourceTypes.wood), //id: 0
-            new ResourceQuest(QuestManager.GetXPRewardFromID(++i), "Gather 5 stone", 5, ResourceTypes.stone), //id: 1
+            new ResourceQuest(QuestManager.GetXPRewardFromID(++i), "Gather 5 stone", 5, ResourceTypes.stone), //id: 1..
             new Quest(QuestManager.GetXPRewardFromID(++i), "Build an inclosed space", 1),
             new Quest(QuestManager.GetXPRewardFromID(++i), "Build a furnace", 1),
             new ResourceQuest(QuestManager.GetXPRewardFromID(++i), "Smelt 10 glass", 10, ResourceTypes.glass),
