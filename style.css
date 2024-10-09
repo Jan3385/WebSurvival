@@ -43,15 +43,24 @@
 }
 .Game-Spacer {
     padding: 5px;
+    min-width: 8dvw;
+    user-select: none;
+    overflow: hidden;
+    overflow-y: auto;
+    max-height: 70dvh;
+
+    .GameDay{
+        padding: 0;
+        margin: 3px auto 3px auto;
+        text-align: center;
+        font-family: monospace;
+        border-top: 2px solid rgb(178, 178, 178);
+        border-radius: 10px;
+    }
     .Player-Material-List{
         background-color: rgb(230, 230, 230);
         border-radius: 5px;
         border: solid rgb(194, 194, 194) 1px;
-
-        min-width: 5svw;
-        user-select: none;
-        overflow-y: auto;
-        max-height: 50dvh;
 
         display: flex;
         flex-direction: column;
@@ -59,7 +68,7 @@
         padding: 5px 0px 4px 0px;
         margin: 7px auto 7px auto;
         border-radius: 10px;
-        width: 100%;
+        width: 95%;
         p{
             user-select: none;
             margin: 0;
@@ -163,7 +172,7 @@
         border-radius: 5px;
         padding: 5px;
         margin: 0px;
-        width: 94%;
+        width: 92%;
         font-family: monospace;
         p{
             user-select: none;
@@ -181,12 +190,45 @@
             background-color: transparent;
         }
     }
+    .Xp-Bar{
+        display: grid;
+        grid-template-columns: 5fr 1fr 5fr;
+        justify-content: center;
+        align-items: center;
+        background-color: rgb(230, 230, 230);
+        border-radius: 5px;
+        padding: 5px;
+        margin: 0px;
+        font-family: monospace;
+        margin-bottom: 4px;
+        p{
+            user-select: none;
+            margin: 0;
+            padding: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            width: auto;
+            background-color: white;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 0.8vw;
+            font-weight: 500;
+        }
+        .divider{
+            margin: auto;
+            width:1%;
+            height: 80%;
+            text-align: center;
+            border-left: solid rgb(148, 148, 148) 1.5px;
+            background-color: transparent;
+        }
+    }
 }
 .Tutorial-Panel{
     background-color: rgb(230, 230, 230);
-    height: 90%;
-    width: 10svw;
+    height: 80%;
     padding: 5px;
+    width: 12dvw;
     .Quest{
         background-color: rgb(240, 148, 148);
         padding: 4px;
@@ -221,9 +263,36 @@
             }
         }
     }
+    h4{
+        padding: 0;
+        margin: 10px auto 0px auto;
+        width: 75%;
+        text-align: center;
+        font-family: monospace;
+    }
     .tutorial{
-        padding: 10px;
-        padding-left: 30px;
+        margin: 0px auto 3px auto;
+        width: 90%;
+        overflow: hidden;
+        border-spacing: 0 2px;
+        font-family: monospace;
+        th{
+            margin: auto;
+            text-align: center;
+        }
+        tr{
+            background-color: rgb(203, 203, 203);
+            td{
+                font-size: 0.6em;
+                text-align: center;
+            }
+            .key{
+                font-size: 0.8em;
+            }
+        }
+        tr:nth-child(even){
+            background-color: rgb(183, 183, 183);
+        }
     }
 }
 .Selection-Button-Div{

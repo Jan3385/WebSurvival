@@ -357,6 +357,7 @@ class GameTime {
      * @constructor
      */
     time = 0;
+    day = 0;
     maxTime = 1000; //default: 1000
     lightLevel = 5;
     minLightLevel = 30;
@@ -401,6 +402,7 @@ class GameTime {
         const t = this.lightLevel / 5;
         document.body.style.background = "rgb(" + lerp(99, 255, t) + "," +
             lerp(110, 255, t) + "," + lerp(114, 255, t) + ")";
+        document.getElementById("Time").innerHTML = GameTime.ins.GetDayTime(); //shows time
         CalculateLightMap();
     }
     OnNightStart() {
@@ -424,6 +426,8 @@ class GameTime {
                 }
             }
         }
+        this.day++;
+        document.getElementById("Game-Day").innerHTML = "Day " + this.day;
     }
     GetDayProgress() {
         return this.time / this.maxTime;
@@ -1667,6 +1671,8 @@ class RandomResourceQuest extends ResourceQuest {
 class QuestManager {
     static ins;
     static PlayerXP = 0;
+    static PlayerXpToNextLevel = 0;
+    static PlayerLevel = 1;
     constructor() {
         this.UpdateDisplayQuest();
     }
@@ -1686,13 +1692,21 @@ class QuestManager {
         currentQuest.questRequirementStep = Math.min(progress + currentQuest.questRequirementStep, currentQuest.questRequirementStepsMax);
         document.getElementById("Quest-Completion").innerText = currentQuest.questRequirementStep + "/" + currentQuest.questRequirementStepsMax;
         if (currentQuest.questRequirementStep >= currentQuest.questRequirementStepsMax) {
-            await new Promise(r => setTimeout(r, 1000));
+            await new Promise(r => setTimeout(r, 500));
             //quest completed
             QuestManager.PlayerXP += currentQuest.questXP;
             this.activeQuestId++;
             if (this.activeQuestId >= this.quests.length)
                 this.quests.push(new RandomResourceQuest(QuestManager.GetXPRewardFromID(this.activeQuestId + 1)));
             this.UpdateDisplayQuest();
+            while (QuestManager.PlayerXP >= QuestManager.PlayerXpToNextLevel) {
+                this.UpdateLevelDisplay();
+                await new Promise(r => setTimeout(r, 500));
+                QuestManager.PlayerXP -= QuestManager.PlayerXpToNextLevel;
+                QuestManager.PlayerXpToNextLevel = Math.pow(QuestManager.PlayerLevel + 1, 2);
+                QuestManager.PlayerLevel++;
+            }
+            this.UpdateLevelDisplay();
         }
     }
     UpdateDisplayQuest() {
@@ -1707,6 +1721,10 @@ class QuestManager {
             document.getElementById("Quest-Description").innerText = "No active quests";
             document.getElementById("Quest-Completion").innerText = "";
         }
+    }
+    UpdateLevelDisplay() {
+        document.getElementById("Player-Level").innerText = "Level: " + QuestManager.PlayerLevel;
+        document.getElementById("Player-XPLevel").innerText = QuestManager.PlayerXP + "/" + QuestManager.PlayerXpToNextLevel;
     }
     static GetXPRewardFromID(id) {
         return Math.floor(Math.log(id) * 5) + 1;
@@ -1897,7 +1915,6 @@ function Update() {
         RecipeHandler.ins.UpdatevAvalibleRecipes();
     }
     UpdateInput();
-    document.getElementById("Time").innerHTML = GameTime.ins.GetDayTime(); //shows time
     //Resource spawner
     if (Math.random() > 0.98) {
         Terrain.ins.GenerateRandomResource();

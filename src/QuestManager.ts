@@ -46,6 +46,8 @@ class RandomResourceQuest extends ResourceQuest{
 class QuestManager{
     public static ins:QuestManager;
     public static PlayerXP: number = 0;
+    public static PlayerXpToNextLevel: number = 0;
+    public static PlayerLevel: number = 1;
     public constructor(){
         this.UpdateDisplayQuest();
     }
@@ -66,12 +68,23 @@ class QuestManager{
         document.getElementById("Quest-Completion")!.innerText = currentQuest.questRequirementStep + "/" + currentQuest.questRequirementStepsMax;
 
         if(currentQuest.questRequirementStep >= currentQuest.questRequirementStepsMax){
-            await new Promise(r => setTimeout(r, 1000));
+            await new Promise(r => setTimeout(r, 500));
             //quest completed
             QuestManager.PlayerXP += currentQuest.questXP;
             this.activeQuestId++;
+
             if(this.activeQuestId >= this.quests.length) this.quests.push(new RandomResourceQuest(QuestManager.GetXPRewardFromID(this.activeQuestId+1)));
             this.UpdateDisplayQuest();
+
+            while(QuestManager.PlayerXP >= QuestManager.PlayerXpToNextLevel){
+                this.UpdateLevelDisplay();
+                await new Promise(r => setTimeout(r, 500));
+                QuestManager.PlayerXP -= QuestManager.PlayerXpToNextLevel;
+                QuestManager.PlayerXpToNextLevel = Math.pow(QuestManager.PlayerLevel+1, 2);
+                QuestManager.PlayerLevel++;
+            }
+
+            this.UpdateLevelDisplay();
         }
     }
     public UpdateDisplayQuest(): void{
@@ -87,6 +100,10 @@ class QuestManager{
             document.getElementById("Quest-Description")!.innerText = "No active quests";
             document.getElementById("Quest-Completion")!.innerText = "";
         }
+    }
+    public UpdateLevelDisplay(): void{
+        document.getElementById("Player-Level")!.innerText = "Level: " + QuestManager.PlayerLevel;
+        document.getElementById("Player-XPLevel")!.innerText = QuestManager.PlayerXP + "/" + QuestManager.PlayerXpToNextLevel;
     }
     public static GetXPRewardFromID(id: number): number{
         return Math.floor(Math.log(id) * 5)+1;

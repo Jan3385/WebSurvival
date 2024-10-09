@@ -9,6 +9,7 @@ class GameTime{
      * @constructor
      */
     time: number = 0;
+    day: number = 0;
     maxTime: number = 1000; //default: 1000
     lightLevel: number = 5;
     minLightLevel: number = 30;
@@ -22,7 +23,7 @@ class GameTime{
      */
     Tick(){
         //if(QuestManager.ins.activeQuestId > 2) might be dumb
-            this.time++;
+        this.time++;
 
         if(this.GetDayProgress() <= 0.2){ //day starts (sun rises)
             this.lightLevel = this.GetDayProgress() * 25;
@@ -57,6 +58,8 @@ class GameTime{
         document.body.style.background = "rgb(" + lerp(99, 255, t) + "," + 
             lerp(110, 255, t) + "," + lerp(114, 255, t) + ")";
 
+        document.getElementById("Time")!.innerHTML = GameTime.ins.GetDayTime(); //shows time
+
         CalculateLightMap();
     }
 
@@ -83,6 +86,9 @@ class GameTime{
                 }
             }
         }
+
+        this.day++;
+        document.getElementById("Game-Day")!.innerHTML = "Day " + this.day;
     }
     GetDayProgress(): number{
         return this.time / this.maxTime;

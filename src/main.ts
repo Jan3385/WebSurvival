@@ -101,8 +101,6 @@ function Update(){
 
     UpdateInput();
 
-    document.getElementById("Time")!.innerHTML = GameTime.ins.GetDayTime(); //shows time
-
     //Resource spawner
     if(Math.random() > 0.98){
         Terrain.ins.GenerateRandomResource();
