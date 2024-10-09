@@ -185,8 +185,11 @@
             border-radius: 10px;
         }
         .divider{
-            margin-left: 10px;
-            margin-right: 10px;
+            margin: auto;
+            width:1%;
+            height: 20px;
+            text-align: center;
+            border-left: solid rgb(148, 148, 148) 1.5px;
             background-color: transparent;
         }
     }
