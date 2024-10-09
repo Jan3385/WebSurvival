@@ -1,7 +1,7 @@
 enum ResourceTypes{
+    sand,
     wood,
     stone,
-    sand,
     glass,
     iron_ore,
     iron,

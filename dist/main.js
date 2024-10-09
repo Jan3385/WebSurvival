@@ -592,9 +592,9 @@ function CalculateLightMap() {
 }
 var ResourceTypes;
 (function (ResourceTypes) {
-    ResourceTypes[ResourceTypes["wood"] = 0] = "wood";
-    ResourceTypes[ResourceTypes["stone"] = 1] = "stone";
-    ResourceTypes[ResourceTypes["sand"] = 2] = "sand";
+    ResourceTypes[ResourceTypes["sand"] = 0] = "sand";
+    ResourceTypes[ResourceTypes["wood"] = 1] = "wood";
+    ResourceTypes[ResourceTypes["stone"] = 2] = "stone";
     ResourceTypes[ResourceTypes["glass"] = 3] = "glass";
     ResourceTypes[ResourceTypes["iron_ore"] = 4] = "iron_ore";
     ResourceTypes[ResourceTypes["iron"] = 5] = "iron";
@@ -1646,15 +1646,14 @@ class Quest {
     questRequirementStep = 0;
     questRequirementStepsMax;
     static GetQuests() {
-        let i = 0;
         return [
-            new ResourceQuest(QuestManager.GetXPRewardFromID(++i), "Gather 10 wood", 10, ResourceTypes.wood), //id: 0
-            new ResourceQuest(QuestManager.GetXPRewardFromID(++i), "Gather 5 stone", 5, ResourceTypes.stone), //id: 1..
-            new SpecialTriggerQuest(QuestManager.GetXPRewardFromID(++i), "Build an inclosed space", 1, 0),
-            new SpecialTriggerQuest(QuestManager.GetXPRewardFromID(++i), "Build a furnace", 1, 1),
-            new ResourceQuest(QuestManager.GetXPRewardFromID(++i), "Smelt 10 glass", 10, ResourceTypes.glass),
-            new ResourceQuest(QuestManager.GetXPRewardFromID(++i), "Gather 12 iron ore", 12, ResourceTypes.iron_ore),
-            new ResourceQuest(QuestManager.GetXPRewardFromID(++i), "Smelt 4 iron", 4, ResourceTypes.iron),
+            new ResourceQuest(2, "Gather 10 wood", 10, ResourceTypes.wood),
+            new ResourceQuest(2, "Gather 5 stone", 5, ResourceTypes.stone),
+            new SpecialTriggerQuest(5, "Build an inclosed space", 1, 0),
+            new SpecialTriggerQuest(4, "Build a furnace", 1, 1),
+            new ResourceQuest(4, "Smelt 10 glass", 10, ResourceTypes.glass),
+            new ResourceQuest(4, "Gather 12 iron ore", 12, ResourceTypes.iron_ore),
+            new ResourceQuest(5, "Smelt 4 iron", 4, ResourceTypes.iron),
         ];
     }
 }
@@ -1671,13 +1670,14 @@ class ResourceQuest extends Quest {
     }
 }
 class RandomResourceQuest extends ResourceQuest {
-    constructor(questID) {
-        const numberOfSteps = Math.floor(Math.random() * 13) + 8;
+    constructor(QuestID) {
         //picks a random resource type
         const enumValues = Object.values(ResourceTypes).filter(value => typeof value === "number");
-        const resourceType = enumValues[Math.floor(Math.random() * enumValues.length)];
+        const PickedResourceIndex = Math.floor(Math.random() * enumValues.length);
+        const resourceType = enumValues[PickedResourceIndex];
+        const numberOfSteps = Math.floor(Math.random() * 30 + (enumValues.length - PickedResourceIndex));
         const questRequirement = `Gather ${numberOfSteps} ${ResourceTypes[resourceType].replace("_", " ")}`;
-        super(questID, questRequirement, numberOfSteps, resourceType);
+        super(QuestManager.GetXPRewardFromRandomQuest(QuestID, numberOfSteps, (0.7 + (PickedResourceIndex / enumValues.length))), questRequirement, numberOfSteps, resourceType);
     }
 }
 class SpecialTriggerQuest extends Quest {
@@ -1716,13 +1716,13 @@ class QuestManager {
             QuestManager.PlayerXP += currentQuest.questXP;
             this.activeQuestId++;
             if (this.activeQuestId >= this.quests.length)
-                this.quests.push(new RandomResourceQuest(QuestManager.GetXPRewardFromID(this.activeQuestId + 1)));
+                this.quests.push(new RandomResourceQuest(this.activeQuestId + 1));
             this.UpdateDisplayQuest();
             while (QuestManager.PlayerXP >= QuestManager.PlayerXpToNextLevel) {
                 this.UpdateLevelDisplay();
                 await new Promise(r => setTimeout(r, 500));
                 QuestManager.PlayerXP -= QuestManager.PlayerXpToNextLevel;
-                QuestManager.PlayerXpToNextLevel = Math.pow(QuestManager.PlayerLevel + 1, 2);
+                QuestManager.PlayerXpToNextLevel = Math.floor(Math.log(QuestManager.PlayerLevel + 3) * 10); //TODO:
                 QuestManager.PlayerLevel++;
             }
             this.UpdateLevelDisplay();
@@ -1745,8 +1745,8 @@ class QuestManager {
         document.getElementById("Player-Level").innerText = "Level: " + QuestManager.PlayerLevel;
         document.getElementById("Player-XPLevel").innerText = QuestManager.PlayerXP + "/" + QuestManager.PlayerXpToNextLevel;
     }
-    static GetXPRewardFromID(id) {
-        return Math.floor(Math.log(id) * 5) + 1;
+    static GetXPRewardFromRandomQuest(id, ResourceCount, XpMultiplier) {
+        return Math.floor(Math.floor(ResourceCount / 3.5) * XpMultiplier + (id * 0.33));
     }
 }
 //Class for rendering the game
