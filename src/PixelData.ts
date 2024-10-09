@@ -38,7 +38,7 @@ class TerrainData extends PixelData{
 }
 const nullPixel = new TerrainData(new rgb(0,0,0), PixelStatus.walkable, TerrainType.water);
 function PerlinPixel(x: number,y: number): PixelData{
-    const pColor = Perlin.perlinColorTerrain(x/9,y/9);
+    const pColor = Terrain.perlin.perlinColorTerrain(x/9,y/9);
     return new TerrainData(new rgb(pColor.r, pColor.g, pColor.b), pColor.s, pColor.t);
 }
 

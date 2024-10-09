@@ -1,6 +1,12 @@
 //Class for terrain modification
 class Terrain{
     public static ins: Terrain;
+
+    public static perlin: PerlinNoise;
+
+    constructor(Seed: number){
+        Terrain.perlin = new PerlinNoise(Seed);
+    }
     mapData: PixelData[][] = [];
     /**
      * Inserts a pixel at the given position

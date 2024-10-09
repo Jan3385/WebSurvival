@@ -15,16 +15,21 @@ let canvasScale: number = 10;
 const ResourceTerrain = new ResourceList();
 const MaxTResource = new ResourceList().Add(ResourceTypes.wood, 60).Add(ResourceTypes.stone,55);
 
-//sets player position in the middle of the map
-const Player: PlayerData = new PlayerData(new rgb(0, 0, 0), new rgb(255, 255, 255), 
-    Math.floor(canvas.width/canvasScale/2), Math.floor(canvas.height/canvasScale/2), 10);
+let Player: PlayerData;
 
 function Start(){
     GameTime.ins = new GameTime();
     ResourceManager.ins = new ResourceManager();
     RecipeHandler.ins = new RecipeHandler();
 
-    Terrain.ins = new Terrain();
+    const Seed = Math.random() * 1000;
+
+    Terrain.ins = new Terrain(Seed);
+
+    //sets player position in the middle of the map
+    Player = new PlayerData(new rgb(0, 0, 0), new rgb(255, 255, 255), 
+        Math.floor(canvas.width/canvasScale/2), Math.floor(canvas.height/canvasScale/2), 10);
+
     Renderer.ins = new Renderer();
     QuestManager.ins = new QuestManager();
 

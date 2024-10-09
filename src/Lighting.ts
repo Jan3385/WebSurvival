@@ -244,7 +244,7 @@ function CalculateLightMap(){
         for(let i = 0; i < numRays; i++){
             const angle = (Math.PI * 2 / numRays) * i;
             //send ray from the middle of the block
-            castRay(light.x+.5, light.y+.5, angle, light.intensity, light.radius);
+            castRay(light.x, light.y, angle, light.intensity, light.radius);
         }
     }
 

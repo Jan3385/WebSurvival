@@ -124,7 +124,7 @@ class TerrainData extends PixelData {
 }
 const nullPixel = new TerrainData(new rgb(0, 0, 0), PixelStatus.walkable, TerrainType.water);
 function PerlinPixel(x, y) {
-    const pColor = Perlin.perlinColorTerrain(x / 9, y / 9);
+    const pColor = Terrain.perlin.perlinColorTerrain(x / 9, y / 9);
     return new TerrainData(new rgb(pColor.r, pColor.g, pColor.b), pColor.s, pColor.t);
 }
 function IsDamageable(entity) {
@@ -572,7 +572,7 @@ function CalculateLightMap() {
         for (let i = 0; i < numRays; i++) {
             const angle = (Math.PI * 2 / numRays) * i;
             //send ray from the middle of the block
-            castRay(light.x + .5, light.y + .5, angle, light.intensity, light.radius);
+            castRay(light.x, light.y, angle, light.intensity, light.radius);
         }
     }
     //sun
@@ -721,6 +721,10 @@ class ResourceList {
 //Class for terrain modification
 class Terrain {
     static ins;
+    static perlin;
+    constructor(Seed) {
+        Terrain.perlin = new PerlinNoise(Seed);
+    }
     mapData = [];
     /**
      * Inserts a pixel at the given position
@@ -1623,8 +1627,6 @@ class PerlinNoise {
         return this.perlinColorTerrain(x, y);
     }
 }
-const Seed = Math.random() * 1000;
-let Perlin = new PerlinNoise(Seed); //TODO: add settable seed
 class Quest {
     constructor(questID, questRequirement, numberOfSteps) {
         this.questXP = questID;
@@ -1638,6 +1640,7 @@ class Quest {
     static GetQuests() {
         let i = 0;
         return [
+            new RandomResourceQuest(++i),
             new ResourceQuest(QuestManager.GetXPRewardFromID(++i), "Gather 10 wood", 10, ResourceTypes.wood), //id: 0
             new ResourceQuest(QuestManager.GetXPRewardFromID(++i), "Gather 5 stone", 5, ResourceTypes.stone), //id: 1
             new Quest(QuestManager.GetXPRewardFromID(++i), "Build an inclosed space", 1),
@@ -1662,9 +1665,11 @@ class ResourceQuest extends Quest {
 }
 class RandomResourceQuest extends ResourceQuest {
     constructor(questID) {
-        const questRequirement = "WOOD!!!";
-        const numberOfSteps = 10;
-        const resourceType = ResourceTypes.wood;
+        const numberOfSteps = Math.floor(Math.random() * 13) + 8;
+        //picks a random resource type
+        const enumValues = Object.values(ResourceTypes).filter(value => typeof value === "number");
+        const resourceType = enumValues[Math.floor(Math.random() * enumValues.length)];
+        const questRequirement = `Gather ${numberOfSteps} ${ResourceTypes[resourceType].replace("_", " ")}`;
         super(questID, questRequirement, numberOfSteps, resourceType);
     }
 }
@@ -1846,13 +1851,15 @@ const ctx = canvas.getContext('2d', { alpha: false });
 let canvasScale = 10;
 const ResourceTerrain = new ResourceList();
 const MaxTResource = new ResourceList().Add(ResourceTypes.wood, 60).Add(ResourceTypes.stone, 55);
-//sets player position in the middle of the map
-const Player = new PlayerData(new rgb(0, 0, 0), new rgb(255, 255, 255), Math.floor(canvas.width / canvasScale / 2), Math.floor(canvas.height / canvasScale / 2), 10);
+let Player;
 function Start() {
     GameTime.ins = new GameTime();
     ResourceManager.ins = new ResourceManager();
     RecipeHandler.ins = new RecipeHandler();
-    Terrain.ins = new Terrain();
+    const Seed = Math.random() * 1000;
+    Terrain.ins = new Terrain(Seed);
+    //sets player position in the middle of the map
+    Player = new PlayerData(new rgb(0, 0, 0), new rgb(255, 255, 255), Math.floor(canvas.width / canvasScale / 2), Math.floor(canvas.height / canvasScale / 2), 10);
     Renderer.ins = new Renderer();
     QuestManager.ins = new QuestManager();
     Terrain.ins.MovePlayer(Player, 0, 0); //Draw player

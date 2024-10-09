@@ -111,5 +111,3 @@ class PerlinNoise {
         return this.perlinColorTerrain(x,y);
     }
 }
-const Seed = Math.random() * 1000;
-let Perlin = new PerlinNoise(Seed); //TODO: add settable seed

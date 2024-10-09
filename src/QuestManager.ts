@@ -12,6 +12,7 @@ class Quest{ //TODO: maybe XP and maybe rewards and maybe endgame repetetive ran
     public static GetQuests(): Quest[]{
         let i = 0;
         return [
+            new RandomResourceQuest(++i),
             new ResourceQuest(QuestManager.GetXPRewardFromID(++i), "Gather 10 wood", 10, ResourceTypes.wood), //id: 0
             new ResourceQuest(QuestManager.GetXPRewardFromID(++i), "Gather 5 stone", 5, ResourceTypes.stone),  //id: 1
             new Quest(QuestManager.GetXPRewardFromID(++i), "Build an inclosed space", 1),
@@ -36,9 +37,13 @@ class ResourceQuest extends Quest{
 }
 class RandomResourceQuest extends ResourceQuest{
     public constructor(questID:number){
-        const questRequirement = "WOOD!!!";
-        const numberOfSteps = 10;
-        const resourceType = ResourceTypes.wood;
+        const numberOfSteps = Math.floor(Math.random() * 13) + 8;
+
+        //picks a random resource type
+        const enumValues = Object.values(ResourceTypes).filter(value => typeof value === "number");
+        const resourceType: ResourceTypes = enumValues[Math.floor(Math.random() * enumValues.length)];
+
+        const questRequirement = `Gather ${numberOfSteps} ${ResourceTypes[resourceType].replace("_", " ")}`;
 
         super(questID, questRequirement, numberOfSteps, resourceType);
     }
