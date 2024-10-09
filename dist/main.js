@@ -1165,8 +1165,11 @@ function Build(BuildedBuilding) {
             return;
         }
         //Quest check for building a furnace
-        if (QuestManager.ins.activeQuestId == 3 && BuildedBuilding.build.name == "Furnace")
-            QuestManager.ins.UpdateQuestProgress();
+        const ActiveQuest = QuestManager.ins.GetActiveQuest();
+        if (ActiveQuest instanceof SpecialTriggerQuest) {
+            if (ActiveQuest.TriggerID == 1 && BuildedBuilding.build.name == "Furnace")
+                QuestManager.ins.UpdateQuestProgress();
+        }
         ResourceManager.ins.RemoveResourceList(BuildedBuilding.cost);
         const didBuildIndoors = Player.OverlapPixel.Indoors;
         Player.OverlapPixel = BuildedBuilding.build.at(Player.x, Player.y);
@@ -1179,8 +1182,11 @@ function Build(BuildedBuilding) {
         //check if build is enclosed
         GetEnclosedSpacesAround(Player.x, Player.y).forEach((vec) => {
             //Quest check for building enclosed space
-            if (QuestManager.ins.activeQuestId == 2)
-                QuestManager.ins.UpdateQuestProgress();
+            const ActiveQuest = QuestManager.ins.GetActiveQuest();
+            if (ActiveQuest instanceof SpecialTriggerQuest) {
+                if (ActiveQuest.TriggerID == 0)
+                    QuestManager.ins.UpdateQuestProgress();
+            }
             fillInterior(vec.x, vec.y);
         });
     }
@@ -1644,8 +1650,8 @@ class Quest {
         return [
             new ResourceQuest(QuestManager.GetXPRewardFromID(++i), "Gather 10 wood", 10, ResourceTypes.wood), //id: 0
             new ResourceQuest(QuestManager.GetXPRewardFromID(++i), "Gather 5 stone", 5, ResourceTypes.stone), //id: 1..
-            new Quest(QuestManager.GetXPRewardFromID(++i), "Build an inclosed space", 1),
-            new Quest(QuestManager.GetXPRewardFromID(++i), "Build a furnace", 1),
+            new SpecialTriggerQuest(QuestManager.GetXPRewardFromID(++i), "Build an inclosed space", 1, 0),
+            new SpecialTriggerQuest(QuestManager.GetXPRewardFromID(++i), "Build a furnace", 1, 1),
             new ResourceQuest(QuestManager.GetXPRewardFromID(++i), "Smelt 10 glass", 10, ResourceTypes.glass),
             new ResourceQuest(QuestManager.GetXPRewardFromID(++i), "Gather 12 iron ore", 12, ResourceTypes.iron_ore),
             new ResourceQuest(QuestManager.GetXPRewardFromID(++i), "Smelt 4 iron", 4, ResourceTypes.iron),
@@ -1672,6 +1678,13 @@ class RandomResourceQuest extends ResourceQuest {
         const resourceType = enumValues[Math.floor(Math.random() * enumValues.length)];
         const questRequirement = `Gather ${numberOfSteps} ${ResourceTypes[resourceType].replace("_", " ")}`;
         super(questID, questRequirement, numberOfSteps, resourceType);
+    }
+}
+class SpecialTriggerQuest extends Quest {
+    TriggerID;
+    constructor(questID, questRequirement, numberOfSteps, TriggerID) {
+        super(questID, questRequirement, numberOfSteps);
+        this.TriggerID = TriggerID;
     }
 }
 class QuestManager {

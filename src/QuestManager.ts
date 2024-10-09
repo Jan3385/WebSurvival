@@ -1,4 +1,4 @@
-class Quest{ //TODO: maybe XP and maybe rewards and maybe endgame repetetive random quests
+abstract class Quest{
     public constructor(questID:number, questRequirement: string, numberOfSteps: number){
         this.questXP = questID;
         this.questRequirement = questRequirement;
@@ -14,8 +14,8 @@ class Quest{ //TODO: maybe XP and maybe rewards and maybe endgame repetetive ran
         return [
             new ResourceQuest(QuestManager.GetXPRewardFromID(++i), "Gather 10 wood", 10, ResourceTypes.wood), //id: 0
             new ResourceQuest(QuestManager.GetXPRewardFromID(++i), "Gather 5 stone", 5, ResourceTypes.stone),  //id: 1..
-            new Quest(QuestManager.GetXPRewardFromID(++i), "Build an inclosed space", 1),
-            new Quest(QuestManager.GetXPRewardFromID(++i), "Build a furnace", 1),
+            new SpecialTriggerQuest(QuestManager.GetXPRewardFromID(++i), "Build an inclosed space", 1, 0),
+            new SpecialTriggerQuest(QuestManager.GetXPRewardFromID(++i), "Build a furnace", 1, 1),
             new ResourceQuest(QuestManager.GetXPRewardFromID(++i), "Smelt 10 glass", 10, ResourceTypes.glass),
             new ResourceQuest(QuestManager.GetXPRewardFromID(++i), "Gather 12 iron ore", 12, ResourceTypes.iron_ore),
             new ResourceQuest(QuestManager.GetXPRewardFromID(++i), "Smelt 4 iron", 4, ResourceTypes.iron),
@@ -45,6 +45,13 @@ class RandomResourceQuest extends ResourceQuest{
         const questRequirement = `Gather ${numberOfSteps} ${ResourceTypes[resourceType].replace("_", " ")}`;
 
         super(questID, questRequirement, numberOfSteps, resourceType);
+    }
+}
+class SpecialTriggerQuest extends Quest{
+    TriggerID: number;
+    public constructor(questID:number, questRequirement: string, numberOfSteps: number, TriggerID: number){
+        super(questID, questRequirement, numberOfSteps);
+        this.TriggerID = TriggerID;
     }
 }
 class QuestManager{

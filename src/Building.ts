@@ -155,8 +155,11 @@ function Build(
                 return;
             }
             //Quest check for building a furnace
-            if(QuestManager.ins.activeQuestId == 3 && BuildedBuilding.build.name == "Furnace")
-                QuestManager.ins.UpdateQuestProgress();
+            const ActiveQuest = QuestManager.ins.GetActiveQuest();
+            if(ActiveQuest instanceof SpecialTriggerQuest){
+                if(ActiveQuest.TriggerID == 1 && BuildedBuilding.build.name == "Furnace")
+                    QuestManager.ins.UpdateQuestProgress();
+            }
             
             ResourceManager.ins.RemoveResourceList(BuildedBuilding.cost);
 
@@ -171,9 +174,13 @@ function Build(
             }
             //check if build is enclosed
             GetEnclosedSpacesAround(Player.x, Player.y).forEach((vec: Vector2) => {
+                
                 //Quest check for building enclosed space
-                if(QuestManager.ins.activeQuestId == 2) 
-                    QuestManager.ins.UpdateQuestProgress();
+                const ActiveQuest = QuestManager.ins.GetActiveQuest();
+                if(ActiveQuest instanceof SpecialTriggerQuest){
+                    if(ActiveQuest.TriggerID == 0)
+                        QuestManager.ins.UpdateQuestProgress();
+                }
 
                 fillInterior(vec.x, vec.y);
             });
