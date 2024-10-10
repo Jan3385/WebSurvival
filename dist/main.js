@@ -1743,7 +1743,7 @@ class QuestManager {
     }
     UpdateLevelDisplay() {
         document.getElementById("Player-Level").innerText = "Level: " + QuestManager.PlayerLevel;
-        document.getElementById("Player-XPLevel").innerText = QuestManager.PlayerXP + "/" + QuestManager.PlayerXpToNextLevel;
+        document.getElementById("Player-XPLevel").innerText = QuestManager.PlayerXP + "/" + QuestManager.PlayerXpToNextLevel + "xp";
     }
     static GetXPRewardFromRandomQuest(id, ResourceCount, XpMultiplier) {
         return Math.floor(Math.floor(ResourceCount / 3.5) * XpMultiplier + (id * 0.33));

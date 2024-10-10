@@ -115,7 +115,7 @@ class QuestManager{
     }
     public UpdateLevelDisplay(): void{
         document.getElementById("Player-Level")!.innerText = "Level: " + QuestManager.PlayerLevel;
-        document.getElementById("Player-XPLevel")!.innerText = QuestManager.PlayerXP + "/" + QuestManager.PlayerXpToNextLevel;
+        document.getElementById("Player-XPLevel")!.innerText = QuestManager.PlayerXP + "/" + QuestManager.PlayerXpToNextLevel+"xp";
     }
     public static GetXPRewardFromRandomQuest(id: number, ResourceCount: number, XpMultiplier: number): number{
         return Math.floor( Math.floor(ResourceCount / 3.5) * XpMultiplier + (id * 0.33) );
