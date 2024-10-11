@@ -721,10 +721,9 @@ class Terrain {
         for (let i = 0; i < 80; i++) {
             this.mapData[i] = [];
             for (let j = 0; j < 50; j++) {
-                if (i == 5 && j == 5)
-                    this.mapData[i][j] = new EnemyData(new rgb(214, 40, 40), new rgb(0, 0, 0), i, j, 10);
-                else
-                    this.mapData[i][j] = PerlinPixel(i, j);
+                //if(i == 5 && j == 5) this.mapData[i][j] = new EnemyData(new rgb(214, 40, 40), new rgb(0, 0, 0), i, j, 2);
+                //else this.mapData[i][j] = PerlinPixel(i, j); 
+                this.mapData[i][j] = PerlinPixel(i, j);
             }
         }
     }
@@ -1219,7 +1218,7 @@ function BuildLandfill(x, y) {
  */
 function GetEnclosedSpacesAround(x, y) {
     function checkEnclosedSpace(x, y) {
-        const CheckedPixel = Terrain.ins.mapData[x][y] instanceof PlayerData ? Player.OverlapPixel : Terrain.ins.mapData[x][y];
+        const CheckedPixel = Terrain.ins.mapData[x][y] instanceof EntityData ? Terrain.ins.mapData[x][y].OverlapPixel : Terrain.ins.mapData[x][y];
         if (CheckedPixel.status != PixelStatus.walkable)
             return false;
         const queue = [new Vector2(x, y)];
@@ -1251,7 +1250,7 @@ function GetEnclosedSpacesAround(x, y) {
         if (nx < 0 || ny < 0 || nx >= rows || ny >= cols) {
             continue;
         }
-        const CheckedPixel = Terrain.ins.mapData[nx][ny] instanceof PlayerData ? Player.OverlapPixel : Terrain.ins.mapData[nx][ny];
+        const CheckedPixel = Terrain.ins.mapData[nx][ny] instanceof EntityData ? Terrain.ins.mapData[nx][ny].OverlapPixel : Terrain.ins.mapData[nx][ny];
         if (CheckedPixel.status == PixelStatus.walkable) {
             if (checkEnclosedSpace(nx, ny)) {
                 EnclosedVectors.push(new Vector2(nx, ny));
@@ -1274,7 +1273,7 @@ async function fillInterior(x, y) {
     }
     async function InteriorFillVisual(x, y) {
         const OriginalColor = Terrain.ins.mapData[x][y].color.new();
-        const FillPixel = Terrain.ins.mapData[x][y] instanceof PlayerData ? Player.OverlapPixel : Terrain.ins.mapData[x][y];
+        const FillPixel = Terrain.ins.mapData[x][y] instanceof EntityData ? Terrain.ins.mapData[x][y].OverlapPixel : Terrain.ins.mapData[x][y];
         for (let i = 0; i < 1; i += .1) {
             FillPixel.color = FillPixel.color.Lerp(InteriorFillColor, i);
             await sleep(5);
@@ -1297,7 +1296,8 @@ function CheckDeleteInterior(x, y) {
     }
 }
 function deleteInterior(x, y) {
-    const InteriorPixel = Terrain.ins.mapData[x][y] instanceof PlayerData ? Player.OverlapPixel : Terrain.ins.mapData[x][y];
+    let InteriorPixel = Terrain.ins.mapData[x][y] instanceof PlayerData ? Player.OverlapPixel : Terrain.ins.mapData[x][y];
+    InteriorPixel = InteriorPixel instanceof EnemyData ? InteriorPixel.OverlapPixel : InteriorPixel;
     if (!InteriorPixel.Indoors)
         return;
     InteriorPixel.Indoors = false;
@@ -1305,7 +1305,7 @@ function deleteInterior(x, y) {
     for (const dVec of SidesDir) {
         if (x + dVec.x < 0 || x + dVec.x >= Terrain.ins.MapX() || y + dVec.y < 0 || y + dVec.y > Terrain.ins.MapY())
             continue;
-        p = Terrain.ins.mapData[x + dVec.x][y + dVec.y] instanceof PlayerData ? Player.OverlapPixel : Terrain.ins.mapData[x + dVec.x][y + dVec.y];
+        p = Terrain.ins.mapData[x + dVec.x][y + dVec.y] instanceof EntityData ? Terrain.ins.mapData[x + dVec.x][y + dVec.y].OverlapPixel : Terrain.ins.mapData[x + dVec.x][y + dVec.y];
         if (p.Indoors) {
             deleteInterior(x + dVec.x, y + dVec.y);
         }
@@ -1416,6 +1416,7 @@ class RecipeHandler {
     }
 }
 class EnemyData extends EntityData {
+    path = [];
     constructor(color, borderColor, x, y, EntityHealth) {
         super(color, PixelStatus.breakable, x, y, borderColor, EntityHealth);
         EnemyList.push(this);
@@ -1426,16 +1427,24 @@ class EnemyData extends EntityData {
         EnemyList = EnemyList.filter(e => e != this);
     }
     MoveToPlayer() {
-        const path = Pathfinding.aStar(new PathfindingNode(this.x, this.y), new PathfindingNode(Player.x, Player.y));
-        console.log(path);
         //TODO: select random spot to move to
-        if (path == null) {
+        if (Player.OverlapPixel.Indoors) {
             return;
         }
-        path.forEach(element => {
+        //Generate path if needed or when the player is too far from the end point
+        if (this.path == null || (this.path != null && this.path.length <= 1)
+            || Math.abs(this.path[this.path.length - 1].x - Player.x) + Math.abs(this.path[this.path.length - 1].y - Player.y) > this.path.length - 4) {
+            this.path = Pathfinding.aStar(new PathfindingNode(this.x, this.y), new PathfindingNode(Player.x, Player.y));
+        }
+        //TODO: select random spot to move to
+        if (this.path == null) {
+            return;
+        }
+        this.path.forEach(element => {
             Renderer.ins.DrawGizmoLine(new Vector2(element.x, element.y), new Vector2(element.x + 1, element.y + 1));
         });
-        this.Move(new Vector2(path[1].x - this.x, path[1].y - this.y));
+        this.path.shift();
+        this.Move(new Vector2(this.path[0].x - this.x, this.path[0].y - this.y));
     }
     Move(dir) {
         if (this.x + dir.x < 0 || this.x + dir.x >= Terrain.ins.MapX() || this.y + dir.y < 0 || this.y + dir.y >= Terrain.ins.MapY())
@@ -1443,6 +1452,11 @@ class EnemyData extends EntityData {
         const moveTile = Terrain.ins.mapData[this.x + dir.x][this.y + dir.y];
         if (moveTile instanceof PlayerData) {
             Player.Damage(1);
+            return;
+        }
+        //if attempting to walk into an unwalkable tile force a path recalculation
+        if (moveTile.status != PixelStatus.walkable) {
+            this.path = null;
             return;
         }
         Terrain.ins.ModifyMapData(this.x, this.y, this.OverlapPixel);
@@ -1567,26 +1581,26 @@ let inputPresses = [];
 let removeInputValues = [];
 //calls repeatedly on key hold
 function onKeyDown(event) {
-    switch (event.keyCode) {
-        case 87: //W
+    switch (event.code) {
+        case "KeyW": //W
             if (MovementVector.y != -1) {
                 MovementVector.y = -1;
                 usedInput = false;
             }
             break;
-        case 65: //A
+        case "KeyA": //A
             if (MovementVector.x != -1) {
                 MovementVector.x = -1;
                 usedInput = false;
             }
             break;
-        case 83: //S
+        case "KeyS": //S
             if (MovementVector.y != 1) {
                 MovementVector.y = 1;
                 usedInput = false;
             }
             break;
-        case 68: //D
+        case "KeyD": //D
             if (MovementVector.x != 1) {
                 MovementVector.x = 1;
                 usedInput = false;
@@ -1594,8 +1608,8 @@ function onKeyDown(event) {
             break;
         default:
             //for other keys add to input presses array
-            if (!inputPresses.includes(event.keyCode)) {
-                inputPresses.push(event.keyCode);
+            if (!inputPresses.includes(event.code)) {
+                inputPresses.push(event.code);
                 usedInput = false;
             }
             break;
@@ -1607,46 +1621,46 @@ let clearMap = { xMinus: false, xPlus: false, yMinus: false, yPlus: false };
 function onKeyUp(event) {
     //clear movement vector if it was registered ingame
     if (usedInput) {
-        switch (event.keyCode) {
-            case 87:
+        switch (event.code) {
+            case "KeyW":
                 if (MovementVector.y == -1)
                     MovementVector.y = 0;
                 break;
-            case 68:
+            case "KeyD":
                 if (MovementVector.x == 1)
                     MovementVector.x = 0;
                 break;
-            case 83:
+            case "KeyS":
                 if (MovementVector.y == 1)
                     MovementVector.y = 0;
                 break;
-            case 65:
+            case "KeyA":
                 if (MovementVector.x == -1)
                     MovementVector.x = 0;
                 break;
             default:
-                if (inputPresses.includes(event.keyCode))
-                    inputPresses.splice(inputPresses.indexOf(event.keyCode), 1);
+                if (inputPresses.includes(event.code))
+                    inputPresses.splice(inputPresses.indexOf(event.code), 1);
                 break;
         }
         return;
     }
     //if the key was not registered ingame, designate for later removal
-    switch (event.keyCode) {
-        case 87:
+    switch (event.code) {
+        case "KeyW":
             clearMap.yMinus = true;
             break;
-        case 68:
+        case "KeyD":
             clearMap.xPlus = true;
             break;
-        case 83:
+        case "KeyS":
             clearMap.yPlus = true;
             break;
-        case 65:
+        case "KeyA":
             clearMap.xMinus = true;
             break;
     }
-    removeInputValues.push(event.keyCode);
+    removeInputValues.push(event.code);
 }
 //inputs have been used and can be cleared now
 function UpdateInput() {
@@ -2033,7 +2047,7 @@ let isBuilding = false;
 let EnemyMovementInterval = 0;
 function Update() {
     EnemyMovementInterval++;
-    if (EnemyMovementInterval >= 3) {
+    if (EnemyMovementInterval >= 2) {
         EnemyMovementInterval = 0;
         //Enemy movement
         EnemyList.forEach(e => e.MoveToPlayer());
@@ -2047,12 +2061,14 @@ function Update() {
     const moveTile = Terrain.ins.mapData[Player.x + MovementVector.x][Player.y + MovementVector.y];
     //placement logic
     isBuilding = false;
-    if (inputPresses.includes(69) && canPlaceBuildingOn(Player.OverlapPixel)) {
+    if (inputPresses.includes("KeyE") && canPlaceBuildingOn(Player.OverlapPixel)) {
         Build(SelectedBuilding);
         RecipeHandler.ins.UpdatevAvalibleRecipes();
     }
+    if (inputPresses.includes("KeyR"))
+        Player.OverlapPixel = new EnemyData(new rgb(214, 40, 40), new rgb(0, 0, 0), Player.x, Player.y, 2);
     //digging underneath player logic
-    if (inputPresses.includes(81)) {
+    if (inputPresses.includes("KeyQ")) {
         //if standing on a building damage it
         if (Player.OverlapPixel instanceof BuildingData) {
             const brokePixel = Player.OverlapPixel.DamageNoDestroy(1);
@@ -2070,7 +2086,7 @@ function Update() {
             }
         }
     }
-    //movement interactions
+    //movement interactions TODO: remake better
     if (moveTile instanceof ResourceData) {
         moveTile.Damage(1);
     }
@@ -2081,6 +2097,8 @@ function Update() {
     }
     else if (IsInteractable(moveTile) && moveTile.status == PixelStatus.interact)
         moveTile.Interact();
+    else if (moveTile instanceof EnemyData)
+        moveTile.Damage(1);
     else if (!(MovementVector.x == 0 && MovementVector.y == 0)) {
         Terrain.ins.MovePlayer(Player, MovementVector.x, MovementVector.y);
         RecipeHandler.ins.UpdatevAvalibleRecipes();

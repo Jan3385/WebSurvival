@@ -1,4 +1,5 @@
 class EnemyData extends EntityData{
+    path: {x: number, y: number}[] | null = [];
     constructor(color: rgb, borderColor: rgb, x: number, y: number, EntityHealth:number){
         super(color, PixelStatus.breakable, x, y, borderColor, EntityHealth);
         EnemyList.push(this);
@@ -9,20 +10,28 @@ class EnemyData extends EntityData{
         EnemyList = EnemyList.filter(e => e != this);
     }
     MoveToPlayer(){ 
-        const path = Pathfinding.aStar(new PathfindingNode(this.x, this.y), new PathfindingNode(Player.x, Player.y));
-
-        console.log(path);
-
         //TODO: select random spot to move to
-        if(path == null) {
+        if(Player.OverlapPixel.Indoors){
             return;
         }
 
-        path.forEach(element => {
+        //Generate path if needed or when the player is too far from the end point
+        if(this.path == null || (this.path != null && this.path.length <= 1)
+            || Math.abs(this.path[this.path.length-1].x - Player.x) + Math.abs(this.path[this.path.length-1].y - Player.y) > this.path.length-4){
+            this.path = Pathfinding.aStar(new PathfindingNode(this.x, this.y), new PathfindingNode(Player.x, Player.y));
+        }
+
+        //TODO: select random spot to move to
+        if(this.path == null) {
+            return;
+        }
+
+        this.path.forEach(element => {
             Renderer.ins.DrawGizmoLine(new Vector2(element.x, element.y), new Vector2(element.x + 1, element.y + 1));
         });
 
-        this.Move(new Vector2(path[1].x - this.x, path[1].y - this.y));
+        this.path.shift();
+        this.Move(new Vector2(this.path[0].x - this.x, this.path[0].y - this.y));
     }
     Move(dir: Vector2){
         if(this.x + dir.x < 0 || this.x + dir.x >= Terrain.ins.MapX() || this.y + dir.y < 0 || this.y + dir.y >= Terrain.ins.MapY()) return;
@@ -31,6 +40,12 @@ class EnemyData extends EntityData{
         
         if(moveTile instanceof PlayerData){
             Player.Damage(1);
+            return;
+        }
+
+        //if attempting to walk into an unwalkable tile force a path recalculation
+        if(moveTile.status != PixelStatus.walkable){
+            this.path = null;
             return;
         }
 

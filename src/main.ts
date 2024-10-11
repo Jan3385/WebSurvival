@@ -52,7 +52,7 @@ let isBuilding = false;
 let EnemyMovementInterval = 0;
 function Update(){
     EnemyMovementInterval++;
-    if(EnemyMovementInterval >= 3){
+    if(EnemyMovementInterval >= 2){
         EnemyMovementInterval = 0;
         //Enemy movement
         EnemyList.forEach(e => e.MoveToPlayer());
@@ -71,14 +71,15 @@ function Update(){
 
     //placement logic
     isBuilding = false;
-    if(inputPresses.includes(69) && canPlaceBuildingOn(Player.OverlapPixel))
+    if(inputPresses.includes("KeyE") && canPlaceBuildingOn(Player.OverlapPixel))
     {
         Build(SelectedBuilding);
         RecipeHandler.ins.UpdatevAvalibleRecipes();
     }
 
+    if(inputPresses.includes("KeyR")) Player.OverlapPixel = new EnemyData(new rgb(214, 40, 40), new rgb(0, 0, 0), Player.x, Player.y, 2);
     //digging underneath player logic
-    if(inputPresses.includes(81)){
+    if(inputPresses.includes("KeyQ")){
         //if standing on a building damage it
         if(Player.OverlapPixel instanceof BuildingData){
             const brokePixel = Player.OverlapPixel.DamageNoDestroy(1);
@@ -98,7 +99,7 @@ function Update(){
         }
     }
 
-    //movement interactions
+    //movement interactions TODO: remake better
     if(moveTile instanceof ResourceData){
         moveTile.Damage(1);
     }
@@ -107,6 +108,7 @@ function Update(){
         RecipeHandler.ins.UpdatevAvalibleRecipes();
     }
     else if(IsInteractable(moveTile) && moveTile.status == PixelStatus.interact) (<IInteractable>moveTile).Interact();
+    else if(moveTile instanceof EnemyData) moveTile.Damage(1);
     else if(!(MovementVector.x == 0 && MovementVector.y == 0)){
         Terrain.ins.MovePlayer(Player, MovementVector.x, MovementVector.y);
         RecipeHandler.ins.UpdatevAvalibleRecipes();

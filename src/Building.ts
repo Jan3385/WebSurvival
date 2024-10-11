@@ -213,7 +213,7 @@ function BuildLandfill(x: number, y: number): void{
  */
 function GetEnclosedSpacesAround(x: number, y: number): Vector2[] {
     function checkEnclosedSpace(x: number, y: number): boolean{
-        const CheckedPixel = Terrain.ins.mapData[x][y] instanceof PlayerData ? Player.OverlapPixel : Terrain.ins.mapData[x][y];
+        const CheckedPixel = Terrain.ins.mapData[x][y] instanceof EntityData ? Terrain.ins.mapData[x][y].OverlapPixel : Terrain.ins.mapData[x][y];
         if(CheckedPixel.status != PixelStatus.walkable) return false;
 
         const queue: Vector2[] = [new Vector2(x, y)];
@@ -230,7 +230,6 @@ function GetEnclosedSpacesAround(x: number, y: number): Vector2[] {
                 if (nx < 0 || ny < 0 || nx >= rows || ny >= cols) {
                     return false; // Found border of the map -> not enclosed
                 }
-                
                 const NextCheckPixel = Terrain.ins.mapData[nx][ny] instanceof PlayerData ? Player.OverlapPixel : Terrain.ins.mapData[nx][ny];
                 if (NextCheckPixel.status == PixelStatus.walkable && !visited[nx][ny]) {
                     visited[nx][ny] = true;
@@ -254,7 +253,7 @@ function GetEnclosedSpacesAround(x: number, y: number): Vector2[] {
             continue;
         }
 
-        const CheckedPixel = Terrain.ins.mapData[nx][ny] instanceof PlayerData ? Player.OverlapPixel : Terrain.ins.mapData[nx][ny];
+        const CheckedPixel = Terrain.ins.mapData[nx][ny] instanceof EntityData ? Terrain.ins.mapData[nx][ny].OverlapPixel : Terrain.ins.mapData[nx][ny];
         if(CheckedPixel.status == PixelStatus.walkable) {
             if(checkEnclosedSpace(nx, ny)){
                 EnclosedVectors.push(new Vector2(nx, ny));
@@ -281,7 +280,7 @@ async function fillInterior(x: number, y:number): Promise<void>{
     async function InteriorFillVisual(x: number, y:number): Promise<void>{
         const OriginalColor: rgb = Terrain.ins.mapData[x][y].color.new();
 
-        const FillPixel = Terrain.ins.mapData[x][y] instanceof PlayerData ? Player.OverlapPixel : Terrain.ins.mapData[x][y];
+        const FillPixel = Terrain.ins.mapData[x][y] instanceof EntityData ? Terrain.ins.mapData[x][y].OverlapPixel : Terrain.ins.mapData[x][y];
 
         for(let i = 0; i < 1; i+= .1){
             FillPixel.color = FillPixel.color.Lerp(InteriorFillColor, i);
@@ -305,8 +304,8 @@ function CheckDeleteInterior(x: number, y: number): void{
     }
 }
 function deleteInterior(x: number,y: number): void{
-    const InteriorPixel: PixelData = Terrain.ins.mapData[x][y] instanceof PlayerData ? Player.OverlapPixel : Terrain.ins.mapData[x][y];
-
+    let InteriorPixel: PixelData = Terrain.ins.mapData[x][y] instanceof PlayerData ? Player.OverlapPixel : Terrain.ins.mapData[x][y];
+    InteriorPixel = InteriorPixel instanceof EnemyData ? InteriorPixel.OverlapPixel : InteriorPixel;
     if(!InteriorPixel.Indoors) return;
 
     InteriorPixel.Indoors = false;
@@ -315,7 +314,7 @@ function deleteInterior(x: number,y: number): void{
     for(const dVec of SidesDir){
         if(x+dVec.x < 0 || x+dVec.x >= Terrain.ins.MapX() || y+dVec.y < 0 || y+dVec.y > Terrain.ins.MapY()) continue;
 
-        p = Terrain.ins.mapData[x+dVec.x][y+dVec.y] instanceof PlayerData ? Player.OverlapPixel : Terrain.ins.mapData[x+dVec.x][y+dVec.y];
+        p = Terrain.ins.mapData[x+dVec.x][y+dVec.y] instanceof EntityData ? (<EntityData>Terrain.ins.mapData[x+dVec.x][y+dVec.y]).OverlapPixel : Terrain.ins.mapData[x+dVec.x][y+dVec.y];
         if(p .Indoors){
             deleteInterior(x+dVec.x, y+dVec.y);
         }
