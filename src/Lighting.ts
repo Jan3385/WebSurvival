@@ -65,7 +65,21 @@ class GameTime{
 
     OnNightStart(){
         if(this.triggeredNight) return;
-        //spawns enemies - TODO
+        
+        const numOfEnemies = Math.min(4, Math.max(1, Math.floor(Math.random() * (this.day / 10) + 1)));
+        let iteration = 0;
+        while(EnemyList.length < numOfEnemies && iteration < 70){
+            //generate a random position on the edge of the map
+            let x: number = Math.random() < 0.5 ? (Math.random() < 0.5 ? 0 : Terrain.ins.MapX()-1) : Math.floor(Math.random() * (Terrain.ins.MapX()-1)) + 1;
+            let y: number;
+            if (x === 0 || x === Terrain.ins.MapX()-1) y = Math.floor(Math.random() * Terrain.ins.MapY());
+            else y = Math.random() < 0.5 ? 0 : Terrain.ins.MapY()-1;
+
+            if(Terrain.ins.mapData[x][y].status == PixelStatus.walkable){
+                new EnemyData(new rgb(214, 40, 40), new rgb(245, 124, 0), x, y, 2); //create enemy - automatically adds itself to EnemyList
+            }
+
+        }
 
         this.triggeredNight = true;
     }
@@ -80,10 +94,11 @@ class GameTime{
                 if(Terrain.ins.mapData[i][j] instanceof BuildingData){
                     (<BuildingData>Terrain.ins.mapData[i][j]).FullyHeal();
 
-                    if((<BuildingData>Terrain.ins.mapData[i][j]).name == "Torch"){
+                    if((<BuildingData>Terrain.ins.mapData[i][j]).name == "Torch")
                         (<LightData>Terrain.ins.mapData[i][j]).BurnOut();
-                    }
                 }
+                else if(Terrain.ins.mapData[i][j] instanceof EnemyData)
+                    (<EnemyData>Terrain.ins.mapData[i][j]).Die();
             }
         }
 

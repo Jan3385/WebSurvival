@@ -399,7 +399,20 @@ class GameTime {
     OnNightStart() {
         if (this.triggeredNight)
             return;
-        //spawns enemies - TODO
+        const numOfEnemies = Math.min(4, Math.max(1, Math.floor(Math.random() * (this.day / 10) + 1)));
+        let iteration = 0;
+        while (EnemyList.length < numOfEnemies && iteration < 70) {
+            //generate a random position on the edge of the map
+            let x = Math.random() < 0.5 ? (Math.random() < 0.5 ? 0 : Terrain.ins.MapX() - 1) : Math.floor(Math.random() * (Terrain.ins.MapX() - 1)) + 1;
+            let y;
+            if (x === 0 || x === Terrain.ins.MapX() - 1)
+                y = Math.floor(Math.random() * Terrain.ins.MapY());
+            else
+                y = Math.random() < 0.5 ? 0 : Terrain.ins.MapY() - 1;
+            if (Terrain.ins.mapData[x][y].status == PixelStatus.walkable) {
+                new EnemyData(new rgb(214, 40, 40), new rgb(245, 124, 0), x, y, 2); //create enemy - automatically adds itself to EnemyList
+            }
+        }
         this.triggeredNight = true;
     }
     OnDayStart() {
@@ -411,10 +424,11 @@ class GameTime {
             for (let j = 0; j < Terrain.ins.MapY(); j++) {
                 if (Terrain.ins.mapData[i][j] instanceof BuildingData) {
                     Terrain.ins.mapData[i][j].FullyHeal();
-                    if (Terrain.ins.mapData[i][j].name == "Torch") {
+                    if (Terrain.ins.mapData[i][j].name == "Torch")
                         Terrain.ins.mapData[i][j].BurnOut();
-                    }
                 }
+                else if (Terrain.ins.mapData[i][j] instanceof EnemyData)
+                    Terrain.ins.mapData[i][j].Die();
             }
         }
         this.day++;
@@ -1420,9 +1434,14 @@ class EnemyData extends EntityData {
     constructor(color, borderColor, x, y, EntityHealth) {
         super(color, PixelStatus.breakable, x, y, borderColor, EntityHealth);
         EnemyList.push(this);
+        this.Move(new Vector2(0, 0));
     }
     Die() {
-        console.log('Enemy has died');
+        Terrain.ins.ModifyMapData(this.x, this.y, this.OverlapPixel);
+        EnemyList = EnemyList.filter(e => e != this);
+        //TODO: drop resources
+    }
+    Despawn() {
         Terrain.ins.ModifyMapData(this.x, this.y, this.OverlapPixel);
         EnemyList = EnemyList.filter(e => e != this);
     }
@@ -1440,9 +1459,10 @@ class EnemyData extends EntityData {
         if (this.path == null) {
             return;
         }
+        /* DEBUG: Shows path on map
         this.path.forEach(element => {
             Renderer.ins.DrawGizmoLine(new Vector2(element.x, element.y), new Vector2(element.x + 1, element.y + 1));
-        });
+        });*/
         this.path.shift();
         this.Move(new Vector2(this.path[0].x - this.x, this.path[0].y - this.y));
     }
@@ -2065,8 +2085,6 @@ function Update() {
         Build(SelectedBuilding);
         RecipeHandler.ins.UpdatevAvalibleRecipes();
     }
-    if (inputPresses.includes("KeyR"))
-        Player.OverlapPixel = new EnemyData(new rgb(214, 40, 40), new rgb(0, 0, 0), Player.x, Player.y, 2);
     //digging underneath player logic
     if (inputPresses.includes("KeyQ")) {
         //if standing on a building damage it

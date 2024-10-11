@@ -77,7 +77,6 @@ function Update(){
         RecipeHandler.ins.UpdatevAvalibleRecipes();
     }
 
-    if(inputPresses.includes("KeyR")) Player.OverlapPixel = new EnemyData(new rgb(214, 40, 40), new rgb(0, 0, 0), Player.x, Player.y, 2);
     //digging underneath player logic
     if(inputPresses.includes("KeyQ")){
         //if standing on a building damage it

@@ -3,9 +3,15 @@ class EnemyData extends EntityData{
     constructor(color: rgb, borderColor: rgb, x: number, y: number, EntityHealth:number){
         super(color, PixelStatus.breakable, x, y, borderColor, EntityHealth);
         EnemyList.push(this);
+        this.Move(new Vector2(0, 0));
     }
     Die(): void{
-        console.log('Enemy has died');
+        Terrain.ins.ModifyMapData(this.x,this.y, this.OverlapPixel);
+        EnemyList = EnemyList.filter(e => e != this);
+
+        //TODO: drop resources
+    }
+    Despawn(): void{
         Terrain.ins.ModifyMapData(this.x,this.y, this.OverlapPixel);
         EnemyList = EnemyList.filter(e => e != this);
     }
@@ -26,9 +32,10 @@ class EnemyData extends EntityData{
             return;
         }
 
+        /* DEBUG: Shows path on map
         this.path.forEach(element => {
             Renderer.ins.DrawGizmoLine(new Vector2(element.x, element.y), new Vector2(element.x + 1, element.y + 1));
-        });
+        });*/
 
         this.path.shift();
         this.Move(new Vector2(this.path[0].x - this.x, this.path[0].y - this.y));
