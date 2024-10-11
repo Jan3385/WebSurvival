@@ -16,14 +16,6 @@ class Renderer{
         if(canvas.width % canvasScale != 0 || canvas.height % canvasScale != 0) 
             console.error('Canvas size is not divisible by scale');
 
-        // 16 : 10 resolution | 80x50 pixel map
-        for (let i = 0; i < 80; i++) {
-            Terrain.ins.mapData[i] = [];
-            for (let j = 0; j < 50; j++) {
-                Terrain.ins.mapData[i][j] = PerlinPixel(i, j); 
-            }
-        }
-
         window.addEventListener('resize', this.UpdateWindowSize);
 
         this.UpdateWindowSize();

@@ -120,15 +120,6 @@ class PlayerData extends EntityData{
         Terrain.ins.mapData[this.x][this.y].color = new rgb(255, 0, 0);
     }
 }
-class EnemyData extends EntityData{
-    constructor(color: rgb, borderColor: rgb, x: number, y: number, EntityHealth:number){
-        super(color, PixelStatus.breakable, x, y, borderColor, EntityHealth);
-    }
-    Die(): void{
-        console.log('Enemy has died');
-        Terrain.ins.ModifyMapData(this.x,this.y, this.OverlapPixel);
-    }
-}
 class ResourceData extends PixelData implements IDamageable, IHighlightable{
     Health: number;
     MaxHealth: number;

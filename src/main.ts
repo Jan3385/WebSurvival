@@ -11,11 +11,11 @@ const ctx = canvas.getContext('2d', { alpha: false })!;
 
 let canvasScale: number = 10;
 
-
 const ResourceTerrain = new ResourceList();
 const MaxTResource = new ResourceList().Add(ResourceTypes.wood, 60).Add(ResourceTypes.stone,55);
 
 let Player: PlayerData;
+let EnemyList: EnemyData[] = [];
 
 function Start(){
     GameTime.ins = new GameTime();
@@ -49,7 +49,15 @@ function Start(){
 }
 
 let isBuilding = false;
+let EnemyMovementInterval = 0;
 function Update(){
+    EnemyMovementInterval++;
+    if(EnemyMovementInterval >= 3){
+        EnemyMovementInterval = 0;
+        //Enemy movement
+        EnemyList.forEach(e => e.MoveToPlayer());
+    }
+
     //movement checker
     if(
         Player.x + MovementVector.x < 0 || Player.x + MovementVector.x >= Terrain.ins.mapData.length || 

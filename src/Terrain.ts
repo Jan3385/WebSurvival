@@ -1,13 +1,26 @@
 //Class for terrain modification
+
+/// <reference path="PixelData.ts" />
+
 class Terrain{
     public static ins: Terrain;
 
     public static perlin: PerlinNoise;
 
+    mapData: PixelData[][] = [];
+
     constructor(Seed: number){
         Terrain.perlin = new PerlinNoise(Seed);
+
+        // 16 : 10 resolution | 80x50 pixel map
+        for (let i = 0; i < 80; i++) {
+            this.mapData[i] = [];
+            for (let j = 0; j < 50; j++) {
+                if(i == 5 && j == 5) this.mapData[i][j] = new EnemyData(new rgb(214, 40, 40), new rgb(0, 0, 0), i, j, 10);
+                else this.mapData[i][j] = PerlinPixel(i, j); 
+            }
+        }
     }
-    mapData: PixelData[][] = [];
     /**
      * Inserts a pixel at the given position
      * @param {number} x 
@@ -17,9 +30,11 @@ class Terrain{
     ModifyMapData(x: number, y: number, PixelData: PixelData): void{
         this.mapData[x][y] = PixelData;
     }
+    //returns the width of the map in number of objects
     MapX(): number{
         return this.mapData.length;
     }
+    //returns the height of the map in number of objects
     MapY(): number{
         return this.mapData[0].length;
     }
