@@ -1446,8 +1446,12 @@ class EnemyData extends EntityData {
         EnemyList = EnemyList.filter(e => e != this);
     }
     MoveToPlayer() {
-        //TODO: select random spot to move to
         if (Player.OverlapPixel.Indoors) {
+            //move a random direction half the time
+            if (Math.random() < 0.5)
+                return;
+            const dir = AroundDir[Math.floor(Math.random() * AroundDir.length)];
+            this.Move(dir);
             return;
         }
         //Generate path if needed or when the player is too far from the end point
@@ -1455,8 +1459,12 @@ class EnemyData extends EntityData {
             || Math.abs(this.path[this.path.length - 1].x - Player.x) + Math.abs(this.path[this.path.length - 1].y - Player.y) > this.path.length - 4) {
             this.path = Pathfinding.aStar(new PathfindingNode(this.x, this.y), new PathfindingNode(Player.x, Player.y));
         }
-        //TODO: select random spot to move to
         if (this.path == null) {
+            //move a random direction half the time
+            if (Math.random() < 0.5)
+                return;
+            const dir = AroundDir[Math.floor(Math.random() * AroundDir.length)];
+            this.Move(dir);
             return;
         }
         /* DEBUG: Shows path on map

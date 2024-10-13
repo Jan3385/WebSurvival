@@ -16,8 +16,11 @@ class EnemyData extends EntityData{
         EnemyList = EnemyList.filter(e => e != this);
     }
     MoveToPlayer(){ 
-        //TODO: select random spot to move to
         if(Player.OverlapPixel.Indoors){
+            //move a random direction half the time
+            if(Math.random() < 0.5) return;
+            const dir = AroundDir[Math.floor(Math.random() * AroundDir.length)];
+            this.Move(dir);
             return;
         }
 
@@ -27,8 +30,11 @@ class EnemyData extends EntityData{
             this.path = Pathfinding.aStar(new PathfindingNode(this.x, this.y), new PathfindingNode(Player.x, Player.y));
         }
 
-        //TODO: select random spot to move to
         if(this.path == null) {
+            //move a random direction half the time
+            if(Math.random() < 0.5) return;
+            const dir = AroundDir[Math.floor(Math.random() * AroundDir.length)];
+            this.Move(dir);
             return;
         }
 
