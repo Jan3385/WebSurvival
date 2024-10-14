@@ -112,6 +112,10 @@ class PlayerData extends EntityData{
         }
         return false;
     }
+    Heal(heal: number){
+        this.Health = Math.min(this.Health + heal, this.MaxHealth);
+        document.getElementById("Health")!.innerHTML = "HP: " + this.Health.toString().padStart(2, "0");
+    }
     Die(): void{
         console.log('Player has died, GAME OVER');
 

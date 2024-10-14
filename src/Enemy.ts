@@ -9,7 +9,9 @@ class EnemyData extends EntityData{
         Terrain.ins.ModifyMapData(this.x,this.y, this.OverlapPixel);
         EnemyList = EnemyList.filter(e => e != this);
 
-        //TODO: drop resources
+        //drop resources
+        const dropAmount = Math.floor(Math.random() * 2) + 1;
+        ResourceManager.ins.AddResource(ResourceTypes.human_meat, dropAmount);
     }
     Despawn(): void{
         Terrain.ins.ModifyMapData(this.x,this.y, this.OverlapPixel);

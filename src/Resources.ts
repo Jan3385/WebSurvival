@@ -5,6 +5,7 @@ enum ResourceTypes{
     glass,
     iron_ore,
     iron,
+    human_meat,
 }
 class ResourceManager{
     public static ins: ResourceManager;
@@ -16,6 +17,13 @@ class ResourceManager{
 
         this.resources.forEach(x => {
             const container = document.createElement('div');
+            if(x[0] == ResourceTypes.human_meat){
+                container.classList.add('Clickable-Resource');
+                container.onclick = () => {
+                    if(this.RemoveResource(ResourceTypes.human_meat, 1)) Player.Heal(1);
+                }
+            }
+
             const image = document.createElement('img');
             const text = document.createElement('p');
 
@@ -54,7 +62,8 @@ class ResourceManager{
             .Add(ResourceTypes.wood, 1000)
             .Add(ResourceTypes.stone, 1000)
             .Add(ResourceTypes.glass, 1000)
-            .Add(ResourceTypes.iron, 1000));
+            .Add(ResourceTypes.iron, 1000)
+            .Add(ResourceTypes.human_meat, 1000));
     }
     GetResourceAmount(type: ResourceTypes): number{
         const resource = this.resources.filter(x => x[0] == type)[0];

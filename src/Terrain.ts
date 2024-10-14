@@ -16,8 +16,6 @@ class Terrain{
         for (let i = 0; i < 80; i++) {
             this.mapData[i] = [];
             for (let j = 0; j < 50; j++) {
-                //if(i == 5 && j == 5) this.mapData[i][j] = new EnemyData(new rgb(214, 40, 40), new rgb(0, 0, 0), i, j, 2);
-                //else this.mapData[i][j] = PerlinPixel(i, j); 
                 this.mapData[i][j] = PerlinPixel(i, j);
             }
         }

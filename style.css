@@ -78,8 +78,7 @@
         width: 95%;
         p{
             user-select: none;
-            margin: 0;
-            margin-left: 5px;
+            margin: 0 auto 0 auto;
             padding: 3px;
             white-space: nowrap;
             overflow: hidden;
@@ -138,6 +137,7 @@
             }
         }
         .Player-Resources-List{
+            margin: auto;
             div{
                 background-color: rgb(250, 177, 160);
                 padding: 1px 3px 1px 3px;
@@ -166,6 +166,16 @@
                     width: 25px;
                     aspect-ratio: 1/1;
                 }
+            }
+            .Clickable-Resource{
+                border: solid 1.5px black;
+                background-color: rgb(194, 95, 73);
+            }
+            .Clickable-Resource:hover{
+                background-color: rgb(214, 127, 108);
+            }
+            .Clickable-Resource:active{
+                background-color: rgb(208, 178, 178);
             }
         }
     }

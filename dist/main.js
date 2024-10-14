@@ -175,6 +175,10 @@ class PlayerData extends EntityData {
         }
         return false;
     }
+    Heal(heal) {
+        this.Health = Math.min(this.Health + heal, this.MaxHealth);
+        document.getElementById("Health").innerHTML = "HP: " + this.Health.toString().padStart(2, "0");
+    }
     Die() {
         console.log('Player has died, GAME OVER');
         //have to change both colors
@@ -603,6 +607,7 @@ var ResourceTypes;
     ResourceTypes[ResourceTypes["glass"] = 3] = "glass";
     ResourceTypes[ResourceTypes["iron_ore"] = 4] = "iron_ore";
     ResourceTypes[ResourceTypes["iron"] = 5] = "iron";
+    ResourceTypes[ResourceTypes["human_meat"] = 6] = "human_meat";
 })(ResourceTypes || (ResourceTypes = {}));
 class ResourceManager {
     static ins;
@@ -612,6 +617,13 @@ class ResourceManager {
         this.resources.sort((a, b) => a[0] - b[0]);
         this.resources.forEach(x => {
             const container = document.createElement('div');
+            if (x[0] == ResourceTypes.human_meat) {
+                container.classList.add('Clickable-Resource');
+                container.onclick = () => {
+                    if (this.RemoveResource(ResourceTypes.human_meat, 1))
+                        Player.Heal(1);
+                };
+            }
             const image = document.createElement('img');
             const text = document.createElement('p');
             image.src = 'Icons/' + ResourceTypes[x[0]] + '.png';
@@ -643,7 +655,8 @@ class ResourceManager {
             .Add(ResourceTypes.wood, 1000)
             .Add(ResourceTypes.stone, 1000)
             .Add(ResourceTypes.glass, 1000)
-            .Add(ResourceTypes.iron, 1000));
+            .Add(ResourceTypes.iron, 1000)
+            .Add(ResourceTypes.human_meat, 1000));
     }
     GetResourceAmount(type) {
         const resource = this.resources.filter(x => x[0] == type)[0];
@@ -735,8 +748,6 @@ class Terrain {
         for (let i = 0; i < 80; i++) {
             this.mapData[i] = [];
             for (let j = 0; j < 50; j++) {
-                //if(i == 5 && j == 5) this.mapData[i][j] = new EnemyData(new rgb(214, 40, 40), new rgb(0, 0, 0), i, j, 2);
-                //else this.mapData[i][j] = PerlinPixel(i, j); 
                 this.mapData[i][j] = PerlinPixel(i, j);
             }
         }
@@ -1439,7 +1450,9 @@ class EnemyData extends EntityData {
     Die() {
         Terrain.ins.ModifyMapData(this.x, this.y, this.OverlapPixel);
         EnemyList = EnemyList.filter(e => e != this);
-        //TODO: drop resources
+        //drop resources
+        const dropAmount = Math.floor(Math.random() * 2) + 1;
+        ResourceManager.ins.AddResource(ResourceTypes.human_meat, dropAmount);
     }
     Despawn() {
         Terrain.ins.ModifyMapData(this.x, this.y, this.OverlapPixel);
