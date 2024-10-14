@@ -1529,22 +1529,7 @@ class PathfindingNode {
     }
 }
 class Pathfinding {
-    constructor() {
-        // Define start and end nodes
-        const startNode = new PathfindingNode(0, 0);
-        const endNode = new PathfindingNode(8, 12);
-        // Perform A* pathfinding
-        const path = Pathfinding.aStar(startNode, endNode);
-        if (path) {
-            console.log("Path found:", path);
-            path.forEach(element => {
-                Renderer.ins.DrawGizmoLine(new Vector2(element.x, element.y), new Vector2(element.x + 1, element.y + 1));
-            });
-        }
-        else {
-            console.log("No path found");
-        }
-    }
+    constructor() { }
     static getHeuristic(nodeA, nodeB) {
         return Math.abs(nodeA.x - nodeB.x) + Math.abs(nodeA.y - nodeB.y);
     }
