@@ -29,7 +29,7 @@ class ResourceManager{
 
             image.src = 'Icons/' + ResourceTypes[x[0]] + '.png';
             image.title = ResourceTypes[x[0]].toString().replace('_',' ');
-            text.innerHTML = x[1].toString();
+            text.innerHTML = x[1].toString().padStart(4, "0");
             container.appendChild(image);
             container.appendChild(text);
             ResouceElements.push(container);
@@ -63,7 +63,7 @@ class ResourceManager{
             .Add(ResourceTypes.stone, 1000)
             .Add(ResourceTypes.glass, 1000)
             .Add(ResourceTypes.iron, 1000)
-            .Add(ResourceTypes.human_meat, 1000));
+            .Add(ResourceTypes.human_meat, 10));
     }
     GetResourceAmount(type: ResourceTypes): number{
         const resource = this.resources.filter(x => x[0] == type)[0];
