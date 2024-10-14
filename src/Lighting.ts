@@ -67,21 +67,36 @@ class GameTime{
         if(this.triggeredNight) return;
         
         const numOfEnemies = Math.min(4, Math.max(1, Math.floor(Math.random() * (this.day / 10) + 1)));
+        this.SpawnEnemies(numOfEnemies);
+
+        this.triggeredNight = true;
+    }
+    SpawnEnemies(amount: number){
+        let SpawnedEnemies: number = 0;
         let iteration = 0;
-        while(EnemyList.length < numOfEnemies && iteration < 70){
+        while(SpawnedEnemies < amount && iteration < 70 && EnemyList.length < 5){
+            iteration++;
+
             //generate a random position on the edge of the map
             let x: number = Math.random() < 0.5 ? (Math.random() < 0.5 ? 0 : Terrain.ins.MapX()-1) : Math.floor(Math.random() * (Terrain.ins.MapX()-1)) + 1;
             let y: number;
             if (x === 0 || x === Terrain.ins.MapX()-1) y = Math.floor(Math.random() * Terrain.ins.MapY());
             else y = Math.random() < 0.5 ? 0 : Terrain.ins.MapY()-1;
 
-            if(Terrain.ins.mapData[x][y].status == PixelStatus.walkable){
+            if(GameTime.CanSpawEnemyAt(x, y)){
                 new EnemyData(new rgb(214, 40, 40), new rgb(245, 124, 0), x, y, 2); //create enemy - automatically adds itself to EnemyList
+                SpawnedEnemies++;
             }
 
         }
-
-        this.triggeredNight = true;
+    }
+    private static CanSpawEnemyAt(x: number,y: number): boolean{
+        if(x < 0 || x >= Terrain.ins.MapX() || y < 0 || y >= Terrain.ins.MapY()) return false;
+        if(Terrain.ins.mapData[x][y].status != PixelStatus.walkable) return false;
+        if(Terrain.ins.mapData[x][y].Indoors) return false;
+        if(Terrain.ins.mapData[x][y] instanceof BuildingData) return false;
+        if(Terrain.ins.mapData[x][y].Brightness > 1.5) return false;
+        return true;
     }
     OnDayStart(){
         if(this.triggeredDay) return;
