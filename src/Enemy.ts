@@ -109,7 +109,12 @@ class Pathfinding {
     constructor() { }
 
     private static getHeuristic(nodeA: PathfindingNode, nodeB: PathfindingNode): number {
-        return Math.abs(nodeA.x - nodeB.x) + Math.abs(nodeA.y - nodeB.y);
+        //skip if the building is too strong
+        let ObstaclePenalty = 0;
+        const PixelDataAtB = Terrain.ins.mapData[nodeB.x][nodeB.y];
+        if(PixelDataAtB instanceof BuildingData) ObstaclePenalty = PixelDataAtB.Health;
+
+        return (Math.abs(nodeA.x - nodeB.x) + Math.abs(nodeA.y - nodeB.y)) + ObstaclePenalty;
     }
 
     public static aStar(startNode: PathfindingNode, endNode: PathfindingNode, PathThruBuildings: boolean): { x: number, y: number }[] | null {
@@ -132,7 +137,9 @@ class Pathfinding {
 
             for (let neighbor of this.getNeighbors(currentNode)) {
                 //check for any path even with buildings
-                if(PathThruBuildings && (neighbor.walkable || neighbor.isBuilding)){
+                if(PathThruBuildings && 
+                    (neighbor.walkable || neighbor.isBuilding)){
+
                     if(this.IsInSet(neighbor, closedSet)) continue;
                 } //check for free path without buildings
                 else if ((!neighbor.walkable && (neighbor.x != Player.x || neighbor.y != Player.y)) || this.IsInSet(neighbor, closedSet)) {

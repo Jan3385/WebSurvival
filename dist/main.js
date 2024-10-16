@@ -403,7 +403,9 @@ class GameTime {
     OnNightStart() {
         if (this.triggeredNight)
             return;
-        const numOfEnemies = Math.min(4, Math.max(1, Math.floor(Math.random() * (this.day / 10) + 1)));
+        let numOfEnemies = Math.min(4, Math.max(1, Math.floor(Math.random() * (this.day / 10) + 1)));
+        if (this.SpawnRaidEnemies())
+            numOfEnemies += 1;
         this.SpawnEnemies(numOfEnemies);
         this.triggeredNight = true;
     }
@@ -1562,7 +1564,12 @@ class PathfindingNode {
 class Pathfinding {
     constructor() { }
     static getHeuristic(nodeA, nodeB) {
-        return Math.abs(nodeA.x - nodeB.x) + Math.abs(nodeA.y - nodeB.y);
+        //skip if the building is too strong
+        let ObstaclePenalty = 0;
+        const PixelDataAtB = Terrain.ins.mapData[nodeB.x][nodeB.y];
+        if (PixelDataAtB instanceof BuildingData)
+            ObstaclePenalty = PixelDataAtB.Health;
+        return (Math.abs(nodeA.x - nodeB.x) + Math.abs(nodeA.y - nodeB.y)) + ObstaclePenalty;
     }
     static aStar(startNode, endNode, PathThruBuildings) {
         let openSet = [];
@@ -1579,7 +1586,8 @@ class Pathfinding {
             closedSet.add(currentNode);
             for (let neighbor of this.getNeighbors(currentNode)) {
                 //check for any path even with buildings
-                if (PathThruBuildings && (neighbor.walkable || neighbor.isBuilding)) {
+                if (PathThruBuildings &&
+                    (neighbor.walkable || neighbor.isBuilding)) {
                     if (this.IsInSet(neighbor, closedSet))
                         continue;
                 } //check for free path without buildings

@@ -66,7 +66,8 @@ class GameTime{
     OnNightStart(){
         if(this.triggeredNight) return;
         
-        const numOfEnemies = Math.min(4, Math.max(1, Math.floor(Math.random() * (this.day / 10) + 1)));
+        let numOfEnemies = Math.min(4, Math.max(1, Math.floor(Math.random() * (this.day / 10) + 1)));
+        if(this.SpawnRaidEnemies()) numOfEnemies += 1;
         this.SpawnEnemies(numOfEnemies);
 
         this.triggeredNight = true;
