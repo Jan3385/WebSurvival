@@ -136,7 +136,6 @@ class PlayerData extends EntityData{
 
         this.OverlapPixel = Terrain.ins.mapData[this.x][this.y];
         Terrain.ins.mapData[Player.x][Player.y] = this;
-        this.respawnTime = 5;
     }
     Die(): void{
         //On death.. respawn and loose half of the resources
@@ -145,6 +144,11 @@ class PlayerData extends EntityData{
         ResourceManager.ins.resources.forEach(resource => {
             resource[1] = Math.floor(resource[1] / 2);
         });
+        ResourceManager.ins.DisplayStoredResources();
+
+        this.respawnTime = 5;
+
+        this.Heal(this.MaxHealth/2);
 
         this.FindAndSetSpawnPos();
     }

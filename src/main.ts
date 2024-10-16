@@ -53,51 +53,53 @@ function Start(){
 let isBuilding = false;
 let EnemyMovementInterval = 0;
 function Update(){
-    EnemyMovementInterval++;
-    if(EnemyMovementInterval >= 2){
-        EnemyMovementInterval = 0;
-        //Enemy movement
-        EnemyList.forEach(e => e.MoveToPlayer());
-    }
+    if(Player.respawnTime <= 0){
+        EnemyMovementInterval++;
+        if(EnemyMovementInterval >= 2){
+            EnemyMovementInterval = 0;
+            //Enemy movement
+            EnemyList.forEach(e => e.MoveToPlayer());
+        }
 
-    //placement logic
-    isBuilding = false;
-    if(inputPresses.includes("KeyE") && canPlaceBuildingOn(Player.OverlapPixel))
-    {
-        Build(SelectedBuilding);
-        RecipeHandler.ins.UpdatevAvalibleRecipes();
-    }
+        //placement logic
+        isBuilding = false;
+        if(inputPresses.includes("KeyE") && canPlaceBuildingOn(Player.OverlapPixel))
+        {
+            Build(SelectedBuilding);
+            RecipeHandler.ins.UpdatevAvalibleRecipes();
+        }
 
-    //digging underneath player logic
-    if(inputPresses.includes("KeyQ")){
-        //if standing on a building damage it
-        if(Player.OverlapPixel instanceof BuildingData){
-            const brokePixel = Player.OverlapPixel.DamageNoDestroy(1);
-            if(brokePixel){
-                Player.OverlapPixel = Player.OverlapPixel.OverlaidPixel;
+        //digging underneath player logic
+        if(inputPresses.includes("KeyQ")){
+            //if standing on a building damage it
+            if(Player.OverlapPixel instanceof BuildingData){
+                const brokePixel = Player.OverlapPixel.DamageNoDestroy(1);
+                if(brokePixel){
+                    Player.OverlapPixel = Player.OverlapPixel.OverlaidPixel;
 
-                //removes the interior if building below player is destroyed
-                CheckDeleteInterior(Player.x, Player.y);
+                    //removes the interior if building below player is destroyed
+                    CheckDeleteInterior(Player.x, Player.y);
 
-                RecipeHandler.ins.UpdatevAvalibleRecipes();
+                    RecipeHandler.ins.UpdatevAvalibleRecipes();
+                }
+            }
+            if(Player.OverlapPixel instanceof TerrainData){
+                if(Player.OverlapPixel.type == TerrainType.sand){
+                    if(Math.random() < 0.3) ResourceManager.ins.AddResource(ResourceTypes.sand, 1);
+                }
             }
         }
-        if(Player.OverlapPixel instanceof TerrainData){
-            if(Player.OverlapPixel.type == TerrainType.sand){
-                if(Math.random() < 0.3) ResourceManager.ins.AddResource(ResourceTypes.sand, 1);
-            }
+
+        //movement interactions
+        Player.MoveBy(MovementVector.x, MovementVector.y);
+
+        //Resource spawner
+        if(Math.random() > 0.98){
+            Terrain.ins.GenerateRandomResource();
         }
     }
-
-    //movement interactions
-    Player.MoveBy(MovementVector.x, MovementVector.y);
 
     UpdateInput();
-
-    //Resource spawner
-    if(Math.random() > 0.98){
-        Terrain.ins.GenerateRandomResource();
-    }
 
     GameTime.ins.Tick();
 
