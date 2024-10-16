@@ -1,5 +1,6 @@
 class EnemyData extends EntityData{
     path: {x: number, y: number}[] | null = [];
+    IsRaidEnemy: boolean = GameTime.ins.SpawnRaidEnemies();
     constructor(color: rgb, borderColor: rgb, x: number, y: number, EntityHealth:number){
         super(color, PixelStatus.breakable, x, y, borderColor, EntityHealth);
         EnemyList.push(this);
@@ -18,7 +19,7 @@ class EnemyData extends EntityData{
         EnemyList = EnemyList.filter(e => e != this);
     }
     MoveToPlayer(){ 
-        if(Player.OverlapPixel.Indoors){
+        if(Player.OverlapPixel.Indoors && !this.IsRaidEnemy){
             //move a random direction half the time
             if(Math.random() < 0.5) return;
             const dir = AroundDir[Math.floor(Math.random() * AroundDir.length)];
@@ -29,7 +30,8 @@ class EnemyData extends EntityData{
         //Generate path if needed or when the player is too far from the end point
         if(this.path == null || (this.path != null && this.path.length <= 1)
             || Math.abs(this.path[this.path.length-1].x - Player.x) + Math.abs(this.path[this.path.length-1].y - Player.y) > this.path.length-4){
-            this.path = Pathfinding.aStar(new PathfindingNode(this.x, this.y), new PathfindingNode(Player.x, Player.y));
+
+            this.path = Pathfinding.aStar(new PathfindingNode(this.x, this.y), new PathfindingNode(Player.x, Player.y), this.IsRaidEnemy);
         }
 
         if(this.path == null) {
@@ -45,8 +47,8 @@ class EnemyData extends EntityData{
             Renderer.ins.DrawGizmoLine(new Vector2(element.x, element.y), new Vector2(element.x + 1, element.y + 1));
         });*/
 
-        this.path.shift();
-        this.Move(new Vector2(this.path[0].x - this.x, this.path[0].y - this.y));
+        this.Move(new Vector2(this.path[1].x - this.x, this.path[1].y - this.y));
+        if(Terrain.ins.mapData[this.path[0].x][this.path[0].y].status == PixelStatus.walkable) this.path.shift();
     }
     Move(dir: Vector2){
         if(this.x + dir.x < 0 || this.x + dir.x >= Terrain.ins.MapX() || this.y + dir.y < 0 || this.y + dir.y >= Terrain.ins.MapY()) return;
@@ -60,7 +62,11 @@ class EnemyData extends EntityData{
 
         //if attempting to walk into an unwalkable tile force a path recalculation
         if(moveTile.status != PixelStatus.walkable){
-            this.path = null;
+            if(moveTile instanceof BuildingData && this.IsRaidEnemy){
+                moveTile.Damage(1);
+            }else{
+                this.path = null;
+            }
             return;
         }
 
@@ -78,11 +84,13 @@ class PathfindingNode {
     public parent: PathfindingNode | null;  // Track the parent node to trace the path
 
     public walkable: boolean;
+    public isBuilding: boolean;
     public x: number;
     public y: number;
 
-    constructor(x: number, y: number, walkable: boolean = true) {
+    constructor(x: number, y: number, walkable: boolean = true, isBuilding: boolean = false) {
         this.walkable = walkable;
+        this.isBuilding = isBuilding;
         this.x = x;
         this.y = y;
 
@@ -99,12 +107,12 @@ class PathfindingNode {
 
 class Pathfinding {
     constructor() { }
-    
+
     private static getHeuristic(nodeA: PathfindingNode, nodeB: PathfindingNode): number {
         return Math.abs(nodeA.x - nodeB.x) + Math.abs(nodeA.y - nodeB.y);
     }
 
-    public static aStar(startNode: PathfindingNode, endNode: PathfindingNode): { x: number, y: number }[] | null {
+    public static aStar(startNode: PathfindingNode, endNode: PathfindingNode, PathThruBuildings: boolean): { x: number, y: number }[] | null {
         let openSet: PathfindingNode[] = [];
         let closedSet: Set<PathfindingNode> = new Set();
 
@@ -123,7 +131,11 @@ class Pathfinding {
             closedSet.add(currentNode);
 
             for (let neighbor of this.getNeighbors(currentNode)) {
-                if ((!neighbor.walkable && (neighbor.x != Player.x || neighbor.y != Player.y)) || this.IsInSet(neighbor, closedSet)) {
+                //check for any path even with buildings
+                if(PathThruBuildings && (neighbor.walkable || neighbor.isBuilding)){
+                    if(this.IsInSet(neighbor, closedSet)) continue;
+                } //check for free path without buildings
+                else if ((!neighbor.walkable && (neighbor.x != Player.x || neighbor.y != Player.y)) || this.IsInSet(neighbor, closedSet)) {
                     continue;
                 }
 
@@ -166,7 +178,7 @@ class Pathfinding {
             const newX = node.x + dir.x;
             const newY = node.y + dir.y;
             if (newX >= 0 && newX < Terrain.ins.MapX() && newY >= 0 && newY < Terrain.ins.MapY()) {
-                const cell = new PathfindingNode(newX, newY, Terrain.ins.mapData[newX][newY].status == PixelStatus.walkable);
+                const cell = new PathfindingNode(newX, newY, Terrain.ins.mapData[newX][newY].status == PixelStatus.walkable, Terrain.ins.mapData[newX][newY] instanceof BuildingData);
                 neighbors.push(cell);
             }
         }

@@ -95,8 +95,11 @@ class GameTime{
         if(Terrain.ins.mapData[x][y].status != PixelStatus.walkable) return false;
         if(Terrain.ins.mapData[x][y].Indoors) return false;
         if(Terrain.ins.mapData[x][y] instanceof BuildingData) return false;
-        if(Terrain.ins.mapData[x][y].Brightness > 1.5) return false;
+        //if(Terrain.ins.mapData[x][y].Brightness > 1.5) return false;
         return true;
+    }
+    public SpawnRaidEnemies(){
+        return this.day % 5 == 0 && this.day > 0;
     }
     OnDayStart(){
         if(this.triggeredDay) return;
@@ -118,7 +121,8 @@ class GameTime{
         }
 
         this.day++;
-        document.getElementById("Game-Day")!.innerHTML = "Day " + this.day;
+        const raidMessage = this.day%5 == 0 ? "Raid day!" : `${5-this.day%5} Day(s) until raid`;
+        document.getElementById("Game-Day")!.innerHTML = `Day ${this.day} <span>| ${raidMessage}</span>`;
     }
     GetDayProgress(): number{
         return this.time / this.maxTime;

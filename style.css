@@ -1,3 +1,8 @@
+body{
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+}
 .Mobile-Warning{
     display: none;
     position: fixed;
@@ -63,6 +68,9 @@
         font-family: monospace;
         border-top: 2px solid rgb(178, 178, 178);
         border-radius: 10px;
+        span{
+            font-size: 0.6em;
+        }
     }
     .Player-Material-List{
         background-color: rgb(230, 230, 230);
@@ -326,7 +334,7 @@
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    margin: 0 auto 0 auto;
+    margin: 10px auto 0 auto;
     width: 40dvw;
     max-width: 80%;
     padding: 0;
