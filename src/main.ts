@@ -58,17 +58,6 @@ function Update(){
         EnemyList.forEach(e => e.MoveToPlayer());
     }
 
-    //movement checker
-    if(
-        Player.x + MovementVector.x < 0 || Player.x + MovementVector.x >= Terrain.ins.mapData.length || 
-        Player.y + MovementVector.y < 0 || Player.y + MovementVector.y >= Terrain.ins.mapData[0].length
-    ){
-        //player will not move out of bounds
-        MovementVector = new Vector2(0, 0);
-    }
-    const moveTile = Terrain.ins.mapData[Player.x + MovementVector.x][Player.y + MovementVector.y];
-
-
     //placement logic
     isBuilding = false;
     if(inputPresses.includes("KeyE") && canPlaceBuildingOn(Player.OverlapPixel))
@@ -98,20 +87,8 @@ function Update(){
         }
     }
 
-    //movement interactions TODO: remake better
-    if(moveTile instanceof ResourceData){
-        moveTile.Damage(1);
-    }
-    else if(moveTile instanceof BuildingData && moveTile.status == PixelStatus.breakable){
-        if(IsDamageable(moveTile)) (<IDamageable>moveTile).Damage(1);
-        RecipeHandler.ins.UpdatevAvalibleRecipes();
-    }
-    else if(IsInteractable(moveTile) && moveTile.status == PixelStatus.interact) (<IInteractable>moveTile).Interact();
-    else if(moveTile instanceof EnemyData) moveTile.Damage(1);
-    else if(!(MovementVector.x == 0 && MovementVector.y == 0)){
-        Terrain.ins.MovePlayer(Player, MovementVector.x, MovementVector.y);
-        RecipeHandler.ins.UpdatevAvalibleRecipes();
-    }
+    //movement interactions
+    Player.MoveBy(MovementVector.x, MovementVector.y);
 
     UpdateInput();
 

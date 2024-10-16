@@ -117,11 +117,34 @@ class PlayerData extends EntityData{
         document.getElementById("Health")!.innerHTML = "HP: " + this.Health.toString().padStart(2, "0");
     }
     Die(): void{
+        //TODO: something
         console.log('Player has died, GAME OVER');
 
         //have to change both colors
         this.color = new rgb(255, 0, 0);
         Terrain.ins.mapData[this.x][this.y].color = new rgb(255, 0, 0);
+    }
+    public MoveBy(x: number, y: number){
+        const moveTile = Terrain.ins.mapData[Player.x + x][Player.y + y];
+
+        //mine resources
+        if(moveTile instanceof ResourceData){
+            moveTile.Damage(1);
+        }
+        //break buildings
+        else if(moveTile instanceof BuildingData && moveTile.status == PixelStatus.breakable){
+            if(IsDamageable(moveTile)) (<IDamageable>moveTile).Damage(1);
+            RecipeHandler.ins.UpdatevAvalibleRecipes();
+        }
+        //interact (ex. doors)
+        else if(IsInteractable(moveTile) && moveTile.status == PixelStatus.interact) (<IInteractable>moveTile).Interact();
+        //attack enemy
+        else if(moveTile instanceof EnemyData) moveTile.Damage(1);
+        //move to a spot
+        else if(!(x == 0 && y == 0)){
+            Terrain.ins.MovePlayer(Player, x, y);
+            RecipeHandler.ins.UpdatevAvalibleRecipes();
+        }
     }
 }
 class ResourceData extends PixelData implements IDamageable, IHighlightable{

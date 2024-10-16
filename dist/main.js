@@ -180,10 +180,35 @@ class PlayerData extends EntityData {
         document.getElementById("Health").innerHTML = "HP: " + this.Health.toString().padStart(2, "0");
     }
     Die() {
+        //TODO: something
         console.log('Player has died, GAME OVER');
         //have to change both colors
         this.color = new rgb(255, 0, 0);
         Terrain.ins.mapData[this.x][this.y].color = new rgb(255, 0, 0);
+    }
+    MoveBy(x, y) {
+        const moveTile = Terrain.ins.mapData[Player.x + x][Player.y + y];
+        //mine resources
+        if (moveTile instanceof ResourceData) {
+            moveTile.Damage(1);
+        }
+        //break buildings
+        else if (moveTile instanceof BuildingData && moveTile.status == PixelStatus.breakable) {
+            if (IsDamageable(moveTile))
+                moveTile.Damage(1);
+            RecipeHandler.ins.UpdatevAvalibleRecipes();
+        }
+        //interact (ex. doors)
+        else if (IsInteractable(moveTile) && moveTile.status == PixelStatus.interact)
+            moveTile.Interact();
+        //attack enemy
+        else if (moveTile instanceof EnemyData)
+            moveTile.Damage(1);
+        //move to a spot
+        else if (!(x == 0 && y == 0)) {
+            Terrain.ins.MovePlayer(Player, x, y);
+            RecipeHandler.ins.UpdatevAvalibleRecipes();
+        }
     }
 }
 class ResourceData extends PixelData {
@@ -1674,7 +1699,7 @@ function onKeyDown(event) {
             }
             break;
     }
-    //if(event.keyCode >= 49 && event.keyCode <= 57) SelectBuilding(event.keyCode - 49);
+    CheckInputPos();
 }
 let clearMap = { xMinus: false, xPlus: false, yMinus: false, yPlus: false };
 //calls once on key release
@@ -1754,6 +1779,14 @@ function UpdateInput() {
         });
         removeInputValues = [];
     }
+    CheckInputPos();
+}
+function CheckInputPos() {
+    //check if player is trying to move out of bounds
+    if (Player.x + MovementVector.x < 0 || Player.x + MovementVector.x >= Terrain.ins.MapX())
+        MovementVector.x = 0;
+    if (Player.y + MovementVector.y < 0 || Player.y + MovementVector.y >= Terrain.ins.MapY())
+        MovementVector.y = 0;
 }
 window.addEventListener("keydown", onKeyDown, false);
 window.addEventListener("keyup", onKeyUp, false);
@@ -2112,13 +2145,6 @@ function Update() {
         //Enemy movement
         EnemyList.forEach(e => e.MoveToPlayer());
     }
-    //movement checker
-    if (Player.x + MovementVector.x < 0 || Player.x + MovementVector.x >= Terrain.ins.mapData.length ||
-        Player.y + MovementVector.y < 0 || Player.y + MovementVector.y >= Terrain.ins.mapData[0].length) {
-        //player will not move out of bounds
-        MovementVector = new Vector2(0, 0);
-    }
-    const moveTile = Terrain.ins.mapData[Player.x + MovementVector.x][Player.y + MovementVector.y];
     //placement logic
     isBuilding = false;
     if (inputPresses.includes("KeyE") && canPlaceBuildingOn(Player.OverlapPixel)) {
@@ -2144,23 +2170,8 @@ function Update() {
             }
         }
     }
-    //movement interactions TODO: remake better
-    if (moveTile instanceof ResourceData) {
-        moveTile.Damage(1);
-    }
-    else if (moveTile instanceof BuildingData && moveTile.status == PixelStatus.breakable) {
-        if (IsDamageable(moveTile))
-            moveTile.Damage(1);
-        RecipeHandler.ins.UpdatevAvalibleRecipes();
-    }
-    else if (IsInteractable(moveTile) && moveTile.status == PixelStatus.interact)
-        moveTile.Interact();
-    else if (moveTile instanceof EnemyData)
-        moveTile.Damage(1);
-    else if (!(MovementVector.x == 0 && MovementVector.y == 0)) {
-        Terrain.ins.MovePlayer(Player, MovementVector.x, MovementVector.y);
-        RecipeHandler.ins.UpdatevAvalibleRecipes();
-    }
+    //movement interactions
+    Player.MoveBy(MovementVector.x, MovementVector.y);
     UpdateInput();
     //Resource spawner
     if (Math.random() > 0.98) {

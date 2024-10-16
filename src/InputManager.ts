@@ -41,7 +41,8 @@ function onKeyDown(event: KeyboardEvent){
             }
             break;
     }
-    //if(event.keyCode >= 49 && event.keyCode <= 57) SelectBuilding(event.keyCode - 49);
+
+    CheckInputPos();
 }
 let clearMap =  {xMinus: false, xPlus: false, yMinus: false, yPlus: false};
 //calls once on key release
@@ -114,6 +115,15 @@ function UpdateInput(){
         });
         removeInputValues = [];
     } 
+
+    CheckInputPos();
+}
+function CheckInputPos(){
+    //check if player is trying to move out of bounds
+    if(Player.x + MovementVector.x < 0 || Player.x + MovementVector.x >= Terrain.ins.MapX())
+        MovementVector.x = 0;
+    if(Player.y + MovementVector.y < 0 || Player.y + MovementVector.y >= Terrain.ins.MapY())
+        MovementVector.y = 0;
 }
 
 window.addEventListener("keydown", onKeyDown, false);
