@@ -294,29 +294,21 @@ class Terrain{
             [1, 1, 1, 3, 1],
         ];
 
+        let HouseBlocks = new Map<number, BuildingData>();
+        HouseBlocks.set(1, FindBuilding("Stone Wall"));
+        HouseBlocks.set(2, FindBuilding("Wooden Floor"));
+        HouseBlocks.set(3, FindBuilding("Wooden Door"));
+        HouseBlocks.set(4, FindBuilding("Glass"));
+        HouseBlocks.set(5, FindBuilding("Lantern"));
+
         for(let i = 0; i < house.length; i++){
             for(let j = 0; j < house[0].length; j++){
                 if(RandomGenerator() < 0.3) continue;
                 let pixel: PixelData = nullPixel;
-                //TODO: optimze by preseaching building and saving them in a dictionary
-                switch(house[i][j]){
-                    case 1:
-                        pixel = FindBuilding("Stone Wall").at(x+j, y+i);
-                        break;
-                    case 2:
-                        pixel = FindBuilding("Wooden Floor").at(x+j, y+i);
-                        break;
-                    case 3:
-                        pixel = FindBuilding("Wooden Door").at(x+j, y+i);
-                        break;
-                    case 4:
-                        pixel = FindBuilding("Glass").at(x+j, y+i);
-                        break;
-                    case 5:
-                        pixel = FindBuilding("Lantern").at(x+j, y+i);
-                        break;
-                }
-                if(pixel == nullPixel) pixel = PerlinPixel(x+j, y+i);
+
+                if(HouseBlocks.has(house[i][j])) pixel = HouseBlocks.get(house[i][j])!.at(x+j, y+i);
+                else pixel = PerlinPixel(x+j, y+i);
+
                 this.ModifyMapData(x+j, y+i, pixel);
             }
         }
