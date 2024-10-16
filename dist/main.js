@@ -202,9 +202,8 @@ class PlayerData extends EntityData {
         //On death.. respawn and loose half of the resources
         console.log('Player has died.. respawning');
         ResourceManager.ins.resources.forEach(resource => {
-            resource[1] = Math.floor(resource[1] / 2);
+            ResourceManager.ins.RemoveResource(resource[0], Math.ceil(resource[1] / 2));
         });
-        ResourceManager.ins.DisplayStoredResources();
         this.respawnTime = 5;
         this.Heal(this.MaxHealth / 2);
         this.FindAndSetSpawnPos();
