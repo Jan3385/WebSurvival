@@ -28,12 +28,11 @@ function Start(){
 
     //sets player position in the middle of the map
     Player = new PlayerData(new rgb(0, 0, 0), new rgb(255, 255, 255), 
-        Math.floor(canvas.width/canvasScale/2), Math.floor(canvas.height/canvasScale/2), 10);
+        1,1 , 10);
 
     Renderer.ins = new Renderer();
     QuestManager.ins = new QuestManager();
 
-    Terrain.ins.MovePlayer(Player, 0, 0); //Draw player
     Renderer.ins.Draw();
 
     //TODO: Maybe fix?
@@ -42,6 +41,9 @@ function Start(){
     for(let i = 0; i < 40; i++){
         Terrain.ins.GenerateRandomResource();
     }
+
+    Player.FindAndSetSpawnPos();
+    Terrain.ins.MovePlayer(Player, 0, 0); //Draw player
 
     ResourceManager.ins.DisplayCostResources(SelectedBuilding.cost);
 

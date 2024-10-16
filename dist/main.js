@@ -163,6 +163,7 @@ class EntityData extends PixelData {
     }
 }
 class PlayerData extends EntityData {
+    respawnTime = 0;
     constructor(color, HighlightColor, x, y, Health) {
         super(color, PixelStatus.block, x, y, HighlightColor, Health);
     }
@@ -179,12 +180,32 @@ class PlayerData extends EntityData {
         this.Health = Math.min(this.Health + heal, this.MaxHealth);
         document.getElementById("Health").innerHTML = "HP: " + this.Health.toString().padStart(2, "0");
     }
+    FindAndSetSpawnPos() {
+        let pos = new Vector2(Math.floor(canvas.width / canvasScale / 2), Math.floor(canvas.height / canvasScale / 2));
+        //find a valid spawn position
+        while (Terrain.ins.mapData[pos.x][pos.y].status != PixelStatus.walkable) {
+            pos.x += Math.floor(Math.random() * 3) - 1;
+            pos.y += Math.floor(Math.random() * 3) - 1;
+            if (pos.x < 0 || pos.x >= Terrain.ins.MapX())
+                pos.x = Math.floor(canvas.width / canvasScale / 2);
+            if (pos.y < 0 || pos.y >= Terrain.ins.MapY())
+                pos.y = Math.floor(canvas.height / canvasScale / 2);
+            pos = new Vector2(pos.x + Math.floor(Math.random() * 3) - 1, pos.y + Math.floor(Math.random() * 3) - 1);
+        }
+        Terrain.ins.mapData[Player.x][Player.y] = this.OverlapPixel;
+        this.x = pos.x;
+        this.y = pos.y;
+        this.OverlapPixel = Terrain.ins.mapData[this.x][this.y];
+        Terrain.ins.mapData[Player.x][Player.y] = this;
+        this.respawnTime = 5;
+    }
     Die() {
-        //TODO: something
-        console.log('Player has died, GAME OVER');
-        //have to change both colors
-        this.color = new rgb(255, 0, 0);
-        Terrain.ins.mapData[this.x][this.y].color = new rgb(255, 0, 0);
+        //On death.. respawn and loose half of the resources
+        console.log('Player has died.. respawning');
+        ResourceManager.ins.resources.forEach(resource => {
+            resource[1] = Math.floor(resource[1] / 2);
+        });
+        this.FindAndSetSpawnPos();
     }
     MoveBy(x, y) {
         const moveTile = Terrain.ins.mapData[Player.x + x][Player.y + y];
@@ -2050,6 +2071,11 @@ class Renderer {
             ctx.stroke();
             this.LineGizmos = [];
         }
+        //override the canvas if player is dead
+        if (Player.respawnTime > 0) {
+            this.DrawDeathScreen(1 - Player.respawnTime / 5);
+            return;
+        }
     }
     LineGizmos = [];
     DrawGizmoLine(from, to) {
@@ -2095,6 +2121,19 @@ class Renderer {
         ctx.lineWidth = 2;
         ctx.stroke(); //write all the diagonal lines
     }
+    DrawDeathScreen(t) {
+        ctx.fillStyle = 'rgb(0, 0, 0)';
+        ctx.fillRect(0, 0, canvas.width, Math.min(canvas.height * (t * 3), canvas.height));
+        Player.respawnTime -= Math.min((1000 / tickSpeed) / 1000, Player.respawnTime);
+        ctx.fillStyle = "#FFFFFF";
+        ctx.font = `50px Arial`;
+        const textString = `You have died!`;
+        const textRespawnTimer = `${Player.respawnTime.toFixed(1)}s`;
+        let textWidth = ctx.measureText(textString).width;
+        ctx.fillText(textString, (canvas.width / 2) - (textWidth / 2), canvas.height / 2 - 35);
+        textWidth = ctx.measureText(textRespawnTimer).width;
+        ctx.fillText(textRespawnTimer, (canvas.width / 2) - (textWidth / 2), canvas.height / 2 + 35);
+    }
     UpdateWindowSize() {
         canvasScale = Math.floor(window.innerWidth / 140);
         if (Terrain.ins.MapY() * canvasScale > window.innerHeight * 0.8)
@@ -2123,16 +2162,17 @@ function Start() {
     const Seed = Math.random() * 1000;
     Terrain.ins = new Terrain(Seed);
     //sets player position in the middle of the map
-    Player = new PlayerData(new rgb(0, 0, 0), new rgb(255, 255, 255), Math.floor(canvas.width / canvasScale / 2), Math.floor(canvas.height / canvasScale / 2), 10);
+    Player = new PlayerData(new rgb(0, 0, 0), new rgb(255, 255, 255), 1, 1, 10);
     Renderer.ins = new Renderer();
     QuestManager.ins = new QuestManager();
-    Terrain.ins.MovePlayer(Player, 0, 0); //Draw player
     Renderer.ins.Draw();
     //TODO: Maybe fix?
     //Terrain.GenerateRandomStructures(2, RandomUsingSeed(Seed));
     for (let i = 0; i < 40; i++) {
         Terrain.ins.GenerateRandomResource();
     }
+    Player.FindAndSetSpawnPos();
+    Terrain.ins.MovePlayer(Player, 0, 0); //Draw player
     ResourceManager.ins.DisplayCostResources(SelectedBuilding.cost);
     ResourceManager.ins.Cheat();
 }

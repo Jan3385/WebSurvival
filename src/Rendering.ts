@@ -48,6 +48,12 @@ class Renderer{
             ctx.stroke();
             this.LineGizmos = [];
         }
+        
+        //override the canvas if player is dead
+        if(Player.respawnTime > 0){
+            this.DrawDeathScreen(1 - Player.respawnTime/5);
+            return;
+        }
     }
     LineGizmos: [from: Vector2, to:Vector2][] = [];
     DrawGizmoLine(from: Vector2, to:Vector2){
@@ -93,6 +99,21 @@ class Renderer{
         });
         ctx.lineWidth = 2;
         ctx.stroke(); //write all the diagonal lines
+    }
+    private DrawDeathScreen(t: number){
+        ctx.fillStyle = 'rgb(0, 0, 0)';
+        ctx.fillRect(0, 0, canvas.width, Math.min(canvas.height * (t*3), canvas.height));
+
+        Player.respawnTime -= Math.min((1000/tickSpeed)/1000, Player.respawnTime);
+
+        ctx.fillStyle = "#FFFFFF";
+        ctx.font = `50px Arial`;
+        const textString = `You have died!`;
+        const textRespawnTimer = `${Player.respawnTime.toFixed(1)}s`
+        let textWidth = ctx.measureText(textString).width;
+        ctx.fillText(textString , (canvas.width/2) - (textWidth / 2), canvas.height/2 - 35);
+        textWidth = ctx.measureText(textRespawnTimer).width;
+        ctx.fillText(textRespawnTimer , (canvas.width/2) - (textWidth / 2), canvas.height/2 + 35);
     }
     UpdateWindowSize(){
         canvasScale = Math.floor(window.innerWidth / 140);

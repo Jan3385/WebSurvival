@@ -98,6 +98,7 @@ abstract class EntityData extends PixelData implements IDamageable, IHighlightab
 }
 
 class PlayerData extends EntityData{
+    respawnTime: number = 0;
     constructor(color: rgb, HighlightColor: rgb, x: number, y: number, Health:number){
         super(color, PixelStatus.block, x, y, HighlightColor, Health);
     }
@@ -116,13 +117,36 @@ class PlayerData extends EntityData{
         this.Health = Math.min(this.Health + heal, this.MaxHealth);
         document.getElementById("Health")!.innerHTML = "HP: " + this.Health.toString().padStart(2, "0");
     }
-    Die(): void{
-        //TODO: something
-        console.log('Player has died, GAME OVER');
+    FindAndSetSpawnPos(){
+        let pos: Vector2 = new Vector2(Math.floor(canvas.width/canvasScale/2), Math.floor(canvas.height/canvasScale/2));
 
-        //have to change both colors
-        this.color = new rgb(255, 0, 0);
-        Terrain.ins.mapData[this.x][this.y].color = new rgb(255, 0, 0);
+        //find a valid spawn position
+        while(Terrain.ins.mapData[pos.x][pos.y].status != PixelStatus.walkable){
+            pos.x += Math.floor(Math.random() * 3) - 1;
+            pos.y += Math.floor(Math.random() * 3) - 1;
+            if(pos.x < 0 || pos.x >= Terrain.ins.MapX()) pos.x = Math.floor(canvas.width/canvasScale/2);
+            if(pos.y < 0 || pos.y >= Terrain.ins.MapY()) pos.y = Math.floor(canvas.height/canvasScale/2);
+
+            pos = new Vector2(pos.x + Math.floor(Math.random() * 3) - 1, pos.y + Math.floor(Math.random() * 3) - 1);
+        }
+        Terrain.ins.mapData[Player.x][Player.y] = this.OverlapPixel;
+
+        this.x = pos.x;
+        this.y = pos.y;
+
+        this.OverlapPixel = Terrain.ins.mapData[this.x][this.y];
+        Terrain.ins.mapData[Player.x][Player.y] = this;
+        this.respawnTime = 5;
+    }
+    Die(): void{
+        //On death.. respawn and loose half of the resources
+        console.log('Player has died.. respawning');
+
+        ResourceManager.ins.resources.forEach(resource => {
+            resource[1] = Math.floor(resource[1] / 2);
+        });
+
+        this.FindAndSetSpawnPos();
     }
     public MoveBy(x: number, y: number){
         const moveTile = Terrain.ins.mapData[Player.x + x][Player.y + y];
