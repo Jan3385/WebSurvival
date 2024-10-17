@@ -47,7 +47,7 @@ function Start(){
 
     ResourceManager.ins.DisplayCostResources(SelectedBuilding.cost);
 
-    ResourceManager.ins.Cheat();
+    //ResourceManager.ins.Cheat();
 }
 
 let isBuilding = false;

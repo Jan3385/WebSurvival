@@ -66,11 +66,14 @@ class GameTime{
     OnNightStart(){
         if(this.triggeredNight) return;
         
+        this.triggeredNight = true;
+
+        //dont spawn enemies on first two quests
+        if(QuestManager.ins.activeQuestId < 2) return;
+
         let numOfEnemies = Math.min(4, Math.max(1, Math.floor(Math.random() * (this.day / 10) + 1)));
         if(this.SpawnRaidEnemies()) numOfEnemies += 1;
         this.SpawnEnemies(numOfEnemies);
-
-        this.triggeredNight = true;
     }
     SpawnEnemies(amount: number){
         let SpawnedEnemies: number = 0;
