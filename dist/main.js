@@ -1549,8 +1549,13 @@ class EnemyData extends EntityData {
             Renderer.ins.DrawGizmoLine(new Vector2(element.x, element.y), new Vector2(element.x + 1, element.y + 1));
         });*/
         this.Move(new Vector2(this.path[1].x - this.x, this.path[1].y - this.y));
-        if (Terrain.ins.mapData[this.path[0].x][this.path[0].y].status == PixelStatus.walkable)
-            this.path.shift();
+        try {
+            if (Terrain.ins.mapData[this.path[0].x][this.path[0].y].status == PixelStatus.walkable)
+                this.path.shift();
+        }
+        catch (e) {
+            this.path = null;
+        }
     }
     Move(dir) {
         if (this.x + dir.x < 0 || this.x + dir.x >= Terrain.ins.MapX() || this.y + dir.y < 0 || this.y + dir.y >= Terrain.ins.MapY())
