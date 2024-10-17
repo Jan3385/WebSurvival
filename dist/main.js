@@ -1100,6 +1100,8 @@ class Terrain {
             for (let j = 0; j < house[0].length; j++) {
                 if (RandomGenerator() < 0.3)
                     continue;
+                if (x + j < 0 || x + j >= this.MapX() || y + i < 0 || y + i >= this.MapY())
+                    continue;
                 let pixel = nullPixel;
                 if (HouseBlocks.has(house[i][j]))
                     pixel = HouseBlocks.get(house[i][j]).at(x + j, y + i);
@@ -2174,8 +2176,8 @@ function Start() {
     Renderer.ins = new Renderer();
     QuestManager.ins = new QuestManager();
     Renderer.ins.Draw();
-    //TODO: Maybe fix?
-    //Terrain.GenerateRandomStructures(2, RandomUsingSeed(Seed));
+    const numOfBuildings = Math.floor(RandomUsingSeed(Seed)() * 2) + 1; // 1-2 buildings
+    Terrain.ins.GenerateRandomStructures(numOfBuildings, RandomUsingSeed(Seed));
     for (let i = 0; i < 40; i++) {
         Terrain.ins.GenerateRandomResource();
     }

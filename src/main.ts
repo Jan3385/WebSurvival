@@ -35,8 +35,8 @@ function Start(){
 
     Renderer.ins.Draw();
 
-    //TODO: Maybe fix?
-    //Terrain.GenerateRandomStructures(2, RandomUsingSeed(Seed));
+    const numOfBuildings = Math.floor(RandomUsingSeed(Seed)()*2)+1; // 1-2 buildings
+    Terrain.ins.GenerateRandomStructures(numOfBuildings, RandomUsingSeed(Seed));
 
     for(let i = 0; i < 40; i++){
         Terrain.ins.GenerateRandomResource();

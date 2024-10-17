@@ -304,6 +304,7 @@ class Terrain{
         for(let i = 0; i < house.length; i++){
             for(let j = 0; j < house[0].length; j++){
                 if(RandomGenerator() < 0.3) continue;
+                if(x+j < 0 || x+j >= this.MapX() || y+i < 0 || y+i >= this.MapY()) continue;
                 let pixel: PixelData = nullPixel;
 
                 if(HouseBlocks.has(house[i][j])) pixel = HouseBlocks.get(house[i][j])!.at(x+j, y+i);
