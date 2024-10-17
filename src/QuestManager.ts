@@ -92,7 +92,7 @@ class QuestManager{
                 this.UpdateLevelDisplay();
                 await new Promise(r => setTimeout(r, 500));
                 QuestManager.PlayerXP -= QuestManager.PlayerXpToNextLevel;
-                QuestManager.PlayerXpToNextLevel = Math.floor(Math.log(QuestManager.PlayerLevel+3)*10); //TODO:
+                QuestManager.PlayerXpToNextLevel = Math.floor(Math.log(QuestManager.PlayerLevel+3)*10);
                 QuestManager.PlayerLevel++;
             }
 
