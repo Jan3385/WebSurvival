@@ -149,6 +149,9 @@ class PlayerData extends EntityData{
 
         this.Heal(this.MaxHealth/2);
 
+        //despawn all enemies
+        EnemyList.forEach(e => e.Despawn());
+
         this.FindAndSetSpawnPos();
     }
     public MoveBy(x: number, y: number){

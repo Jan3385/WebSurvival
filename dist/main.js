@@ -206,6 +206,8 @@ class PlayerData extends EntityData {
         });
         this.respawnTime = 5;
         this.Heal(this.MaxHealth / 2);
+        //despawn all enemies
+        EnemyList.forEach(e => e.Despawn());
         this.FindAndSetSpawnPos();
     }
     MoveBy(x, y) {
