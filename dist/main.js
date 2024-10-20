@@ -452,11 +452,14 @@ class GameTime {
     OnNightStart() {
         if (this.triggeredNight)
             return;
+        this.triggeredNight = true;
+        //dont spawn enemies on first two quests
+        if (QuestManager.ins.activeQuestId < 2)
+            return;
         let numOfEnemies = Math.min(4, Math.max(1, Math.floor(Math.random() * (this.day / 10) + 1)));
         if (this.SpawnRaidEnemies())
             numOfEnemies += 1;
         this.SpawnEnemies(numOfEnemies);
-        this.triggeredNight = true;
     }
     SpawnEnemies(amount) {
         let SpawnedEnemies = 0;
@@ -2184,7 +2187,7 @@ function Start() {
     Player.FindAndSetSpawnPos();
     Terrain.ins.MovePlayer(Player, 0, 0); //Draw player
     ResourceManager.ins.DisplayCostResources(SelectedBuilding.cost);
-    ResourceManager.ins.Cheat();
+    //ResourceManager.ins.Cheat();
 }
 let isBuilding = false;
 let EnemyMovementInterval = 0;
