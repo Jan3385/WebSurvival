@@ -98,6 +98,7 @@ class Renderer{
             }
         });
         ctx.lineWidth = 2;
+        ctx.strokeStyle = "#3c3c3c";
         ctx.stroke(); //write all the diagonal lines
     }
     private DrawDeathScreen(t: number){
