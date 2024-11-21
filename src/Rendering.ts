@@ -87,18 +87,19 @@ class Renderer{
                         ctx.strokeRect(x*canvasScale+2, y*canvasScale+2, canvasScale-4, canvasScale-4);
                         break;
                     case HighlightPixel.slash:
+                        
                         ctx.strokeStyle = pixel.HighlightColor.getWithLight(pixel.Brightness);
                         ctx.lineWidth = 2;
                         ctx.strokeRect(x*canvasScale+1, y*canvasScale+1, canvasScale-2, canvasScale-2);
                         
+                        ctx.beginPath();
                         ctx.moveTo(x*canvasScale+1, y*canvasScale+1);
                         ctx.lineTo(x*canvasScale+canvasScale-1, y*canvasScale+canvasScale-1);
+                        ctx.stroke();
                         break;
                 }
             }
         });
-        ctx.lineWidth = 2;
-        ctx.stroke(); //write all the diagonal lines
     }
     private DrawDeathScreen(t: number){
         ctx.fillStyle = 'rgb(0, 0, 0)';
