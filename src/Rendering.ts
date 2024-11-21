@@ -87,7 +87,6 @@ class Renderer{
                         ctx.strokeRect(x*canvasScale+2, y*canvasScale+2, canvasScale-4, canvasScale-4);
                         break;
                     case HighlightPixel.slash:
-                        
                         ctx.strokeStyle = pixel.HighlightColor.getWithLight(pixel.Brightness);
                         ctx.lineWidth = 2;
                         ctx.strokeRect(x*canvasScale+1, y*canvasScale+1, canvasScale-2, canvasScale-2);

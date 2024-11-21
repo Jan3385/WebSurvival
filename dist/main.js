@@ -709,7 +709,10 @@ class ResourceManager {
             container.appendChild(text);
             ResouceElements.push(container);
         });
-        document.getElementById("resources").replaceChildren(...ResouceElements);
+        if (ResouceElements.length == 0)
+            document.getElementById("resources").replaceChildren(document.createElement('hr'));
+        else
+            document.getElementById("resources").replaceChildren(...ResouceElements);
         RecipeHandler.ins.DisplayAvalibleRecipes();
     }
     DisplayCostResources(resources) {

@@ -62,15 +62,16 @@ body{
     margin: auto;
     
     .GameDay{
-        padding: 0;
-        margin: 3px auto 3px auto;
+        padding: 4px;
+        margin: 3px auto 1px auto;
         text-align: center;
         font-family: monospace;
         border-top: 2px solid rgb(178, 178, 178);
-        border-radius: 10px;
+        border-radius: 10px 10px 3px 3px;
         span{
             font-size: 0.6em;
         }
+        background-color: rgb(230, 230, 230);
     }
     .Player-Material-List{
         background-color: rgb(230, 230, 230);
@@ -175,6 +176,11 @@ body{
                     aspect-ratio: 1/1;
                 }
             }
+            hr{
+                width: 2dvw;
+                margin-top: 15px;
+                margin-bottom: 15px;
+            }
             .Clickable-Resource{
                 border: solid 1.5px black;
                 background-color: rgb(194, 95, 73);
@@ -257,7 +263,7 @@ body{
     background-color: rgb(230, 230, 230);
     border-radius: 5px;
     border: solid rgb(194, 194, 194) 1px;
-    height: 80%;
+    height: 70%;
     padding: 5px;
     width: 95%;
     .Quest{
