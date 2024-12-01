@@ -1,5 +1,6 @@
 :root{
     --form-background: rgb(247, 250, 255);
+    --form-background-darker: rgb(237, 240, 245);
     --form-header-color: rgb(0, 0, 0);
     --form-label-color: rgba(0, 0, 0, 0.4);
 }
@@ -128,10 +129,17 @@ p{
             display: grid;
             grid-column: 1 / span 2;
             grid-template-columns: 1fr 1fr;
+            width: 80%;
+            margin: auto;
+            border-radius: 15px;
+            padding: 4px;
+            background-color: var(--form-background-darker);
             h4{
                 grid-column: 1 / span 2;
                 padding: 0;
                 margin: auto;
+                margin-bottom: 4px;
+                user-select: none;
             }
             input{
                 margin: auto;

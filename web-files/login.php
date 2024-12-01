@@ -65,7 +65,7 @@
                 <div class="seed">
                     <h4>Use Custom Seed</h4>
                     <input type="checkbox" name="seed-enable" id="seed-enable" onclick="ChangeSeedInputStatus(this.checked)">
-                    <input type="text" name="seed" id="seed" placeholder="Seed" disabled required>
+                    <input type="text" name="seed" id="seed" placeholder="Seed" disabled required autocomplete="off">
                 </div>
                 <hr>
                 <button type="submit" name="register" value="register">Register</button>

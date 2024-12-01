@@ -26,6 +26,10 @@
                 <div class="Tutorial-Panel">
                     <p id="world-name">Word name: </p>
                     <p id="seed">seed: </p>
+                    <div class="save-panel">
+                        <button onclick="SaveGame()">Save</button>
+                        <button onclick="SaveExitGame()">Save & Exit</button>
+                    </div>
                     <div class="Quest">
                         <h3>Active Quest</h3>
                         <div>
@@ -34,7 +38,7 @@
                             <p id="Quest-Completion">1/1</p>
                         </div>
                     </div>
-    
+
                     <h4>-Controls-</h4>
                     <table class="tutorial">
                         <tr>

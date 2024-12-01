@@ -2178,7 +2178,6 @@ function Start() {
     GameTime.ins = new GameTime();
     ResourceManager.ins = new ResourceManager();
     RecipeHandler.ins = new RecipeHandler();
-    //const Seed = Math.random() * 1000;
     Terrain.ins = new Terrain(seed);
     //sets player position in the middle of the map
     Player = new PlayerData(new rgb(0, 0, 0), new rgb(255, 255, 255), 1, 1, 10);
@@ -2193,7 +2192,6 @@ function Start() {
     Player.FindAndSetSpawnPos();
     Terrain.ins.MovePlayer(Player, 0, 0); //Draw player
     ResourceManager.ins.DisplayCostResources(SelectedBuilding.cost);
-    //ResourceManager.ins.Cheat();
 }
 let isBuilding = false;
 let EnemyMovementInterval = 0;

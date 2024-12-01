@@ -24,8 +24,6 @@ function Start(){
     ResourceManager.ins = new ResourceManager();
     RecipeHandler.ins = new RecipeHandler();
 
-    //const Seed = Math.random() * 1000;
-
     Terrain.ins = new Terrain(seed);
 
     //sets player position in the middle of the map
@@ -48,8 +46,6 @@ function Start(){
     Terrain.ins.MovePlayer(Player, 0, 0); //Draw player
 
     ResourceManager.ins.DisplayCostResources(SelectedBuilding.cost);
-
-    //ResourceManager.ins.Cheat();
 }
 
 let isBuilding = false;
