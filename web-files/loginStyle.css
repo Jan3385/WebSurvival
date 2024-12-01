@@ -1,0 +1,162 @@
+:root{
+    --form-background: rgb(247, 250, 255);
+    --form-header-color: rgb(0, 0, 0);
+    --form-label-color: rgba(0, 0, 0, 0.4);
+}
+body{
+    background-color: #000000;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+h1{
+    text-align: center;
+    font-size: 50px;
+    background-color: rgb(225, 204, 176);
+    padding: 10px;
+    width: fit-content;
+    margin: auto;
+    margin-top: 5px;
+    margin-bottom: 7px;
+    border-radius: 20px;
+}
+p{
+    text-align: center;
+    font-size: 15px;
+    margin: auto;
+    grid-column: 1 / span 2;
+    color: rgb(163, 18, 18);
+    user-select: none;
+    text-decoration: underline;
+    background-color: rgb(225, 204, 176);
+    padding: 4px;
+    border-radius: 10px;
+}
+#background-video {
+    position: fixed;
+    top: 0;
+    left: 0;
+    min-height: 100%;
+    min-width: 100%;
+    z-index: -1;
+    opacity: 0.25;
+}
+.container{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+    margin: auto;
+    width: max(60%, 600px);
+    .form-container{
+        background-color: var(--form-background);
+        height: 70dvh;
+        box-sizing: border-box;
+        overflow-y: auto;
+        border-radius: 10px;
+        h3{
+            text-align: center;
+            font-size: 40px;
+            height: 40px;
+            color: var(--form-header-color);
+            user-select: none;
+            text-transform: uppercase;
+        }
+        form{
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 5px;
+            min-height: 70%;
+        }
+        hr{
+            width: 75%;
+            height: 1px;
+            margin: auto;
+            padding: 0;
+            grid-column: 1 / span 2;
+            background-color: rgba(0, 0, 0, 0.2);
+            border: none;
+        }
+        input{
+            margin: auto;
+            width: 80%;
+            height: 50px;
+            font-size: 30px;
+        }
+        label{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-size: 30px;
+            color: var(--form-label-color);
+            margin: 10px;
+            user-select: none;
+        }
+        button{
+            grid-column: 1 / span 2;
+            margin: auto;
+            width: 80%;
+            height: 50px;
+            font-size: 30px;
+            border-radius: 12px;
+            background-color: rgb(210, 218, 243);
+            &:hover{
+                background-color: rgb(168, 184, 253);
+            }
+            &:active{
+                background-color: rgb(148, 164, 253);
+            }
+            transition: 
+                background-color 0.2s;
+        }
+    }
+    .register{
+        .gamemode{
+            margin: auto;
+            input{
+                width: 20px;
+                height: 20px;
+            }
+            label{
+                display: inline;
+                font-size: 30px;
+                margin: 0;
+            }
+        }
+        .seed{
+            margin: auto;
+            display: grid;
+            grid-column: 1 / span 2;
+            grid-template-columns: 1fr 1fr;
+            h4{
+                grid-column: 1 / span 2;
+                padding: 0;
+                margin: auto;
+            }
+            input{
+                margin: auto;
+                width: 70%;
+                height: 30px;
+                font-size: 20px;
+            }
+        }
+    }
+    .leaderboards-button{
+        grid-column: 1 / span 2;
+        button{
+            width: 100%;
+            height: 50px;
+            font-size: 30px;
+            border-radius: 4px;
+            background-color: rgb(226, 226, 226);
+            &:hover{
+                background-color: rgb(196, 196, 196);
+            }
+            &:active{
+                background-color: rgb(176, 176, 176);
+            }
+            transition: 
+                background-color 0.2s;
+        }
+    }
+}

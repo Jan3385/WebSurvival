@@ -2,6 +2,8 @@
 /// <reference path="Rendering.ts" />
 /// <reference path="Lighting.ts" />
 
+declare const seed: number;
+
 //check if user is on mobile
 const isMobile = navigator.userAgent.match(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Windows Phone|Opera Mini/i);
 document.getElementById("Mobile-Blocker")!.style.display = isMobile ? "block" : "none";
@@ -22,9 +24,9 @@ function Start(){
     ResourceManager.ins = new ResourceManager();
     RecipeHandler.ins = new RecipeHandler();
 
-    const Seed = Math.random() * 1000;
+    //const Seed = Math.random() * 1000;
 
-    Terrain.ins = new Terrain(Seed);
+    Terrain.ins = new Terrain(seed);
 
     //sets player position in the middle of the map
     Player = new PlayerData(new rgb(0, 0, 0), new rgb(255, 255, 255), 
@@ -35,8 +37,8 @@ function Start(){
 
     Renderer.ins.Draw();
 
-    const numOfBuildings = Math.floor(RandomUsingSeed(Seed)()*2)+1; // 1-2 buildings
-    Terrain.ins.GenerateRandomStructures(numOfBuildings, RandomUsingSeed(Seed));
+    const numOfBuildings = Math.floor(RandomUsingSeed(seed)()*2)+1; // 1-2 buildings
+    Terrain.ins.GenerateRandomStructures(numOfBuildings, RandomUsingSeed(seed));
 
     for(let i = 0; i < 40; i++){
         Terrain.ins.GenerateRandomResource();

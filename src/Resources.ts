@@ -27,7 +27,7 @@ class ResourceManager{
             const image = document.createElement('img');
             const text = document.createElement('p');
 
-            image.src = 'Icons/' + ResourceTypes[x[0]] + '.png';
+            image.src = '../Icons/' + ResourceTypes[x[0]] + '.png';
             image.title = ResourceTypes[x[0]].toString().replace('_',' ');
             text.innerHTML = x[1].toString().padStart(4, "0");
             container.appendChild(image);
@@ -51,7 +51,7 @@ class ResourceManager{
         resources.resources.forEach(x => {
             const container = document.createElement('p');
             container.innerHTML = 
-                '<img src="Icons/' +ResourceTypes[x[0]]+'.png" title="'+ResourceTypes[x[0]].toString().replace('_',' ')+'">: ' + x[1];
+                '<img src="../Icons/' +ResourceTypes[x[0]]+'.png" title="'+ResourceTypes[x[0]].toString().replace('_',' ')+'">: ' + x[1];
             
             ResouceElements.push(container);
         });
@@ -73,7 +73,10 @@ class ResourceManager{
     }
     AddResource(type: ResourceTypes, amount: number): void{
         const resource = this.resources.filter(x => x[0] == type)[0];
-        if(resource == undefined) this.resources.push([type, amount]);
+        if(resource == undefined) {
+            if(amount <= 0) return;
+            this.resources.push([type, amount]);
+        }
         else this.resources.filter(x => x[0] == type)[0][1] += amount;
         this.DisplayStoredResources();
 
