@@ -444,8 +444,7 @@ class GameTime {
         }
         //from 0 - 5 to 0 - 1
         const t = this.lightLevel / 5;
-        document.body.style.background = "rgb(" + lerp(99, 255, t) + "," +
-            lerp(110, 255, t) + "," + lerp(114, 255, t) + ")";
+        document.documentElement.style.setProperty('--light-level', t.toString());
         document.getElementById("Time").innerHTML = GameTime.ins.GetDayTime(); //shows time
         CalculateLightMap();
     }
@@ -1982,11 +1981,12 @@ class SpecialTriggerQuest extends Quest {
 }
 class QuestManager {
     static ins;
-    static PlayerXP = 0;
-    static PlayerXpToNextLevel = 0;
     static PlayerLevel = 1;
+    static PlayerXP = 0;
+    static PlayerXpToNextLevel = Math.floor(Math.log(QuestManager.PlayerLevel + 3) * 10);
     constructor() {
         this.UpdateDisplayQuest();
+        this.UpdateLevelDisplay();
     }
     activeQuestId = 0;
     quests = Quest.GetQuests();

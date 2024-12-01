@@ -146,7 +146,6 @@ class PlayerData extends EntityData{
         });
 
         this.respawnTime = 5;
-
         this.Heal(this.MaxHealth/2);
 
         //despawn all enemies

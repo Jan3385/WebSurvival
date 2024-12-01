@@ -55,8 +55,7 @@ class GameTime{
         //from 0 - 5 to 0 - 1
         const t = this.lightLevel / 5;
 
-        document.body.style.background = "rgb(" + lerp(99, 255, t) + "," + 
-            lerp(110, 255, t) + "," + lerp(114, 255, t) + ")";
+        document.documentElement.style.setProperty('--light-level', t.toString());
 
         document.getElementById("Time")!.innerHTML = GameTime.ins.GetDayTime(); //shows time
 
