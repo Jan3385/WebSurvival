@@ -3,6 +3,7 @@
 /// <reference path="Lighting.ts" />
 
 declare const seed: number;
+declare const resourceSave: string;
 
 //check if user is on mobile
 const isMobile = navigator.userAgent.match(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Windows Phone|Opera Mini/i);
@@ -46,6 +47,8 @@ function Start(){
     Terrain.ins.MovePlayer(Player, 0, 0); //Draw player
 
     ResourceManager.ins.DisplayCostResources(SelectedBuilding.cost);
+
+    Load(resourceSave);
 }
 
 let isBuilding = false;

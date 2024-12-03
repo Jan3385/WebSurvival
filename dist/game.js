@@ -2163,12 +2163,21 @@ class Renderer {
 }
 function Save() {
     console.log("Saving wolrd " + worldName);
+    let save_resources = "";
+    for (const key of Object.values(ResourceTypes)) {
+        if (!isNaN(Number(key))) {
+            const resource_type = key;
+            save_resources += key + ":" + ResourceManager.ins.GetResourceAmount(resource_type).toString() + "|";
+        }
+    }
+    save_resources += "\n";
     // Save the world
     fetch('../web-files/saveWorld.php', {
         method: 'POST',
         body: JSON.stringify({
             worldName: worldName,
             password: password, // <- unsafe 🥶
+            resources: save_resources,
         }),
         headers: {
             'Content-type': 'application/json; charset=UTF-8'
@@ -2181,6 +2190,16 @@ function Save() {
             response.text().then(text => { console.log(text); });
         }
     });
+}
+function Load(Resource) {
+    //ResourceManager.ins.AddResource();
+    const resourcePair = Resource.split("|");
+    for (const pair of resourcePair) {
+        const resource = pair.split(":");
+        if (resource.length > 1) {
+            ResourceManager.ins.AddResource(Number(resource[0]), Number(resource[1]));
+        }
+    }
 }
 /// <reference path="Terrain.ts" />
 /// <reference path="Rendering.ts" />
@@ -2213,6 +2232,7 @@ function Start() {
     Player.FindAndSetSpawnPos();
     Terrain.ins.MovePlayer(Player, 0, 0); //Draw player
     ResourceManager.ins.DisplayCostResources(SelectedBuilding.cost);
+    Load(resourceSave);
 }
 let isBuilding = false;
 let EnemyMovementInterval = 0;

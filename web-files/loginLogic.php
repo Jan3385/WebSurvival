@@ -42,4 +42,8 @@ $password = strtok(fgets($f),"|||");
 $gamemode = strtok("|||");
 $email = strtok("|||");
 $seed = strtok("|||");
+
+fgets($f); //skip last login date
+$resources = fgets($f);
+fclose($f);
 ?>

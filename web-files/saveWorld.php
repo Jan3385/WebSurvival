@@ -2,8 +2,17 @@
 $input = file_get_contents("php://input");
 $data = json_decode($input, true);
 
+if( !isset($data["worldName"]) ||
+    !isset($data["password"])  ||
+    !isset($data["resources"])){
+    header(http_response_code(response_code: 400));
+    echo json_encode(["error"=> "Missing parameters"]);
+    die("Missing parameters");
+}
+
 $worldName = $data["worldName"];
 $password = $data["password"];
+$resources = $data["resources"];
 
 $filePath = "../stored-users/".$worldName;
 if (!file_exists($filePath)) {
@@ -15,13 +24,14 @@ if (!file_exists($filePath)) {
 $f = fopen($filePath, "r");
 $static_text = fgets($f);
 $prev_modification_date_string = fgets($f);
+$prev_modification_date_string = str_replace("\n", '', $prev_modification_date_string);
 fclose($f);
 
 $current_date = date_create("now");
 $prev_modification_date = date_create_from_format("d-m-Y H:i:s", $prev_modification_date_string);
 $interval = $current_date->getTimestamp() - $prev_modification_date->getTimestamp();
 
-if($interval <= 5){
+if($interval <= 0){ // remember to replace 0 with like 3 or something
     header(http_response_code(response_code: 403));
     echo json_encode(["error"=> "Too many requests"]);
     die("Wait a few seconds before saving again");
@@ -39,5 +49,6 @@ if ($password != $world_password) {
 $f = fopen($filePath, "w");
 fputs($f, $static_text);
 fputs($f,date("d-m-Y H:i:s"));
+fputs($f, "\n".$resources);
 
 ?>
