@@ -27,7 +27,7 @@
                     <p id="world-name">Word name: </p>
                     <p id="seed">seed: </p>
                     <div class="save-panel">
-                        <button onclick="SaveGame()">Save</button>
+                        <button onclick="Save()">Save</button>
                         <button onclick="SaveExitGame()">Save & Exit</button>
                     </div>
                     <div class="Quest">
@@ -112,11 +112,15 @@
             </ul>
         </div>
     </div>
-    <?php include "gameLogic.php" ?>
+    <?php include "loginLogic.php" ?>
     <script>
         // Load game variables from PHP
         let seed = <?php echo $GLOBALS["seed"]; ?>;
-        document.getElementById("world-name").innerHTML = "World name: " + "<?php echo $_POST["world-name"]; ?>";
+        let worldName = "<?php echo $_POST["world-name"]; ?>";
+        let password = "<?php echo $_POST["password"]; ?>";
+        let gamemode = "<?php echo $GLOBALS["gamemode"]; ?>";
+        
+        document.getElementById("world-name").innerHTML = "World name: " + worldName;
         document.getElementById("seed").innerHTML = "seed: " + seed;
     </script>
     <script src="../dist/game.js"></script>

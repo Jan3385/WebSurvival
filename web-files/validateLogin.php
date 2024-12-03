@@ -32,7 +32,7 @@ function onLoginValidate(){
 
     //update last login time
     $fileContents = file("../stored-users/".$_POST["world-name"], FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    $fileContents[1] = date("Y-m-d H:i:s");
+    $fileContents[1] = date("d-m-Y H:i:s");
     file_put_contents($filePath, implode("\n", $fileContents));
 }
 function onRegisterValidate(){

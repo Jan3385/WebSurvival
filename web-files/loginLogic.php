@@ -23,8 +23,8 @@ function onRegister(){
     else $seed = rand(0, $max_seed_value);
     fwrite($f,$seed.$token);
 
-    fwrite($f,date("Y-m-d H:i:s").$token);
-    fwrite($f,data: "\n".date("Y-m-d H:i:s"));
+    fwrite($f,date("d-m-Y H:i:s").$token);
+    fwrite($f,data: "\n".date("d-m-Y H:i:s"));
 
     fclose($f);
 
@@ -38,7 +38,7 @@ if(isset($_POST["register"])){
 
 $f = fopen("../stored-users/".$_POST["world-name"],"r");
 
-strtok(fgets($f),"|||"); // password (not needed)
+$password = strtok(fgets($f),"|||");
 $gamemode = strtok("|||");
 $email = strtok("|||");
 $seed = strtok("|||");
