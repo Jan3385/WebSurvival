@@ -114,12 +114,16 @@
     </div>
     <?php include "loginLogic.php" ?>
     <script>
+        console.log("Game loaded"); 
         // Load game variables from PHP
-        let seed = <?php echo $GLOBALS["seed"]; ?>;
-        let worldName = "<?php echo $_POST["world-name"]; ?>";
-        let password = "<?php echo $_POST["password"]; ?>";
-        let gamemode = "<?php echo $GLOBALS["gamemode"]; ?>";
-        let resourceSave = "<?php echo $GLOBALS["resources"]; ?>";
+        let seed = <?php echo $GLOBALS['seed']; ?>;
+        let worldName = "<?php echo $_POST['world-name']; ?>";
+        let password = "<?php echo $_POST['password']; ?>";
+        let gamemode = "<?php echo $GLOBALS['gamemode']; ?>";
+
+        let resourceSave = <?php echo json_encode($GLOBALS['s_resources']); ?>;
+
+        let playerData = <?php echo json_encode($GLOBALS['s_playerData']); ?>;
 
         document.getElementById("world-name").innerHTML = "World name: " + worldName;
         document.getElementById("seed").innerHTML = "seed: " + seed;

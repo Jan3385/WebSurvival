@@ -44,6 +44,9 @@ $email = strtok("|||");
 $seed = strtok("|||");
 
 fgets($f); //skip last login date
-$resources = fgets($f);
+$s_resources = fgets($f);
+
+$s_playerData = fgets($f);
+
 fclose($f);
 ?>

@@ -4,7 +4,8 @@ $data = json_decode($input, true);
 
 if( !isset($data["worldName"]) ||
     !isset($data["password"])  ||
-    !isset($data["resources"])){
+    !isset($data["resources"]) ||
+    !isset($data["playerData"])) {
     header(http_response_code(response_code: 400));
     echo json_encode(["error"=> "Missing parameters"]);
     die("Missing parameters");
@@ -13,6 +14,7 @@ if( !isset($data["worldName"]) ||
 $worldName = $data["worldName"];
 $password = $data["password"];
 $resources = $data["resources"];
+$playerData = $data["playerData"];
 
 $filePath = "../stored-users/".$worldName;
 if (!file_exists($filePath)) {
@@ -50,5 +52,6 @@ $f = fopen($filePath, "w");
 fputs($f, $static_text);
 fputs($f,date("d-m-Y H:i:s"));
 fputs($f, "\n".$resources);
+fputs($f,  $playerData);
 
 ?>

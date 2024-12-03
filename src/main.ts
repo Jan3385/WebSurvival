@@ -4,6 +4,7 @@
 
 declare const seed: number;
 declare const resourceSave: string;
+declare const playerData: string;
 
 //check if user is on mobile
 const isMobile = navigator.userAgent.match(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Windows Phone|Opera Mini/i);
@@ -48,7 +49,7 @@ function Start(){
 
     ResourceManager.ins.DisplayCostResources(SelectedBuilding.cost);
 
-    Load(resourceSave);
+    Load(resourceSave, playerData);
 }
 
 let isBuilding = false;

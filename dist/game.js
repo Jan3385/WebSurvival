@@ -180,6 +180,10 @@ class PlayerData extends EntityData {
         this.Health = Math.min(this.Health + heal, this.MaxHealth);
         document.getElementById("Health").innerHTML = "HP: " + this.Health.toString().padStart(2, "0");
     }
+    SetHP(health) {
+        this.Health = Math.min(health, this.MaxHealth);
+        document.getElementById("Health").innerHTML = "HP: " + this.Health.toString().padStart(2, "0");
+    }
     FindAndSetSpawnPos() {
         let pos = new Vector2(Math.floor(canvas.width / canvasScale / 2), Math.floor(canvas.height / canvasScale / 2));
         //find a valid spawn position
@@ -2171,6 +2175,7 @@ function Save() {
         }
     }
     save_resources += "\n";
+    let save_player_data = QuestManager.PlayerLevel + "|" + QuestManager.PlayerXP + "|" + QuestManager.PlayerXpToNextLevel + "|" + QuestManager.ins.activeQuestId + "|" + Player.Health + "|" + GameTime.ins.time + "|\n";
     // Save the world
     fetch('../web-files/saveWorld.php', {
         method: 'POST',
@@ -2178,6 +2183,7 @@ function Save() {
             worldName: worldName,
             password: password, // <- unsafe 🥶
             resources: save_resources,
+            playerData: save_player_data,
         }),
         headers: {
             'Content-type': 'application/json; charset=UTF-8'
@@ -2191,8 +2197,9 @@ function Save() {
         }
     });
 }
-function Load(Resource) {
-    //ResourceManager.ins.AddResource();
+function Load(Resource, PlayerData) {
+    if (Resource == "" || PlayerData == "")
+        return;
     const resourcePair = Resource.split("|");
     for (const pair of resourcePair) {
         const resource = pair.split(":");
@@ -2200,7 +2207,17 @@ function Load(Resource) {
             ResourceManager.ins.AddResource(Number(resource[0]), Number(resource[1]));
         }
     }
+    const playerData = PlayerData.split("|");
+    QuestManager.PlayerLevel = Number(playerData[0]);
+    QuestManager.PlayerXP = Number(playerData[1]);
+    QuestManager.PlayerXpToNextLevel = Number(playerData[2]);
+    QuestManager.ins.activeQuestId = Number(playerData[3]);
+    QuestManager.ins.UpdateDisplayQuest();
+    QuestManager.ins.UpdateLevelDisplay();
+    Player.SetHP(Number(playerData[4]));
+    GameTime.ins.time = Number(playerData[5]);
 }
+;
 /// <reference path="Terrain.ts" />
 /// <reference path="Rendering.ts" />
 /// <reference path="Lighting.ts" />
@@ -2232,7 +2249,7 @@ function Start() {
     Player.FindAndSetSpawnPos();
     Terrain.ins.MovePlayer(Player, 0, 0); //Draw player
     ResourceManager.ins.DisplayCostResources(SelectedBuilding.cost);
-    Load(resourceSave);
+    Load(resourceSave, playerData);
 }
 let isBuilding = false;
 let EnemyMovementInterval = 0;

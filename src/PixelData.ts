@@ -117,6 +117,10 @@ class PlayerData extends EntityData{
         this.Health = Math.min(this.Health + heal, this.MaxHealth);
         document.getElementById("Health")!.innerHTML = "HP: " + this.Health.toString().padStart(2, "0");
     }
+    SetHP(health: number){
+        this.Health = Math.min(health, this.MaxHealth);
+        document.getElementById("Health")!.innerHTML = "HP: " + this.Health.toString().padStart(2, "0");
+    }
     FindAndSetSpawnPos(){
         let pos: Vector2 = new Vector2(Math.floor(canvas.width/canvasScale/2), Math.floor(canvas.height/canvasScale/2));
 
