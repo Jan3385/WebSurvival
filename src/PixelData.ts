@@ -156,6 +156,8 @@ class PlayerData extends EntityData{
         EnemyList.forEach(e => e.Despawn());
 
         this.FindAndSetSpawnPos();
+
+        Save(); //there is no escape from the punishment of death 😱😨
     }
     public MoveBy(x: number, y: number){
         const moveTile = Terrain.ins.mapData[Player.x + x][Player.y + y];
@@ -175,7 +177,7 @@ class PlayerData extends EntityData{
         else if(moveTile instanceof EnemyData) moveTile.Damage(1);
         //move to a spot
         else if(!(x == 0 && y == 0)){
-            Terrain.ins.MovePlayer(Player, x, y);
+            Terrain.ins.MovePlayer(Player);
             RecipeHandler.ins.UpdatevAvalibleRecipes();
         }
     }
@@ -189,11 +191,12 @@ class ResourceData extends PixelData implements IDamageable, IHighlightable{
     HighlightColor: rgb = new rgb(60, 60, 60);
     DefaultColor: rgb;
     ResourceType: ResourceTypes;
+    ResourceID: string;
     OverlaidPixel: PixelData;
     OnResourceDestroy: () => void;
     constructor(
         color: rgb, status: PixelStatus, Health: number, x: number, y: number,
-        Highlight: HighlightPixel, ResourceType: ResourceTypes, OverlaidPixel: PixelData ,OnResourceDestroy: () => void
+        Highlight: HighlightPixel, ResourceType: ResourceTypes, ResourceID: string, OverlaidPixel: PixelData ,OnResourceDestroy: () => void
     ){
         super(color, status);
         this.DefaultColor = color.new();
@@ -203,6 +206,7 @@ class ResourceData extends PixelData implements IDamageable, IHighlightable{
         this.y = y;
         this.Highlight = Highlight;
         this.ResourceType = ResourceType;
+        this.ResourceID = ResourceID;
         this.OverlaidPixel = OverlaidPixel;
         this.OnResourceDestroy = OnResourceDestroy;
     }

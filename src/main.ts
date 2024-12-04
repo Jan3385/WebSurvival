@@ -5,6 +5,8 @@
 declare const seed: number;
 declare const resourceSave: string;
 declare const playerData: string;
+declare const worldData: string[];
+declare const GenerateNewWorld: boolean;
 
 //check if user is on mobile
 const isMobile = navigator.userAgent.match(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Windows Phone|Opera Mini/i);
@@ -37,19 +39,22 @@ function Start(){
 
     Renderer.ins.Draw();
 
-    const numOfBuildings = Math.floor(RandomUsingSeed(seed)()*2)+1; // 1-2 buildings
-    Terrain.ins.GenerateRandomStructures(numOfBuildings, RandomUsingSeed(seed));
+    if(GenerateNewWorld){
+        const numOfBuildings = Math.floor(RandomUsingSeed(seed)()*2)+1; // 1-2 buildings
+        Terrain.ins.GenerateRandomStructures(numOfBuildings, RandomUsingSeed(seed));
 
-    for(let i = 0; i < 40; i++){
-        Terrain.ins.GenerateRandomResource();
+        for(let i = 0; i < 40; i++){
+            Terrain.ins.GenerateRandomResource();
+        }
+        Player.FindAndSetSpawnPos();
+        Terrain.ins.MovePlayer(Player); //Draw player
     }
-
-    Player.FindAndSetSpawnPos();
-    Terrain.ins.MovePlayer(Player, 0, 0); //Draw player
 
     ResourceManager.ins.DisplayCostResources(SelectedBuilding.cost);
 
-    Load(resourceSave, playerData);
+    Load(resourceSave, playerData, worldData);
+
+    Save(); //why not ?
 }
 
 let isBuilding = false;
@@ -65,6 +70,7 @@ function Update(){
 
         //placement logic
         isBuilding = false;
+        console.log(canPlaceBuildingOn(Player.OverlapPixel));
         if(inputPresses.includes("KeyE") && canPlaceBuildingOn(Player.OverlapPixel))
         {
             Build(SelectedBuilding);

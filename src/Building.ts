@@ -89,7 +89,7 @@ let Building = [
 function FindBuilding(buildingName: String): BuildingData{
     const find = Building.find(x => x.build.name == buildingName)?.build;
     if(find == undefined) throw new Error("Building not found. Provided name: " + buildingName);
-    return Building.find(x => x.build.name == buildingName)!.build;
+    return find;
 }
 
 let SelectedBuilding = Building[0];
@@ -136,6 +136,7 @@ function UpdateSelectedBuilding(){
 function canPlaceBuildingOn(pixel: PixelData): boolean{
     //cannot place floor on floor
     if(pixel instanceof BuildingData && pixel.status == PixelStatus.walkable){
+        if(SelectedBuilding.build.name == "Landfill") return true;
         if(SelectedBuilding.build.status == PixelStatus.walkable) return false;
     }
 
@@ -149,42 +150,45 @@ function Build(
         label: string;
     }): void{
     if(ResourceManager.ins.HasResources(BuildedBuilding.cost)){
-            //if placing landfill
-            if(BuildedBuilding.build.name == "Landfill"){
-                BuildLandfill(Player.x, Player.y);
-                return;
-            }
-            //Quest check for building a furnace
+        //if placing landfill
+        if(BuildedBuilding.build.name == "Landfill"){
+            BuildLandfill(Player.x, Player.y);
+            return;
+        }
+        //Quest check for building a furnace
+        const ActiveQuest = QuestManager.ins.GetActiveQuest();
+        if(ActiveQuest instanceof SpecialTriggerQuest){
+            if(ActiveQuest.TriggerID == 1 && BuildedBuilding.build.name == "Furnace")
+                QuestManager.ins.UpdateQuestProgress();
+        }
+        
+        ResourceManager.ins.RemoveResourceList(BuildedBuilding.cost);
+
+        const didBuildIndoors : boolean = Player.OverlapPixel.Indoors;
+        Player.OverlapPixel = BuildedBuilding.build.at(Player.x, Player.y);
+        isBuilding = true;
+
+        //skip indoors check if placing a floor or similiar
+        if(BuildedBuilding.build.status == PixelStatus.walkable) {
+            Player.OverlapPixel.Indoors = didBuildIndoors;
+            return;
+        }
+        //check if build is enclosed
+        GetEnclosedSpacesAround(Player.x, Player.y).forEach((vec: Vector2) => {
+            
+            //Quest check for building enclosed space
             const ActiveQuest = QuestManager.ins.GetActiveQuest();
             if(ActiveQuest instanceof SpecialTriggerQuest){
-                if(ActiveQuest.TriggerID == 1 && BuildedBuilding.build.name == "Furnace")
+                if(ActiveQuest.TriggerID == 0)
                     QuestManager.ins.UpdateQuestProgress();
             }
-            
-            ResourceManager.ins.RemoveResourceList(BuildedBuilding.cost);
 
-            const didBuildIndoors : boolean = Player.OverlapPixel.Indoors;
-            Player.OverlapPixel = BuildedBuilding.build.at(Player.x, Player.y);
-            isBuilding = true;
-
-            //skip indoors check if placing a floor or similiar
-            if(BuildedBuilding.build.status == PixelStatus.walkable) {
-                Player.OverlapPixel.Indoors = didBuildIndoors;
-                return;
-            }
-            //check if build is enclosed
-            GetEnclosedSpacesAround(Player.x, Player.y).forEach((vec: Vector2) => {
-                
-                //Quest check for building enclosed space
-                const ActiveQuest = QuestManager.ins.GetActiveQuest();
-                if(ActiveQuest instanceof SpecialTriggerQuest){
-                    if(ActiveQuest.TriggerID == 0)
-                        QuestManager.ins.UpdateQuestProgress();
-                }
-
-                fillInterior(vec.x, vec.y);
-            });
+            fillInterior(vec.x, vec.y);
+        });
     }
+}
+function PlaceBuildingNoCheck(build: BuildingData){
+    Terrain.ins.mapData[build.x][build.y] = build;
 }
 function BuildLandfill(x: number, y: number): void{
     let didBuild: boolean = false;
@@ -197,7 +201,9 @@ function BuildLandfill(x: number, y: number): void{
             Terrain.ins.mapData[x+SidesDir[i].x][y+SidesDir[i].y] instanceof TerrainData && 
             (<TerrainData>Terrain.ins.mapData[x+SidesDir[i].x][y+SidesDir[i].y]).type == TerrainType.water
         ){
-            Terrain.ins.mapData[x+SidesDir[i].x][y+SidesDir[i].y] = new TerrainData(Building[11].build.color.newSlightlyRandom(10), PixelStatus.walkable, TerrainType.ground);
+            const landfill = Building[11].build.at(x+SidesDir[i].x, y+SidesDir[i].y);
+            landfill.color.newSlightlyRandom(10);
+            Terrain.ins.mapData[x+SidesDir[i].x][y+SidesDir[i].y] = landfill;
             didBuild = true;
         }
     }
@@ -298,7 +304,8 @@ function CheckDeleteInterior(x: number, y: number): void{
 
     for(const vec of SidesDir){
         if(EnclosedSpaces.find((v: Vector2) => v.x == x+vec.x && v.y == y+vec.y) == undefined){
-            if(x+vec.x < 0 || x+vec.x >= Terrain.ins.mapData.length || y+vec.y < 0 || y+vec.y > Terrain.ins.mapData[0].length) continue;
+            console.log(x, y, vec);
+            if(x+vec.x < 0 || x+vec.x >= Terrain.ins.mapData.length-1 || y+vec.y < 0 || y+vec.y > Terrain.ins.mapData[0].length-1) continue;
             deleteInterior(x+vec.x, y+vec.y);
         }
     }

@@ -91,7 +91,7 @@ class Terrain{
      * @param {Number} x 
      * @param {Number} y 
      */
-    MovePlayer(Player: PlayerData, x: number, y: number): void{
+    MovePlayer(Player: PlayerData): void{
         //if player is not building allow diagonal movement else only move non-diagonaly
         if(!isBuilding){
             this.MovePlayerRaw(Player, MovementVector.x, 0);
@@ -197,21 +197,21 @@ class Terrain{
         //check if there is a space for the tree in a 3x3 grid
         if(this.CheckGridSpace(x,y, 3) == false) return;
 
-        this.InsertResourcePixel(this.GeneratetreePixel(x,y,true));        
-        this.InsertResourcePixel(this.GeneratetreePixel(x+1,y,false));
-        this.InsertResourcePixel(this.GeneratetreePixel(x-1,y,false));
-        this.InsertResourcePixel(this.GeneratetreePixel(x,y+1,false));
-        this.InsertResourcePixel(this.GeneratetreePixel(x,y-1,false));
+        this.InsertResourcePixel(this.GenerateTreePixel(x,y,true));        
+        this.InsertResourcePixel(this.GenerateTreePixel(x+1,y,false));
+        this.InsertResourcePixel(this.GenerateTreePixel(x-1,y,false));
+        this.InsertResourcePixel(this.GenerateTreePixel(x,y+1,false));
+        this.InsertResourcePixel(this.GenerateTreePixel(x,y-1,false));
     }
-    private GeneratetreePixel(x: number,y: number, isLog: boolean): ResourceData{
+    public GenerateTreePixel(x: number,y: number, isLog: boolean): ResourceData{
         if(isLog){
             const OnBreak = () =>{ ResourceManager.ins.AddResource(ResourceTypes.wood, Math.floor(1 + Math.random()*4)); }; // 1 - 4
             return new ResourceData(new rgb(200, 70, 50), PixelStatus.breakable, 
-                6, x, y, HighlightPixel.border, ResourceTypes.wood, this.mapData[x][y], OnBreak);
+                6, x, y, HighlightPixel.border, ResourceTypes.wood, "w", this.mapData[x][y], OnBreak);
         }else{
             const OnBreak = () =>{ ResourceManager.ins.AddResource(ResourceTypes.wood, Math.floor(Math.random()*1.7)); }; // 0 - 1
             return new ResourceData(new rgb(49, 87, 44),PixelStatus.breakable, 
-                2, x, y, HighlightPixel.border, ResourceTypes.wood, this.mapData[x][y], OnBreak);        }
+                2, x, y, HighlightPixel.border, ResourceTypes.wood, "l", this.mapData[x][y], OnBreak);        }
     }
     /**
      * Generates a stone at the given position (mainly for internal use)
@@ -244,18 +244,21 @@ class Terrain{
             this.InsertResourcePixel(this.GenerateStonePixel(x+stoneVec.x,y+stoneVec.y));
         }
     }
-    private GenerateStonePixel(x: number,y: number): ResourceData{
-        const ironChance = Math.floor(1 + Math.random()*5); // 1 - 5
+    public GenerateStonePixel(x: number,y: number, isIron: boolean | null = null): ResourceData{
+        let ironChance = Math.floor(1 + Math.random()*5); // 1 - 5
+
+        if(isIron != null) ironChance = isIron ? 1 : 0;
+
         if(ironChance == 1){
             //Generate iron
             const OnBreak = () =>{ ResourceManager.ins.AddResource(ResourceTypes.iron_ore, Math.floor(1 + Math.random()*3)); }; // 1 - 3
             return new ResourceData(new rgb(221, 161, 94), PixelStatus.breakable, 9, 
-                x, y,HighlightPixel.border, ResourceTypes.stone, this.mapData[x][y], OnBreak); 
+                x, y,HighlightPixel.border, ResourceTypes.stone, "i", this.mapData[x][y], OnBreak); 
         }else{
             //Generate stone
             const OnBreak = () =>{ ResourceManager.ins.AddResource(ResourceTypes.stone, Math.floor(1 + Math.random()*5)); }; // 1 - 5
             return new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, 
-                x, y,HighlightPixel.border, ResourceTypes.stone, this.mapData[x][y], OnBreak); 
+                x, y,HighlightPixel.border, ResourceTypes.stone, "s", this.mapData[x][y], OnBreak); 
         }
     }
     private CheckGridSpace(x: number, y: number, size: number): boolean{

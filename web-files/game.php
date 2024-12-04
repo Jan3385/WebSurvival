@@ -125,6 +125,9 @@
 
         let playerData = <?php echo json_encode($GLOBALS['s_playerData']); ?>;
 
+        let worldData = <?php echo json_encode($GLOBALS['s_worldData']); ?>;
+        const GenerateNewWorld = worldData.length == 0 ? true : false;
+
         document.getElementById("world-name").innerHTML = "World name: " + worldName;
         document.getElementById("seed").innerHTML = "seed: " + seed;
     </script>

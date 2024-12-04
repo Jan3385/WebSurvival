@@ -213,6 +213,7 @@ class PlayerData extends EntityData {
         //despawn all enemies
         EnemyList.forEach(e => e.Despawn());
         this.FindAndSetSpawnPos();
+        Save(); //there is no escape from the punishment of death 😱😨
     }
     MoveBy(x, y) {
         const moveTile = Terrain.ins.mapData[Player.x + x][Player.y + y];
@@ -234,7 +235,7 @@ class PlayerData extends EntityData {
             moveTile.Damage(1);
         //move to a spot
         else if (!(x == 0 && y == 0)) {
-            Terrain.ins.MovePlayer(Player, x, y);
+            Terrain.ins.MovePlayer(Player);
             RecipeHandler.ins.UpdatevAvalibleRecipes();
         }
     }
@@ -248,9 +249,10 @@ class ResourceData extends PixelData {
     HighlightColor = new rgb(60, 60, 60);
     DefaultColor;
     ResourceType;
+    ResourceID;
     OverlaidPixel;
     OnResourceDestroy;
-    constructor(color, status, Health, x, y, Highlight, ResourceType, OverlaidPixel, OnResourceDestroy) {
+    constructor(color, status, Health, x, y, Highlight, ResourceType, ResourceID, OverlaidPixel, OnResourceDestroy) {
         super(color, status);
         this.DefaultColor = color.new();
         this.Health = Health;
@@ -259,6 +261,7 @@ class ResourceData extends PixelData {
         this.y = y;
         this.Highlight = Highlight;
         this.ResourceType = ResourceType;
+        this.ResourceID = ResourceID;
         this.OverlaidPixel = OverlaidPixel;
         this.OnResourceDestroy = OnResourceDestroy;
     }
@@ -905,7 +908,7 @@ class Terrain {
      * @param {Number} x
      * @param {Number} y
      */
-    MovePlayer(Player, x, y) {
+    MovePlayer(Player) {
         //if player is not building allow diagonal movement else only move non-diagonaly
         if (!isBuilding) {
             this.MovePlayerRaw(Player, MovementVector.x, 0);
@@ -1005,20 +1008,20 @@ class Terrain {
         //check if there is a space for the tree in a 3x3 grid
         if (this.CheckGridSpace(x, y, 3) == false)
             return;
-        this.InsertResourcePixel(this.GeneratetreePixel(x, y, true));
-        this.InsertResourcePixel(this.GeneratetreePixel(x + 1, y, false));
-        this.InsertResourcePixel(this.GeneratetreePixel(x - 1, y, false));
-        this.InsertResourcePixel(this.GeneratetreePixel(x, y + 1, false));
-        this.InsertResourcePixel(this.GeneratetreePixel(x, y - 1, false));
+        this.InsertResourcePixel(this.GenerateTreePixel(x, y, true));
+        this.InsertResourcePixel(this.GenerateTreePixel(x + 1, y, false));
+        this.InsertResourcePixel(this.GenerateTreePixel(x - 1, y, false));
+        this.InsertResourcePixel(this.GenerateTreePixel(x, y + 1, false));
+        this.InsertResourcePixel(this.GenerateTreePixel(x, y - 1, false));
     }
-    GeneratetreePixel(x, y, isLog) {
+    GenerateTreePixel(x, y, isLog) {
         if (isLog) {
             const OnBreak = () => { ResourceManager.ins.AddResource(ResourceTypes.wood, Math.floor(1 + Math.random() * 4)); }; // 1 - 4
-            return new ResourceData(new rgb(200, 70, 50), PixelStatus.breakable, 6, x, y, HighlightPixel.border, ResourceTypes.wood, this.mapData[x][y], OnBreak);
+            return new ResourceData(new rgb(200, 70, 50), PixelStatus.breakable, 6, x, y, HighlightPixel.border, ResourceTypes.wood, "w", this.mapData[x][y], OnBreak);
         }
         else {
             const OnBreak = () => { ResourceManager.ins.AddResource(ResourceTypes.wood, Math.floor(Math.random() * 1.7)); }; // 0 - 1
-            return new ResourceData(new rgb(49, 87, 44), PixelStatus.breakable, 2, x, y, HighlightPixel.border, ResourceTypes.wood, this.mapData[x][y], OnBreak);
+            return new ResourceData(new rgb(49, 87, 44), PixelStatus.breakable, 2, x, y, HighlightPixel.border, ResourceTypes.wood, "l", this.mapData[x][y], OnBreak);
         }
     }
     /**
@@ -1052,17 +1055,19 @@ class Terrain {
             this.InsertResourcePixel(this.GenerateStonePixel(x + stoneVec.x, y + stoneVec.y));
         }
     }
-    GenerateStonePixel(x, y) {
-        const ironChance = Math.floor(1 + Math.random() * 5); // 1 - 5
+    GenerateStonePixel(x, y, isIron = null) {
+        let ironChance = Math.floor(1 + Math.random() * 5); // 1 - 5
+        if (isIron != null)
+            ironChance = isIron ? 1 : 0;
         if (ironChance == 1) {
             //Generate iron
             const OnBreak = () => { ResourceManager.ins.AddResource(ResourceTypes.iron_ore, Math.floor(1 + Math.random() * 3)); }; // 1 - 3
-            return new ResourceData(new rgb(221, 161, 94), PixelStatus.breakable, 9, x, y, HighlightPixel.border, ResourceTypes.stone, this.mapData[x][y], OnBreak);
+            return new ResourceData(new rgb(221, 161, 94), PixelStatus.breakable, 9, x, y, HighlightPixel.border, ResourceTypes.stone, "i", this.mapData[x][y], OnBreak);
         }
         else {
             //Generate stone
             const OnBreak = () => { ResourceManager.ins.AddResource(ResourceTypes.stone, Math.floor(1 + Math.random() * 5)); }; // 1 - 5
-            return new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x, y, HighlightPixel.border, ResourceTypes.stone, this.mapData[x][y], OnBreak);
+            return new ResourceData(new rgb(200, 200, 200), PixelStatus.breakable, 6, x, y, HighlightPixel.border, ResourceTypes.stone, "s", this.mapData[x][y], OnBreak);
         }
     }
     CheckGridSpace(x, y, size) {
@@ -1214,7 +1219,7 @@ function FindBuilding(buildingName) {
     const find = Building.find(x => x.build.name == buildingName)?.build;
     if (find == undefined)
         throw new Error("Building not found. Provided name: " + buildingName);
-    return Building.find(x => x.build.name == buildingName).build;
+    return find;
 }
 let SelectedBuilding = Building[0];
 document.getElementById("Selected-Building-Label").innerHTML = SelectedBuilding.build.name + " - " + SelectedBuilding.label;
@@ -1255,6 +1260,8 @@ function UpdateSelectedBuilding() {
 function canPlaceBuildingOn(pixel) {
     //cannot place floor on floor
     if (pixel instanceof BuildingData && pixel.status == PixelStatus.walkable) {
+        if (SelectedBuilding.build.name == "Landfill")
+            return true;
         if (SelectedBuilding.build.status == PixelStatus.walkable)
             return false;
     }
@@ -1296,6 +1303,9 @@ function Build(BuildedBuilding) {
         });
     }
 }
+function PlaceBuildingNoCheck(build) {
+    Terrain.ins.mapData[build.x][build.y] = build;
+}
 function BuildLandfill(x, y) {
     let didBuild = false;
     for (let i = 0; i < SidesDir.length; i++) {
@@ -1305,7 +1315,9 @@ function BuildLandfill(x, y) {
             continue;
         if (Terrain.ins.mapData[x + SidesDir[i].x][y + SidesDir[i].y] instanceof TerrainData &&
             Terrain.ins.mapData[x + SidesDir[i].x][y + SidesDir[i].y].type == TerrainType.water) {
-            Terrain.ins.mapData[x + SidesDir[i].x][y + SidesDir[i].y] = new TerrainData(Building[11].build.color.newSlightlyRandom(10), PixelStatus.walkable, TerrainType.ground);
+            const landfill = Building[11].build.at(x + SidesDir[i].x, y + SidesDir[i].y);
+            landfill.color.newSlightlyRandom(10);
+            Terrain.ins.mapData[x + SidesDir[i].x][y + SidesDir[i].y] = landfill;
             didBuild = true;
         }
     }
@@ -1391,7 +1403,8 @@ function CheckDeleteInterior(x, y) {
     const EnclosedSpaces = GetEnclosedSpacesAround(x, y);
     for (const vec of SidesDir) {
         if (EnclosedSpaces.find((v) => v.x == x + vec.x && v.y == y + vec.y) == undefined) {
-            if (x + vec.x < 0 || x + vec.x >= Terrain.ins.mapData.length || y + vec.y < 0 || y + vec.y > Terrain.ins.mapData[0].length)
+            console.log(x, y, vec);
+            if (x + vec.x < 0 || x + vec.x >= Terrain.ins.mapData.length - 1 || y + vec.y < 0 || y + vec.y > Terrain.ins.mapData[0].length - 1)
                 continue;
             deleteInterior(x + vec.x, y + vec.y);
         }
@@ -2175,7 +2188,33 @@ function Save() {
         }
     }
     save_resources += "\n";
-    let save_player_data = QuestManager.PlayerLevel + "|" + QuestManager.PlayerXP + "|" + QuestManager.PlayerXpToNextLevel + "|" + QuestManager.ins.activeQuestId + "|" + Player.Health + "|" + GameTime.ins.time + "|\n";
+    let save_player_data = QuestManager.PlayerLevel + "|" + QuestManager.PlayerXP +
+        "|" + QuestManager.PlayerXpToNextLevel + "|" + QuestManager.ins.activeQuestId + "|" + Player.Health +
+        "|" + GameTime.ins.time + "|" + Player.x + "|" + Player.y + "|\n";
+    let wolrd_data = [];
+    for (let x = 0; x < Terrain.ins.mapData.length; x++) {
+        for (let y = 0; y < Terrain.ins.mapData[x].length; y++) {
+            let tile = Terrain.ins.mapData[x][y];
+            let tileInfo = "";
+            if (tile instanceof ResourceData) {
+                tileInfo += tile.ResourceID + "|";
+            }
+            else if (tile instanceof BuildingData) {
+                tileInfo += tile.name;
+                if (tile.OverlaidPixel instanceof BuildingData) {
+                    tileInfo += "#" + tile.OverlaidPixel.name;
+                }
+                tileInfo += "|";
+            }
+            if (tile.Indoors)
+                tileInfo += tileInfo === "" ? "|1|" : "1|";
+            else if (tileInfo != "")
+                tileInfo += "0|";
+            if (tileInfo != "") {
+                wolrd_data.push(x + "#" + y + "|" + tileInfo);
+            }
+        }
+    }
     // Save the world
     fetch('../web-files/saveWorld.php', {
         method: 'POST',
@@ -2184,6 +2223,7 @@ function Save() {
             password: password, // <- unsafe 🥶
             resources: save_resources,
             playerData: save_player_data,
+            worldData: wolrd_data,
         }),
         headers: {
             'Content-type': 'application/json; charset=UTF-8'
@@ -2197,7 +2237,7 @@ function Save() {
         }
     });
 }
-function Load(Resource, PlayerData) {
+function Load(Resource, PlayerData, WorldData) {
     if (Resource == "" || PlayerData == "")
         return;
     const resourcePair = Resource.split("|");
@@ -2216,6 +2256,59 @@ function Load(Resource, PlayerData) {
     QuestManager.ins.UpdateLevelDisplay();
     Player.SetHP(Number(playerData[4]));
     GameTime.ins.time = Number(playerData[5]);
+    Player.OverlapPixel = Terrain.ins.mapData[Number(playerData[6])][Number(playerData[7])];
+    Player.x = Number(playerData[6]);
+    Player.y = Number(playerData[7]);
+    Terrain.ins.MovePlayer(Player); //Draw player
+    WorldData.forEach(element => {
+        if (element == false)
+            return; //end line
+        element = element;
+        //load variables
+        const coordinates = element.split("|")[0].split("#");
+        const x = Number(coordinates[0]);
+        const y = Number(coordinates[1]);
+        const tileInfo = element.split("|")[1].split("#");
+        let tile = "";
+        let overlapTile = "";
+        const isIndoors = element.split("|")[2] == "1";
+        if (tileInfo.length == 1)
+            tile = tileInfo[0];
+        if (tileInfo.length == 2)
+            overlapTile = tileInfo[1];
+        if (tile.length == 0) { //place nothing, set indoors
+            Terrain.ins.mapData[x][y].Indoors = isIndoors;
+            return;
+        }
+        else if (tile.length == 1) { //Place resource
+            switch (tile) {
+                case "w":
+                    Terrain.ins.InsertResourcePixel(Terrain.ins.GenerateTreePixel(x, y, true));
+                    break;
+                case "l":
+                    Terrain.ins.InsertResourcePixel(Terrain.ins.GenerateTreePixel(x, y, false));
+                    break;
+                case "s":
+                    Terrain.ins.InsertResourcePixel(Terrain.ins.GenerateStonePixel(x, y, false));
+                    break;
+                case "i":
+                    Terrain.ins.InsertResourcePixel(Terrain.ins.GenerateStonePixel(x, y, true));
+                    break;
+            }
+            return;
+        }
+        //Place building
+        const tileData = FindBuilding(tile).at(x, y);
+        if (tileData == null)
+            return;
+        if (overlapTile != "") {
+            const overlapTileData = FindBuilding(overlapTile).at(x, y);
+            if (overlapTileData == null)
+                return;
+            tileData.OverlaidPixel = overlapTileData;
+        }
+        PlaceBuildingNoCheck(tileData);
+    });
 }
 ;
 /// <reference path="Terrain.ts" />
@@ -2241,15 +2334,18 @@ function Start() {
     Renderer.ins = new Renderer();
     QuestManager.ins = new QuestManager();
     Renderer.ins.Draw();
-    const numOfBuildings = Math.floor(RandomUsingSeed(seed)() * 2) + 1; // 1-2 buildings
-    Terrain.ins.GenerateRandomStructures(numOfBuildings, RandomUsingSeed(seed));
-    for (let i = 0; i < 40; i++) {
-        Terrain.ins.GenerateRandomResource();
+    if (GenerateNewWorld) {
+        const numOfBuildings = Math.floor(RandomUsingSeed(seed)() * 2) + 1; // 1-2 buildings
+        Terrain.ins.GenerateRandomStructures(numOfBuildings, RandomUsingSeed(seed));
+        for (let i = 0; i < 40; i++) {
+            Terrain.ins.GenerateRandomResource();
+        }
+        Player.FindAndSetSpawnPos();
+        Terrain.ins.MovePlayer(Player); //Draw player
     }
-    Player.FindAndSetSpawnPos();
-    Terrain.ins.MovePlayer(Player, 0, 0); //Draw player
     ResourceManager.ins.DisplayCostResources(SelectedBuilding.cost);
-    Load(resourceSave, playerData);
+    Load(resourceSave, playerData, worldData);
+    Save(); //why not ?
 }
 let isBuilding = false;
 let EnemyMovementInterval = 0;
@@ -2263,6 +2359,7 @@ function Update() {
         }
         //placement logic
         isBuilding = false;
+        console.log(canPlaceBuildingOn(Player.OverlapPixel));
         if (inputPresses.includes("KeyE") && canPlaceBuildingOn(Player.OverlapPixel)) {
             Build(SelectedBuilding);
             RecipeHandler.ins.UpdatevAvalibleRecipes();

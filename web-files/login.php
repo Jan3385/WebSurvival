@@ -26,7 +26,7 @@
             session_unset();
         }
         ?>
-        <p>! Passwords stored in plain text because I am lazy (don't use any password you used somewhere else) !</p>
+        <p>! Passwords stored in plain text because I am lazy (don't use any password you use somewhere else) !</p>
         <div class="form-container login">
             <h3>Login</h3>
             <form id="login-form" action="game.php" method="post">
@@ -58,8 +58,8 @@
                     <label for="gm1">Survival</label>
                 </div>
                 <div class="gamemode">
-                    <input type="radio" name="gamemode" id="gm2" value="peacefull" required>
-                    <label for="gm2">Peacefull</label>
+                    <input type="radio" name="gamemode" id="gm2" value="peaceful" required>
+                    <label for="gm2">Peaceful</label>
                 </div>
                 <hr>
                 <div class="seed">

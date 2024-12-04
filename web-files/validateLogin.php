@@ -1,4 +1,5 @@
 <?php
+$FILE_NAME = ".data";
 session_start();
 if(isset($_POST["login"])) 
     onLoginValidate();
@@ -10,16 +11,17 @@ else if(isset($_POST["register"])){
     return;
 }
 function onLoginValidate(){
+    $FILE_NAME = $GLOBALS["FILE_NAME"];
     // world-name, password
     $filePath = "../stored-users/".$_POST["world-name"];
 
-    if(!file_exists($filePath)){
+    if(!file_exists($filePath.$FILE_NAME)){
         $_SESSION["redirect-message"] = "World name does not exist";
         header("Location: login.php");
         return;
     }
 
-    $f = fopen($filePath,"r");
+    $f = fopen($filePath.$FILE_NAME,"r");
 
     $password = $_POST["password"];
     $world_password = strtok(fgets($f),"|||");
@@ -30,14 +32,15 @@ function onLoginValidate(){
         return;
     }
 
-    //update last login time
-    $fileContents = file("../stored-users/".$_POST["world-name"], FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    $fileContents[1] = date("d-m-Y H:i:s");
-    file_put_contents($filePath, implode("\n", $fileContents));
+    //update last login time - usused
+    //$fileContents = file("../stored-users/".$_POST["world-name"].$FILE_NAME, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    //$fileContents[1] = date("d-m-Y H:i:s");
+    //file_put_contents($filePath.$FILE_NAME, implode("\n", $fileContents));
 }
 function onRegisterValidate(){
+    $FILE_NAME = $GLOBALS["FILE_NAME"];
     //check if user already exists
-    if(file_exists("../stored-users/".$_POST["world-name"])){
+    if(file_exists("../stored-users/".$_POST["world-name"].$FILE_NAME)){
         $_SESSION["redirect-message"] = "World name already exists";
         header("Location: login.php");
         return;

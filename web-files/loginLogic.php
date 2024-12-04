@@ -1,12 +1,14 @@
 <?php
+$FILE_NAME = ".data";
 function onRegister(){
+    $FILE_NAME = $GLOBALS["FILE_NAME"];
     $token = "|||";
     $max_seed_value = 2_000_000;
     // world-name, password, email?, gamemode, seed-enable?, seed?
 
     $world_name = $_POST['world-name'];
 
-    $f = fopen("../stored-users/".$world_name,"w");
+    $f = fopen("../stored-users/".$world_name.$FILE_NAME,"w");
     fwrite($f,$_POST["password"].$token);
     fwrite($f,$_POST["gamemode"].$token);
 
@@ -30,13 +32,14 @@ function onRegister(){
 
     if($email == "none") return;
     $msg = "World $world_name created successfully!\n";
+    //TODO: email 
 }
 
 if(isset($_POST["register"])){
     onRegister();
 }
 
-$f = fopen("../stored-users/".$_POST["world-name"],"r");
+$f = fopen("../stored-users/".$_POST["world-name"].$FILE_NAME,"r");
 
 $password = strtok(fgets($f),"|||");
 $gamemode = strtok("|||");
@@ -47,6 +50,11 @@ fgets($f); //skip last login date
 $s_resources = fgets($f);
 
 $s_playerData = fgets($f);
+
+$s_worldData = [];
+while(!feof($f)){
+    array_push($s_worldData, fgets($f));
+}
 
 fclose($f);
 ?>
