@@ -765,6 +765,17 @@ class ResourceManager {
             quest.CheckCompleteQuest(type, amount);
         }
     }
+    AddResourceNoQuest(type, amount) {
+        const resource = this.resources.filter(x => x[0] == type)[0];
+        if (resource == undefined) {
+            if (amount <= 0)
+                return;
+            this.resources.push([type, amount]);
+        }
+        else
+            this.resources.filter(x => x[0] == type)[0][1] += amount;
+        this.DisplayStoredResources();
+    }
     AddResourceList(list) {
         list.resources.forEach(x => this.AddResource(x[0], x[1]));
     }
@@ -1403,7 +1414,6 @@ function CheckDeleteInterior(x, y) {
     const EnclosedSpaces = GetEnclosedSpacesAround(x, y);
     for (const vec of SidesDir) {
         if (EnclosedSpaces.find((v) => v.x == x + vec.x && v.y == y + vec.y) == undefined) {
-            console.log(x, y, vec);
             if (x + vec.x < 0 || x + vec.x >= Terrain.ins.mapData.length - 1 || y + vec.y < 0 || y + vec.y > Terrain.ins.mapData[0].length - 1)
                 continue;
             deleteInterior(x + vec.x, y + vec.y);
@@ -2024,13 +2034,13 @@ class QuestManager {
         currentQuest.questRequirementStep = Math.min(progress + currentQuest.questRequirementStep, currentQuest.questRequirementStepsMax);
         document.getElementById("Quest-Completion").innerText = currentQuest.questRequirementStep + "/" + currentQuest.questRequirementStepsMax;
         if (currentQuest.questRequirementStep >= currentQuest.questRequirementStepsMax) {
-            await new Promise(r => setTimeout(r, 500));
+            const waitTime = this.activeQuestId == 0 ? 0 : 500;
+            await new Promise(r => setTimeout(r, waitTime));
             //quest completed
             QuestManager.PlayerXP += currentQuest.questXP;
             this.activeQuestId++;
             if (this.activeQuestId >= this.quests.length)
                 this.quests.push(new RandomResourceQuest(this.activeQuestId + 1));
-            this.UpdateDisplayQuest();
             while (QuestManager.PlayerXP >= QuestManager.PlayerXpToNextLevel) {
                 this.UpdateLevelDisplay();
                 await new Promise(r => setTimeout(r, 500));
@@ -2038,8 +2048,9 @@ class QuestManager {
                 QuestManager.PlayerXpToNextLevel = Math.floor(Math.log(QuestManager.PlayerLevel + 3) * 10);
                 QuestManager.PlayerLevel++;
             }
-            this.UpdateLevelDisplay();
         }
+        this.UpdateDisplayQuest();
+        this.UpdateLevelDisplay();
     }
     UpdateDisplayQuest() {
         const currentQuest = this.GetActiveQuest();
@@ -2244,7 +2255,7 @@ function Load(Resource, PlayerData, WorldData) {
     for (const pair of resourcePair) {
         const resource = pair.split(":");
         if (resource.length > 1) {
-            ResourceManager.ins.AddResource(Number(resource[0]), Number(resource[1]));
+            ResourceManager.ins.AddResourceNoQuest(Number(resource[0]), Number(resource[1]));
         }
     }
     const playerData = PlayerData.split("|");
@@ -2252,7 +2263,7 @@ function Load(Resource, PlayerData, WorldData) {
     QuestManager.PlayerXP = Number(playerData[1]);
     QuestManager.PlayerXpToNextLevel = Number(playerData[2]);
     QuestManager.ins.activeQuestId = Number(playerData[3]);
-    QuestManager.ins.UpdateDisplayQuest();
+    QuestManager.ins.UpdateQuestProgress(0);
     QuestManager.ins.UpdateLevelDisplay();
     Player.SetHP(Number(playerData[4]));
     GameTime.ins.time = Number(playerData[5]);
@@ -2350,6 +2361,7 @@ function Start() {
 let isBuilding = false;
 let EnemyMovementInterval = 0;
 function Update() {
+    console.log(QuestManager.ins.activeQuestId);
     if (Player.respawnTime <= 0) {
         EnemyMovementInterval++;
         if (EnemyMovementInterval >= 2) {
@@ -2359,7 +2371,6 @@ function Update() {
         }
         //placement logic
         isBuilding = false;
-        console.log(canPlaceBuildingOn(Player.OverlapPixel));
         if (inputPresses.includes("KeyE") && canPlaceBuildingOn(Player.OverlapPixel)) {
             Build(SelectedBuilding);
             RecipeHandler.ins.UpdatevAvalibleRecipes();

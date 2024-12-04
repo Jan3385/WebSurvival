@@ -60,6 +60,7 @@ function Start(){
 let isBuilding = false;
 let EnemyMovementInterval = 0;
 function Update(){
+    console.log(QuestManager.ins.activeQuestId);
     if(Player.respawnTime <= 0){
         EnemyMovementInterval++;
         if(EnemyMovementInterval >= 2){
@@ -70,7 +71,6 @@ function Update(){
 
         //placement logic
         isBuilding = false;
-        console.log(canPlaceBuildingOn(Player.OverlapPixel));
         if(inputPresses.includes("KeyE") && canPlaceBuildingOn(Player.OverlapPixel))
         {
             Build(SelectedBuilding);

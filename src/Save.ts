@@ -68,7 +68,7 @@ function Load(Resource: string, PlayerData: string, WorldData: string[] | boolea
     for(const pair of resourcePair){
         const resource = pair.split(":");
         if(resource.length > 1){
-            ResourceManager.ins.AddResource(Number(resource[0]), Number(resource[1]));
+            ResourceManager.ins.AddResourceNoQuest(Number(resource[0]), Number(resource[1]));
         }
     }
 
@@ -77,7 +77,7 @@ function Load(Resource: string, PlayerData: string, WorldData: string[] | boolea
     QuestManager.PlayerXP = Number(playerData[1]);
     QuestManager.PlayerXpToNextLevel = Number(playerData[2]);
     QuestManager.ins.activeQuestId = Number(playerData[3]);
-    QuestManager.ins.UpdateDisplayQuest();
+    QuestManager.ins.UpdateQuestProgress(0);
     QuestManager.ins.UpdateLevelDisplay();
     Player.SetHP(Number(playerData[4]));
     GameTime.ins.time = Number(playerData[5]);

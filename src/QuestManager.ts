@@ -81,13 +81,13 @@ class QuestManager{
         document.getElementById("Quest-Completion")!.innerText = currentQuest.questRequirementStep + "/" + currentQuest.questRequirementStepsMax;
 
         if(currentQuest.questRequirementStep >= currentQuest.questRequirementStepsMax){
-            await new Promise(r => setTimeout(r, 500));
+            const waitTime = this.activeQuestId == 0 ? 0 : 500;
+            await new Promise(r => setTimeout(r, waitTime));
             //quest completed
             QuestManager.PlayerXP += currentQuest.questXP;
             this.activeQuestId++;
 
             if(this.activeQuestId >= this.quests.length) this.quests.push(new RandomResourceQuest(this.activeQuestId+1));
-            this.UpdateDisplayQuest();
 
             while(QuestManager.PlayerXP >= QuestManager.PlayerXpToNextLevel){
                 this.UpdateLevelDisplay();
@@ -96,9 +96,9 @@ class QuestManager{
                 QuestManager.PlayerXpToNextLevel = Math.floor(Math.log(QuestManager.PlayerLevel+3)*10);
                 QuestManager.PlayerLevel++;
             }
-
-            this.UpdateLevelDisplay();
         }
+        this.UpdateDisplayQuest();
+        this.UpdateLevelDisplay();
     }
     public UpdateDisplayQuest(): void{
         const currentQuest = this.GetActiveQuest();

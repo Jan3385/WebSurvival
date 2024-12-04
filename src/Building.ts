@@ -304,7 +304,6 @@ function CheckDeleteInterior(x: number, y: number): void{
 
     for(const vec of SidesDir){
         if(EnclosedSpaces.find((v: Vector2) => v.x == x+vec.x && v.y == y+vec.y) == undefined){
-            console.log(x, y, vec);
             if(x+vec.x < 0 || x+vec.x >= Terrain.ins.mapData.length-1 || y+vec.y < 0 || y+vec.y > Terrain.ins.mapData[0].length-1) continue;
             deleteInterior(x+vec.x, y+vec.y);
         }

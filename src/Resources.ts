@@ -86,6 +86,15 @@ class ResourceManager{
             quest.CheckCompleteQuest(type, amount);
         }
     }
+    AddResourceNoQuest(type: ResourceTypes, amount: number): void{
+        const resource = this.resources.filter(x => x[0] == type)[0];
+        if(resource == undefined) {
+            if(amount <= 0) return;
+            this.resources.push([type, amount]);
+        }
+        else this.resources.filter(x => x[0] == type)[0][1] += amount;
+        this.DisplayStoredResources();
+    }
     AddResourceList(list: ResourceList): void{
         list.resources.forEach(x => this.AddResource(x[0], x[1]));
     }
