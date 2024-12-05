@@ -31,40 +31,42 @@
         <p>Passwords stored in plain text because I am lazy (don't use any password you use somewhere else)</p>
     </div>
     <div class="container">
-        <div class="form-container login">
-            <h3>Login</h3>
-            <form id="login-form" action="game.php" method="post">
+        <form class="form-container login" action="game.php" method="post">
+            <div>
+                <h3>Login</h3>
                 <hr>
-                <input type="text" name="world-name" id="w-n" placeholder="Name" required>
                 <label for="w-n">World name</label>
+                <input type="text" name="world-name" id="w-n" placeholder="Name" required>
                 <hr>
-                <input type="password" name="password" id="p-l" placeholder="Password" required>
                 <label for="p-l">Password for your world</label>
+                <input type="password" name="password" id="p-l" placeholder="Password" required>
                 <hr>
-                <button type="submit" name="login" value="login">Login</button>
-            </form>
-        </div>
+            </div>
+            <button type="submit" name="login" value="login">Login</button>
+        </form>
         <div class="divider"></div>
-        <div class="form-container register">
-            <h3>Register</h3>
-            <form id="register-form" action="game.php" method="post">
+        <form class="form-container register" action="game.php" method="post">
+            <div>
+                <h3>Register</h3>
                 <hr>
-                <input type="text" name="world-name" id="w-n-r" placeholder="Name" required>
                 <label for="w-n-r">World name</label>
+                <input type="text" name="world-name" id="w-n-r" placeholder="Name" required>
                 <hr>
-                <input type="password" name="password" id="p-r" placeholder="Password" required>
                 <label for="p-r">Password for your world</label>
+                <input type="password" name="password" id="p-r" placeholder="Password" required>
                 <hr>
-                <input type="email" name="email" id="email" placeholder="*Email" autocomplete="email" title="Optional email to get automated emails about the status of your world">
                 <label for="email">Optional email</label>
+                <input type="email" name="email" id="email" placeholder="*Email" autocomplete="email" title="Optional email to get automated emails about the status of your world">
                 <hr>
                 <div class="gamemode">
-                    <input type="radio" name="gamemode" id="gm1" value="survival" checked required>
-                    <label for="gm1">Survival</label>
-                </div>
-                <div class="gamemode">
-                    <input type="radio" name="gamemode" id="gm2" value="peaceful" required>
-                    <label for="gm2">Peaceful</label>
+                    <div>
+                        <input type="radio" name="gamemode" id="gm1" value="survival" checked required>
+                        <label for="gm1">Survival</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="gamemode" id="gm2" value="peaceful" required>
+                        <label for="gm2">Peaceful</label>
+                    </div>
                 </div>
                 <hr>
                 <div class="seed">
@@ -72,10 +74,9 @@
                     <input type="checkbox" name="seed-enable" id="seed-enable" onclick="ChangeSeedInputStatus(this.checked)">
                     <input type="text" name="seed" id="seed" placeholder="Seed" disabled required autocomplete="off">
                 </div>
-                <hr>
-                <button type="submit" name="register" value="register">Register</button>
-            </form>
-        </div>
+            </div>
+            <button type="submit" name="register" value="register">Register</button>
+        </form>
         <div class="leaderboards-button">
             <button>Leaderboards</button>
         </div>
