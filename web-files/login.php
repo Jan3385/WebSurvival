@@ -18,15 +18,19 @@
         <source src="../Videos/background.mp4" type="video/mp4">
     </video>
     <h1>Funny game login page</h1>
+    <div class="alert" id="orange-alert"><?php
+    if(session_status() == PHP_SESSION_ACTIVE && isset($_SESSION["redirect-message"])){
+        $returnMessage = $_SESSION["redirect-message"];
+        echo '<img src="../Icons/alert.svg" alt="!">';
+        echo "<p>$returnMessage</p>";
+        session_unset();
+    }
+    ?></div>
+    <div class="alert">
+        <img src="../Icons/alert.svg" alt="!"> 
+        <p>Passwords stored in plain text because I am lazy (don't use any password you use somewhere else)</p>
+    </div>
     <div class="container">
-        <?php
-        if(session_status() == PHP_SESSION_ACTIVE && isset($_SESSION["redirect-message"])){
-            $returnMessage = $_SESSION["redirect-message"];
-            echo "<p>! $returnMessage !</p>";
-            session_unset();
-        }
-        ?>
-        <p>! Passwords stored in plain text because I am lazy (don't use any password you use somewhere else) !</p>
         <div class="form-container login">
             <h3>Login</h3>
             <form id="login-form" action="game.php" method="post">
@@ -40,6 +44,7 @@
                 <button type="submit" name="login" value="login">Login</button>
             </form>
         </div>
+        <div class="divider"></div>
         <div class="form-container register">
             <h3>Register</h3>
             <form id="register-form" action="game.php" method="post">
