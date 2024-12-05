@@ -2322,6 +2322,10 @@ function Load(Resource, PlayerData, WorldData) {
     });
 }
 ;
+function SaveAndExit() {
+    Save();
+    window.location.href = "../index.html";
+}
 /// <reference path="Terrain.ts" />
 /// <reference path="Rendering.ts" />
 /// <reference path="Lighting.ts" />

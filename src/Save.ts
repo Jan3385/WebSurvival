@@ -136,3 +136,7 @@ function Load(Resource: string, PlayerData: string, WorldData: string[] | boolea
         PlaceBuildingNoCheck(tileData);
     });
 };
+function SaveAndExit(){
+    Save();
+    window.location.href = "../index.html";
+}
