@@ -11,8 +11,6 @@
 <body>
     <!-- TODO: 
         Leaderboard - výběrový seznam
-        Register / Login <- datum vytvoření / poslední přihlášení
-        Game Load / Save
     -->
     <video autoplay muted loop id="background-video">
         <source src="../Videos/background.mp4" type="video/mp4">
@@ -33,7 +31,7 @@
     <div class="container">
         <form class="form-container login" action="game.php" method="post">
             <div>
-                <h3>Login</h3>
+                <h3>Log into a world</h3>
                 <hr>
                 <label for="w-n">World name</label>
                 <input type="text" name="world-name" id="w-n" placeholder="Name" required>
@@ -47,7 +45,7 @@
         <div class="divider"></div>
         <form class="form-container register" action="game.php" method="post">
             <div>
-                <h3>Register</h3>
+                <h3>Create World</h3>
                 <hr>
                 <label for="w-n-r">World name</label>
                 <input type="text" name="world-name" id="w-n-r" placeholder="Name" required>
@@ -75,7 +73,7 @@
                     <input type="text" name="seed" id="seed" placeholder="Seed" disabled required autocomplete="off">
                 </div>
             </div>
-            <button type="submit" name="register" value="register">Register</button>
+            <button type="submit" name="register" value="register">Create World</button>
         </form>
         <div class="leaderboards-button">
             <button>Leaderboards</button>

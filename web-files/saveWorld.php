@@ -44,7 +44,7 @@ $interval = $current_date->getTimestamp() - $prev_modification_date->getTimestam
 //}
 
 
-$world_password = strtok($static_text, "|||");
+$world_password = explode("|||",$static_text)[0];
 
 if ($password != $world_password) {
     header(http_response_code(response_code: 401));

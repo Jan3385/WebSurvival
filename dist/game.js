@@ -2283,10 +2283,11 @@ function Load(Resource, PlayerData, WorldData) {
         let tile = "";
         let overlapTile = "";
         const isIndoors = element.split("|")[2] == "1";
-        if (tileInfo.length == 1)
+        if (tileInfo.length >= 1)
             tile = tileInfo[0];
-        if (tileInfo.length == 2)
+        if (tileInfo.length >= 2)
             overlapTile = tileInfo[1];
+        console.log(tileInfo, tile, overlapTile);
         if (tile.length == 0) { //place nothing, set indoors
             Terrain.ins.mapData[x][y].Indoors = isIndoors;
             return;
@@ -2313,18 +2314,21 @@ function Load(Resource, PlayerData, WorldData) {
         if (tileData == null)
             return;
         if (overlapTile != "") {
+            console.log(overlapTile);
             const overlapTileData = FindBuilding(overlapTile).at(x, y);
+            console.log(overlapTileData);
             if (overlapTileData == null)
                 return;
             tileData.OverlaidPixel = overlapTileData;
         }
+        tileData.Indoors = isIndoors;
         PlaceBuildingNoCheck(tileData);
     });
 }
 ;
 function SaveAndExit() {
     Save();
-    window.location.href = "../index.html";
+    window.location.href = "../web-files/login.php";
 }
 /// <reference path="Terrain.ts" />
 /// <reference path="Rendering.ts" />
@@ -2360,12 +2364,11 @@ function Start() {
     }
     ResourceManager.ins.DisplayCostResources(SelectedBuilding.cost);
     Load(resourceSave, playerData, worldData);
-    Save(); //why not ?
+    //Save(); //why not ?
 }
 let isBuilding = false;
 let EnemyMovementInterval = 0;
 function Update() {
-    console.log(QuestManager.ins.activeQuestId);
     if (Player.respawnTime <= 0) {
         EnemyMovementInterval++;
         if (EnemyMovementInterval >= 2) {

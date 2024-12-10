@@ -99,8 +99,10 @@ function Load(Resource: string, PlayerData: string, WorldData: string[] | boolea
         let overlapTile: string = "";
         const isIndoors = element.split("|")[2] == "1";
 
-        if(tileInfo.length == 1) tile = tileInfo[0];
-        if(tileInfo.length == 2) overlapTile = tileInfo[1];
+        if(tileInfo.length >= 1) tile = tileInfo[0];
+        if(tileInfo.length >= 2) overlapTile = tileInfo[1];
+
+        console.log(tileInfo, tile, overlapTile);
 
         if(tile.length == 0){ //place nothing, set indoors
             Terrain.ins.mapData[x][y].Indoors = isIndoors;
@@ -129,14 +131,17 @@ function Load(Resource: string, PlayerData: string, WorldData: string[] | boolea
 
         if(tileData == null) return;
         if(overlapTile != ""){
+            console.log(overlapTile);
             const overlapTileData = FindBuilding(overlapTile).at(x, y);
+            console.log(overlapTileData);
             if(overlapTileData == null) return;
             tileData.OverlaidPixel = overlapTileData;
         }
+        tileData.Indoors = isIndoors;
         PlaceBuildingNoCheck(tileData);
     });
 };
 function SaveAndExit(){
     Save();
-    window.location.href = "../index.html";
+    window.location.href = "../web-files/login.php";
 }

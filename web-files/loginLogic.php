@@ -8,6 +8,8 @@ function onRegister(){
 
     $world_name = $_POST['world-name'];
 
+    if(file_exists("../stored-users/".$world_name.$FILE_NAME)) return;
+
     $f = fopen("../stored-users/".$world_name.$FILE_NAME,"w");
     fwrite($f,$_POST["password"].$token);
     fwrite($f,$_POST["gamemode"].$token);
@@ -41,10 +43,11 @@ if(isset($_POST["register"])){
 
 $f = fopen("../stored-users/".$_POST["world-name"].$FILE_NAME,"r");
 
-$password = strtok(fgets($f),"|||");
-$gamemode = strtok("|||");
-$email = strtok("|||");
-$seed = strtok("|||");
+$exploded_user_data = explode("|||", fgets($f));
+$password = $exploded_user_data[0];
+$gamemode = $exploded_user_data[1];
+$email = $exploded_user_data[2];
+$seed = $exploded_user_data[3];
 
 fgets($f); //skip last login date
 $s_resources = fgets($f);

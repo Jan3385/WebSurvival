@@ -28,7 +28,7 @@
                     <p id="seed">seed: </p>
                     <div class="save-panel">
                         <button onclick="Save()">Save</button>
-                        <button onclick="SaveExitGame()">Save & Exit</button>
+                        <button onclick="SaveAndExit()">Save & Exit</button>
                     </div>
                     <div class="Quest">
                         <h3>Active Quest</h3>
@@ -126,7 +126,7 @@
         let playerData = <?php echo json_encode($GLOBALS['s_playerData']); ?>;
 
         let worldData = <?php echo json_encode($GLOBALS['s_worldData']); ?>;
-        const GenerateNewWorld = worldData.length == 0 ? true : false;
+        const GenerateNewWorld = worldData.length == 0 ? true : false; //generate new world if no world data is loaded
 
         document.getElementById("world-name").innerHTML = "World name: " + worldName;
         document.getElementById("seed").innerHTML = "seed: " + seed;

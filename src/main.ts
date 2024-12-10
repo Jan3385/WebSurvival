@@ -54,13 +54,12 @@ function Start(){
 
     Load(resourceSave, playerData, worldData);
 
-    Save(); //why not ?
+    //Save(); //why not ?
 }
 
 let isBuilding = false;
 let EnemyMovementInterval = 0;
 function Update(){
-    console.log(QuestManager.ins.activeQuestId);
     if(Player.respawnTime <= 0){
         EnemyMovementInterval++;
         if(EnemyMovementInterval >= 2){

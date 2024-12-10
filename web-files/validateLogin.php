@@ -24,7 +24,7 @@ function onLoginValidate(){
     $f = fopen($filePath.$FILE_NAME,"r");
 
     $password = $_POST["password"];
-    $world_password = strtok(fgets($f),"|||");
+    $world_password = explode("|||", fgets($f))[0];
 
     if($password != $world_password){
         $_SESSION["redirect-message"] = "Username or password is incorrect";
