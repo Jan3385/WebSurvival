@@ -2287,7 +2287,6 @@ function Load(Resource, PlayerData, WorldData) {
             tile = tileInfo[0];
         if (tileInfo.length >= 2)
             overlapTile = tileInfo[1];
-        console.log(tileInfo, tile, overlapTile);
         if (tile.length == 0) { //place nothing, set indoors
             Terrain.ins.mapData[x][y].Indoors = isIndoors;
             return;
@@ -2314,9 +2313,7 @@ function Load(Resource, PlayerData, WorldData) {
         if (tileData == null)
             return;
         if (overlapTile != "") {
-            console.log(overlapTile);
             const overlapTileData = FindBuilding(overlapTile).at(x, y);
-            console.log(overlapTileData);
             if (overlapTileData == null)
                 return;
             tileData.OverlaidPixel = overlapTileData;

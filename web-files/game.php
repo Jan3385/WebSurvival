@@ -1,4 +1,4 @@
-<?php include "validateLogin.php" ?>
+<?php include "non-viewable/validateLogin.php" ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -112,7 +112,7 @@
             </ul>
         </div>
     </div>
-    <?php include "loginLogic.php" ?>
+    <?php include "non-viewable/loginLogic.php" ?>
     <script>
         console.log("Game loaded"); 
         // Load game variables from PHP

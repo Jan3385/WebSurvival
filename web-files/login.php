@@ -4,13 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="loginStyle.css">
+    <link rel="stylesheet" href="interfaceStyle.css">
     <link rel="icon" href="../Icons/icon.ico" type="image/x-icon">
-    <title>Document</title>
+    <title>Login</title>
 </head>
 <body>
     <!-- TODO: 
         Leaderboard - výběrový seznam
+        Heartbeat - zjistit zda je uživatel přihlášený
     -->
     <video autoplay muted loop id="background-video">
         <source src="../Videos/background.mp4" type="video/mp4">
