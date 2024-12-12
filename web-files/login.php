@@ -77,7 +77,7 @@
             <button type="submit" name="register" value="register">Create World</button>
         </form>
         <div class="leaderboards-button">
-            <button>Leaderboards</button>
+            <button onclick="window.location.href = 'leaderboard.php';">Leaderboards</button>
         </div>
     </div>
     <script src="../dist/login.js"></script>
