@@ -2227,7 +2227,7 @@ function Save() {
         }
     }
     // Save the world
-    fetch('../web-files/saveWorld.php', {
+    fetch('non-viewable/saveWorld.php', {
         method: 'POST',
         body: JSON.stringify({
             worldName: worldName,
@@ -2244,7 +2244,7 @@ function Save() {
             console.log("World saved");
         }
         else {
-            response.text().then(text => { console.log(text); });
+            response.text().then(text => { console.error("ERROR WITH SAVING WORLD:\n" + text); });
         }
     });
 }
