@@ -8,9 +8,9 @@ function onRegister(){
 
     $world_name = $_POST['world-name'];
 
-    if(file_exists("../stored-users/".$world_name.$FILE_NAME)) return;
+    if(file_exists("stored-users/".$world_name.$FILE_NAME)) return;
 
-    $f = fopen("../stored-users/".$world_name.$FILE_NAME,"w");
+    $f = fopen("stored-users/".$world_name.$FILE_NAME,"w");
     fwrite($f,$_POST["password"].$token);
     fwrite($f,$_POST["gamemode"].$token);
 
@@ -41,7 +41,7 @@ if(isset($_POST["register"])){
     onRegister();
 }
 
-$f = fopen("../stored-users/".$_POST["world-name"].$FILE_NAME,"r");
+$f = fopen("stored-users/".$_POST["world-name"].$FILE_NAME,"r");
 
 $exploded_user_data = explode("|||", fgets($f));
 $password = $exploded_user_data[0];

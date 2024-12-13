@@ -13,7 +13,7 @@ else if(isset($_POST["register"])){
 function onLoginValidate(){
     $FILE_NAME = $GLOBALS["FILE_NAME"];
     // world-name, password
-    $filePath = "../stored-users/".$_POST["world-name"];
+    $filePath = "stored-users/".$_POST["world-name"];
 
     if(!file_exists($filePath.$FILE_NAME)){
         $_SESSION["redirect-message"] = "World name does not exist";
@@ -33,14 +33,14 @@ function onLoginValidate(){
     }
 
     //update last login time - usused
-    //$fileContents = file("../stored-users/".$_POST["world-name"].$FILE_NAME, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    //$fileContents = file("stored-users/".$_POST["world-name"].$FILE_NAME, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     //$fileContents[1] = date("d-m-Y H:i:s");
     //file_put_contents($filePath.$FILE_NAME, implode("\n", $fileContents));
 }
 function onRegisterValidate(){
     $FILE_NAME = $GLOBALS["FILE_NAME"];
     //check if user already exists
-    if(file_exists("../stored-users/".$_POST["world-name"].$FILE_NAME)){
+    if(file_exists("stored-users/".$_POST["world-name"].$FILE_NAME)){
         $_SESSION["redirect-message"] = "World name already exists";
         header("Location: login.php");
         return;
