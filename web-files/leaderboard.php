@@ -43,7 +43,7 @@
                 $users[$i]["last-login"] = fgets($f);
                 fgets($f);
                 $users[$i]["level"] = (int)explode("|", fgets($f))[0];
-                $users[$i]["name"] = $file;
+                $users[$i]["name"] = explode(".", $file)[0];
 
                 //read the number of placed voxels (excluding resources)
                 $placed = 0;

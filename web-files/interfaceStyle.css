@@ -248,6 +248,7 @@ h1{
         td{
             background-color: rgba(239, 233, 244, .5);
             height: 50px;
+            padding-left: 10px;
         }
         tr:nth-child(even){
             background-color: rgba(239, 233, 244, .2);
