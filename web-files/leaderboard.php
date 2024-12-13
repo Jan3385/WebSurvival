@@ -94,12 +94,17 @@
                 echo "<th>Last Login</th>";
                 echo "<th>Placed voxels</th>";
             echo "</tr>";
+
+            $defaultTimeZone = new DateTimeZone(date_default_timezone_get());
+            $userTimeZone = new DateTimeZone("Europe/Prague"); //není uplně 💯 ale jinak to dělat nebudu
             
             for($i = 0; $i < min($entries, count($users)); $i++){
                 echo "<tr>";
                     echo "<td>".$users[$i]["name"]."</td>";
                     echo "<td>".$users[$i]["level"]."</td>";
-                    echo "<td>".$users[$i]["last-login"]."</td>";
+                    $time = new DateTime($users[$i]["last-login"], $defaultTimeZone);
+                    $time->setTimezone($userTimeZone);
+                    echo "<td>".$time->format("d-m-Y H:i:s")."</td>";
                     echo "<td>".$users[$i]["placed"]."</td>";
                 echo "</tr>";
             }

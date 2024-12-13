@@ -32,9 +32,9 @@ $prev_modification_date_string = fgets($f);
 $prev_modification_date_string = str_replace("\n", '', $prev_modification_date_string);
 fclose($f);
 
-$current_date = date_create("now");
-$prev_modification_date = date_create_from_format("d-m-Y H:i:s", $prev_modification_date_string);
-$interval = $current_date->getTimestamp() - $prev_modification_date->getTimestamp();
+//$current_date = date_create("now");
+//$prev_modification_date = date_create_from_format("d-m-Y H:i:s", $prev_modification_date_string);
+//$interval = $current_date->getTimestamp() - $prev_modification_date->getTimestamp();
 
 // use if this becomes an issue
 //if($interval <= 3){
