@@ -10,7 +10,6 @@
 </head>
 <body>
     <!-- TODO: 
-        Leaderboard - výběrový seznam
         Heartbeat - zjistit zda je uživatel přihlášený
     -->
     <video autoplay muted loop id="background-video">
