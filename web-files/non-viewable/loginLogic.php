@@ -34,7 +34,7 @@ function onRegister(){
 
     if($email == "none") return;
     $msg = "World $world_name created successfully!\n";
-    //TODO: email 
+    //mail($email, "World Created", $msg);
 }
 
 if(isset($_POST["register"])){

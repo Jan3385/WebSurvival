@@ -87,6 +87,7 @@
                 break;
             }
 
+            //display users
             echo "<table>";
             echo "<tr>";
                 echo "<th>World Name</th>";

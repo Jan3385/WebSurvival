@@ -281,7 +281,7 @@ body{
     background-color: rgb(230, 230, 230);
     border-radius: 5px;
     border: solid rgb(194, 194, 194) 1px;
-    height: 70%;
+    height: fit-content;
     padding: 5px;
     width: 95%;
     .save-panel{
