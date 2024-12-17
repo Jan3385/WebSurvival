@@ -79,7 +79,7 @@ h1{
     grid-template-columns: 1fr 0.01fr 1fr;
     gap: 10px 20px;
     margin: auto;
-    width: max(60%, 680px);
+    width: min(max(80%, 680px), 1200px);
     .form-container{
         border: solid rgba(0, 0, 0, 0.51) 1px;
         background-color: var(--form-background);
