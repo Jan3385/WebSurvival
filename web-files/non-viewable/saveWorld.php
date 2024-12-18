@@ -23,7 +23,7 @@ $filePath = "../stored-users/".$worldName;
 
 if (!file_exists($filePath.$FILE_NAME)) {
     header(http_response_code(response_code: 401));
-    echo json_encode(["error"=> realpath("../stored-users/")]);
+    echo json_encode(["error"=> realpath("../")]);
     die("World name does not exist");
 }
 
