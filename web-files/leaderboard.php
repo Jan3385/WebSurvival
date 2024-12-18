@@ -33,7 +33,7 @@
         <div class="table">
             <?php
             //get all users
-            $dir = "stored-users";
+            $dir = "../stored-users";
             $userFiles = array_diff(scandir($dir), array(".",".."));
             $users = [];
             $i = 0;
