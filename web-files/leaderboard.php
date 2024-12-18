@@ -82,7 +82,7 @@
                 break;
                 case "alphabet":
                     usort($users, function($a, $b){
-                        return strcmp($a["name"], $b["name"]);
+                        return strcmp($b["name"], $a["name"]);
                     });
                 break;
             }
