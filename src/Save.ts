@@ -42,7 +42,7 @@ function Save(){
         }
     }
     // Save the world
-    fetch('non-viewable/saveWorld.php', {
+    fetch('/web-files/non-viewable/saveWorld.php', {
         method: 'POST',
         body: JSON.stringify({
             worldName: worldName,
