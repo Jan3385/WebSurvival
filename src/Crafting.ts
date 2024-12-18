@@ -72,7 +72,7 @@ class RecipeHandler{
                 WorkedElement.innerHTML = resource[1].toString();
                 ChildrenOfElement.push(WorkedElement);
                 WorkedElement = document.createElement('img');
-                (WorkedElement as HTMLImageElement).src = "Icons/" +ResourceTypes[resource[0]]+ ".png";
+                (WorkedElement as HTMLImageElement).src = "../Icons/" +ResourceTypes[resource[0]]+ ".png";
                 ChildrenOfElement.push(WorkedElement);
             })
 
@@ -81,7 +81,7 @@ class RecipeHandler{
 
             
             const ArrowElement: HTMLImageElement = document.createElement('img');
-            ArrowElement.src = "Icons/right-arrow.png";
+            ArrowElement.src = "../Icons/right-arrow.png";
             ArrowElement.classList.add("arrow");
 
             const DivResourceTo = document.createElement('div');
@@ -91,7 +91,7 @@ class RecipeHandler{
             WorkedElement.innerHTML = recipe.ResourceTo[1].toString();
             ChildrenOfElement.push(WorkedElement);
             WorkedElement = document.createElement('img');
-            (WorkedElement as HTMLImageElement).src = "Icons/" +ResourceTypes[recipe.ResourceTo[0]]+ ".png";
+            (WorkedElement as HTMLImageElement).src = "../Icons/" +ResourceTypes[recipe.ResourceTo[0]]+ ".png";
             ChildrenOfElement.push(WorkedElement);
             DivResourceTo.replaceChildren(...ChildrenOfElement);
             ChildrenOfElement = [];
