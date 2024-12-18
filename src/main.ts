@@ -2,6 +2,8 @@
 /// <reference path="Rendering.ts" />
 /// <reference path="Lighting.ts" />
 
+//TODO: fix quest saving, change raid indicator a bit, look into caching icons so they dont have to be sent all the time
+
 declare const seed: number;
 declare const resourceSave: string;
 declare const playerData: string;

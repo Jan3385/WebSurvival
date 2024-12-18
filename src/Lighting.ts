@@ -128,6 +128,9 @@ class GameTime{
         }
 
         this.day++;
+
+        Save();
+
         const raidMessage = this.day%5 == 0 ? "Raid day!" : `${5-this.day%5} Day(s) until raid`;
         document.getElementById("Game-Day")!.innerHTML = `Day ${this.day} <span>| ${raidMessage}</span>`;
     }

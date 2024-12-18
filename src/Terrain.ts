@@ -205,11 +205,11 @@ class Terrain{
     }
     public GenerateTreePixel(x: number,y: number, isLog: boolean): ResourceData{
         if(isLog){
-            const OnBreak = () =>{ ResourceManager.ins.AddResource(ResourceTypes.wood, Math.floor(1 + Math.random()*4)); }; // 1 - 4
+            const OnBreak = () =>{ ResourceManager.ins.AddResource(ResourceTypes.wood, Math.floor(1 + Math.random()*10)); }; // 1 - 10
             return new ResourceData(new rgb(200, 70, 50), PixelStatus.breakable, 
                 6, x, y, HighlightPixel.border, ResourceTypes.wood, "w", this.mapData[x][y], OnBreak);
         }else{
-            const OnBreak = () =>{ ResourceManager.ins.AddResource(ResourceTypes.wood, Math.floor(Math.random()*1.7)); }; // 0 - 1
+            const OnBreak = () =>{ ResourceManager.ins.AddResource(ResourceTypes.wood, Math.floor(Math.random()*1.85)); }; // 0 - 1
             return new ResourceData(new rgb(49, 87, 44),PixelStatus.breakable, 
                 2, x, y, HighlightPixel.border, ResourceTypes.wood, "l", this.mapData[x][y], OnBreak);        }
     }
