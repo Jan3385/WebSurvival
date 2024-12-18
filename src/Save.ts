@@ -56,7 +56,7 @@ function Save(){
         },
         }).then(response => {
             if(response.ok){
-                console.log("World saved");
+                console.log("World saved..");
         }else{
             response.text().then(text => { console.error("ERROR WITH SAVING WORLD:\n"+text); });
         }});
