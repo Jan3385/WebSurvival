@@ -19,7 +19,7 @@ $resources = $data["resources"];
 $playerData = $data["playerData"];
 $worldData = $data["worldData"];
 
-$filePath = "/stored-users/".$worldName;
+$filePath = "../stored-users/".$worldName;
 if (!file_exists($filePath.$FILE_NAME)) {
     header(http_response_code(response_code: 401));
     echo json_encode(["error"=> "World not found"]);
