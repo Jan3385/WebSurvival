@@ -94,6 +94,8 @@ h1{
         h3{
             text-align: center;
             font-size: 40px;
+            width: 90%;
+            margin: 7px auto 7px auto;
             height: fit-content;
             color: var(--form-header-color);
             user-select: none;
@@ -124,7 +126,7 @@ h1{
         }
         label{
             display: block;
-            font-size: 30px;
+            font-size: 25px;
             text-align: center;
             color: var(--form-label-color);
             margin: auto;
@@ -178,7 +180,7 @@ h1{
             grid-template-columns: 1fr 1fr;
             width: 80%;
             height: fit-content;
-            margin: 5px auto 5px auto;
+            margin: 5px auto 10px auto;
             border-radius: 15px;
             padding: 4px;
             background-color: var(--form-background-darker);
