@@ -24,7 +24,7 @@ $filePath = "../stored-users/".$worldName;
 if (!file_exists($filePath.$FILE_NAME)) {
     header(http_response_code(response_code: 401));
     echo json_encode(["error"=> "World not found"]);
-    die("World name does not exist");
+    die(realpath($filePath.$FILE_NAME));
 }
 
 $f = fopen($filePath.$FILE_NAME, "r");
