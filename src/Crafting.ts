@@ -81,7 +81,7 @@ class RecipeHandler{
 
             
             const ArrowElement: HTMLImageElement = document.createElement('img');
-            ArrowElement.src = "../Icons/right-arrow.png";
+            ArrowElement.src = "../../Icons/right-arrow.png";
             ArrowElement.classList.add("arrow");
 
             const DivResourceTo = document.createElement('div');
