@@ -36,11 +36,15 @@ class ResourceQuest extends Quest{
 class RandomResourceQuest extends ResourceQuest{
     public constructor(QuestID: number){
         //picks a random resource type
+        const hexEncoded = [...worldName].map(char => char.charCodeAt(0).toString(16)).join('');
+        const nameSeed = parseInt(hexEncoded, 16);
+        const rnd = RandomUsingSeed(QuestID * nameSeed);
+
         const enumValues = Object.values(ResourceTypes).filter(value => typeof value === "number");
-        const PickedResourceIndex: number = Math.floor(Math.random() * enumValues.length);
+        const PickedResourceIndex: number = Math.floor(rnd() * enumValues.length);
         const resourceType: ResourceTypes = enumValues[PickedResourceIndex];
 
-        const numberOfSteps = Math.floor(Math.random() * 30 + (enumValues.length - PickedResourceIndex));
+        const numberOfSteps = Math.floor(rnd() * 30 + (enumValues.length - PickedResourceIndex));
 
         const questRequirement = `Gather ${numberOfSteps} ${ResourceTypes[resourceType].replace("_", " ")}`;
 
