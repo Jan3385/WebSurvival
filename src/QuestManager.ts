@@ -70,9 +70,15 @@ class QuestManager{
     }
     activeQuestId: number = 0;
     quests: Quest[] = Quest.GetQuests();
-    public GetActiveQuest(): Quest | null{
-        if(this.activeQuestId >= this.quests.length) return null;
-        return this.quests[this.activeQuestId];
+
+    private activeQuest: Quest | null = null;
+    public GetActiveQuest(): Quest{
+        if(this.activeQuest != null) return this.activeQuest;
+
+        if(this.activeQuestId >= this.quests.length) this.activeQuest = new RandomResourceQuest(this.activeQuestId);
+        else this.activeQuest = this.quests[this.activeQuestId];
+
+        return this.activeQuest;
     }
     public async UpdateQuestProgress(progress?:number): Promise<void>{
         if(progress == undefined) progress = 1;
@@ -90,8 +96,6 @@ class QuestManager{
             //quest completed
             QuestManager.PlayerXP += currentQuest.questXP;
             this.activeQuestId++;
-
-            if(this.activeQuestId >= this.quests.length) this.quests.push(new RandomResourceQuest(this.activeQuestId+1));
 
             while(QuestManager.PlayerXP >= QuestManager.PlayerXpToNextLevel){
                 this.UpdateLevelDisplay();

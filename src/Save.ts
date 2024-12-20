@@ -15,7 +15,7 @@ function Save(){
 
     let save_player_data = QuestManager.PlayerLevel + "|" + QuestManager.PlayerXP + 
         "|" + QuestManager.PlayerXpToNextLevel + "|" + QuestManager.ins.activeQuestId + "|" + Player.Health + 
-        "|" + GameTime.ins.time + "|" + Player.x + "|" + Player.y  + "|\n";
+        "|" + GameTime.ins.time + "|" + Player.x + "|" + Player.y  + "|" + QuestManager.ins.GetActiveQuest().questRequirementStep + "|\n";
 
     let wolrd_data: string[] = [];
     for(let x = 0; x < Terrain.ins.mapData.length; x++){
@@ -78,7 +78,7 @@ function Load(Resource: string, PlayerData: string, WorldData: string[] | boolea
     QuestManager.PlayerXP = Number(playerData[1]);
     QuestManager.PlayerXpToNextLevel = Number(playerData[2]);
     QuestManager.ins.activeQuestId = Number(playerData[3]);
-    QuestManager.ins.UpdateQuestProgress(0);
+    QuestManager.ins.UpdateQuestProgress(Number(playerData[8]));
     QuestManager.ins.UpdateLevelDisplay();
 
     Player.SetHP(Number(playerData[4]));
