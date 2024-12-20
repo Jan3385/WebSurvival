@@ -73,7 +73,7 @@ class QuestManager{
 
     private activeQuest: Quest | null = null;
     public GetActiveQuest(): Quest{
-        if(this.activeQuest != null) return this.activeQuest;
+        if(this.activeQuest != null && this.activeQuest.questRequirementStep < this.activeQuest.questRequirementStepsMax) return this.activeQuest;
 
         if(this.activeQuestId >= this.quests.length) this.activeQuest = new RandomResourceQuest(this.activeQuestId);
         else this.activeQuest = this.quests[this.activeQuestId];

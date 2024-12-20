@@ -2028,7 +2028,7 @@ class QuestManager {
     quests = Quest.GetQuests();
     activeQuest = null;
     GetActiveQuest() {
-        if (this.activeQuest != null)
+        if (this.activeQuest != null && this.activeQuest.questRequirementStep < this.activeQuest.questRequirementStepsMax)
             return this.activeQuest;
         if (this.activeQuestId >= this.quests.length)
             this.activeQuest = new RandomResourceQuest(this.activeQuestId);
