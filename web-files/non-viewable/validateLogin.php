@@ -39,6 +39,13 @@ function onLoginValidate(){
 }
 function onRegisterValidate(){
     $FILE_NAME = $GLOBALS["FILE_NAME"];
+
+    if(preg_match("/[\s\W]/", $FILE_NAME)){
+        $_SESSION["redirect-message"] = "World name cannot contain spaces or special characters";
+        header("Location: login.php");
+        return;
+    }
+
     //check if user already exists
     if(file_exists("../stored-users/".$_POST["world-name"].$FILE_NAME)){
         $_SESSION["redirect-message"] = "World name already exists";

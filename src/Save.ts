@@ -73,12 +73,14 @@ function Load(Resource: string, PlayerData: string, WorldData: string[] | boolea
     }
 
     const playerData = PlayerData.split("|");
+    
     QuestManager.PlayerLevel = Number(playerData[0]);
     QuestManager.PlayerXP = Number(playerData[1]);
     QuestManager.PlayerXpToNextLevel = Number(playerData[2]);
     QuestManager.ins.activeQuestId = Number(playerData[3]);
     QuestManager.ins.UpdateQuestProgress(0);
     QuestManager.ins.UpdateLevelDisplay();
+
     Player.SetHP(Number(playerData[4]));
     GameTime.ins.time = Number(playerData[5]);
     Player.OverlapPixel = Terrain.ins.mapData[Number(playerData[6])][Number(playerData[7])];
