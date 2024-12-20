@@ -63,11 +63,7 @@ class QuestManager{
     public static PlayerLevel: number = 1;
     public static PlayerXP: number = 0;
     public static PlayerXpToNextLevel: number = Math.floor(Math.log(QuestManager.PlayerLevel+3)*10);
-
-    public constructor(){
-        this.UpdateDisplayQuest();
-        this.UpdateLevelDisplay();
-    }
+    
     activeQuestId: number = 0;
     quests: Quest[] = Quest.GetQuests();
 

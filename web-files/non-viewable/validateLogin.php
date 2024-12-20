@@ -40,6 +40,7 @@ function onLoginValidate(){
 function onRegisterValidate(){
     $FILE_NAME = $GLOBALS["FILE_NAME"];
 
+    //check for spaces and special characters in world name
     if(preg_match("/[\s\W]/", $_POST["world-name"])){
         $_SESSION["redirect-message"] = "World name cannot contain spaces or special characters";
         header("Location: login.php");

@@ -2020,10 +2020,6 @@ class QuestManager {
     static PlayerLevel = 1;
     static PlayerXP = 0;
     static PlayerXpToNextLevel = Math.floor(Math.log(QuestManager.PlayerLevel + 3) * 10);
-    constructor() {
-        this.UpdateDisplayQuest();
-        this.UpdateLevelDisplay();
-    }
     activeQuestId = 0;
     quests = Quest.GetQuests();
     activeQuest = null;
