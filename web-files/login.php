@@ -48,13 +48,13 @@
                 <h3>Create World</h3>
                 <hr>
                 <label for="w-n-r">World name</label>
-                <input type="text" name="world-name" id="w-n-r" placeholder="Name" required>
+                <input type="text" name="world-name" id="w-n-r" pattern="[^|]*" placeholder="Name" required>
                 <hr>
                 <label for="p-r">Password for your world</label>
-                <input type="password" name="password" id="p-r" placeholder="Password" required>
+                <input type="password" name="password" id="p-r" pattern="[^|]*" placeholder="Password" required>
                 <hr>
                 <label for="email">Optional email</label>
-                <input type="email" name="email" id="email" placeholder="*Email" autocomplete="email" title="Optional email to get automated emails about the status of your world">
+                <input type="email" name="email" id="email" pattern="[^|]*" placeholder="*Email" autocomplete="email" title="Optional email to get automated emails about the status of your world">
                 <hr>
                 <div class="gamemode">
                     <div>
@@ -70,7 +70,7 @@
                 <div class="seed">
                     <h4>Use Custom Seed</h4>
                     <input type="checkbox" name="seed-enable" id="seed-enable" onclick="ChangeSeedInputStatus(this.checked)">
-                    <input type="text" name="seed" id="seed" placeholder="Seed" disabled required autocomplete="off">
+                    <input type="text" name="seed" id="seed" pattern="[^|]*" placeholder="Seed" disabled required autocomplete="off">
                 </div>
             </div>
             <button type="submit" name="register" value="register">Create World</button>
