@@ -8,6 +8,7 @@ function onRegister(){
 
     $world_name = $_POST['world-name'];
 
+    if(preg_match("/[\s\W]/", $world_name)) return;
     if(file_exists("../stored-users/".$world_name.$FILE_NAME)) return;
 
     $f = fopen("../stored-users/".$world_name.$FILE_NAME,"w");
