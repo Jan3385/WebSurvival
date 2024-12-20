@@ -93,9 +93,12 @@ class QuestManager{
         if(currentQuest.questRequirementStep >= currentQuest.questRequirementStepsMax){
             const waitTime = this.activeQuestId == 0 ? 0 : 500;
             await new Promise(r => setTimeout(r, waitTime));
+
             //quest completed
             QuestManager.PlayerXP += currentQuest.questXP;
             this.activeQuestId++;
+
+            this.UpdateDisplayQuest();
 
             while(QuestManager.PlayerXP >= QuestManager.PlayerXpToNextLevel){
                 this.UpdateLevelDisplay();

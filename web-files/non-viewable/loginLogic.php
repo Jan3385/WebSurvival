@@ -8,6 +8,7 @@ function onRegister(){
 
     $world_name = $_POST['world-name'];
 
+    //redirect is not instant so we need to also check here for validity
     if(preg_match("/[\s\W]/", $world_name)) return;
     if(file_exists("../stored-users/".$world_name.$FILE_NAME)) return;
 

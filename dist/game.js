@@ -2050,6 +2050,7 @@ class QuestManager {
             //quest completed
             QuestManager.PlayerXP += currentQuest.questXP;
             this.activeQuestId++;
+            this.UpdateDisplayQuest();
             while (QuestManager.PlayerXP >= QuestManager.PlayerXpToNextLevel) {
                 this.UpdateLevelDisplay();
                 await new Promise(r => setTimeout(r, 500));
