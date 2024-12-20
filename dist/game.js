@@ -1997,10 +1997,13 @@ class ResourceQuest extends Quest {
 class RandomResourceQuest extends ResourceQuest {
     constructor(QuestID) {
         //picks a random resource type
+        const hexEncoded = [...worldName].map(char => char.charCodeAt(0).toString(16)).join('');
+        const nameSeed = parseInt(hexEncoded, 16);
+        const rnd = RandomUsingSeed(QuestID * nameSeed);
         const enumValues = Object.values(ResourceTypes).filter(value => typeof value === "number");
-        const PickedResourceIndex = Math.floor(Math.random() * enumValues.length);
+        const PickedResourceIndex = Math.floor(rnd() * enumValues.length);
         const resourceType = enumValues[PickedResourceIndex];
-        const numberOfSteps = Math.floor(Math.random() * 30 + (enumValues.length - PickedResourceIndex));
+        const numberOfSteps = Math.floor(rnd() * 30 + (enumValues.length - PickedResourceIndex));
         const questRequirement = `Gather ${numberOfSteps} ${ResourceTypes[resourceType].replace("_", " ")}`;
         super(QuestManager.GetXPRewardFromRandomQuest(QuestID, numberOfSteps, (0.7 + (PickedResourceIndex / enumValues.length))), questRequirement, numberOfSteps, resourceType);
     }
@@ -2023,10 +2026,15 @@ class QuestManager {
     }
     activeQuestId = 0;
     quests = Quest.GetQuests();
+    activeQuest = null;
     GetActiveQuest() {
+        if (this.activeQuest != null)
+            return this.activeQuest;
         if (this.activeQuestId >= this.quests.length)
-            return null;
-        return this.quests[this.activeQuestId];
+            this.activeQuest = new RandomResourceQuest(this.activeQuestId);
+        else
+            this.activeQuest = this.quests[this.activeQuestId];
+        return this.activeQuest;
     }
     async UpdateQuestProgress(progress) {
         if (progress == undefined)
@@ -2042,8 +2050,6 @@ class QuestManager {
             //quest completed
             QuestManager.PlayerXP += currentQuest.questXP;
             this.activeQuestId++;
-            if (this.activeQuestId >= this.quests.length)
-                this.quests.push(new RandomResourceQuest(this.activeQuestId + 1));
             while (QuestManager.PlayerXP >= QuestManager.PlayerXpToNextLevel) {
                 this.UpdateLevelDisplay();
                 await new Promise(r => setTimeout(r, 500));
@@ -2204,7 +2210,7 @@ function Save() {
     save_resources += "\n";
     let save_player_data = QuestManager.PlayerLevel + "|" + QuestManager.PlayerXP +
         "|" + QuestManager.PlayerXpToNextLevel + "|" + QuestManager.ins.activeQuestId + "|" + Player.Health +
-        "|" + GameTime.ins.time + "|" + Player.x + "|" + Player.y + "|\n";
+        "|" + GameTime.ins.time + "|" + Player.x + "|" + Player.y + "|" + QuestManager.ins.GetActiveQuest().questRequirementStep + "|\n";
     let wolrd_data = [];
     for (let x = 0; x < Terrain.ins.mapData.length; x++) {
         for (let y = 0; y < Terrain.ins.mapData[x].length; y++) {
@@ -2266,7 +2272,7 @@ function Load(Resource, PlayerData, WorldData) {
     QuestManager.PlayerXP = Number(playerData[1]);
     QuestManager.PlayerXpToNextLevel = Number(playerData[2]);
     QuestManager.ins.activeQuestId = Number(playerData[3]);
-    QuestManager.ins.UpdateQuestProgress(0);
+    QuestManager.ins.UpdateQuestProgress(Number(playerData[8]));
     QuestManager.ins.UpdateLevelDisplay();
     Player.SetHP(Number(playerData[4]));
     GameTime.ins.time = Number(playerData[5]);
