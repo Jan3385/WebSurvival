@@ -199,8 +199,8 @@ h1{
                 height: 30px;
                 font-size: 20px;
             }
-            input:disabled{
-                background-color: rgba(0, 0, 0, 0.200);
+            input:disabled {
+                background-color: rgba(76, 76, 76, 0.600);
             }
         }
     }
