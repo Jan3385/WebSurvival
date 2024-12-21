@@ -238,7 +238,7 @@ h1{
     backdrop-filter: blur(var(--blur));
 
     border: solid 1px transparent;
-    border-image: linear-gradient(45deg, rgb(78, 79, 98), rgb(183, 187, 238));
+    border-image: linear-gradient(45deg, rgb(78, 79, 98), rgb(101, 102, 128));
     border-image-slice: 1;
 
     .table{
