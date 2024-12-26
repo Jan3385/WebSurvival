@@ -9,9 +9,6 @@
     <title>Login</title>
 </head>
 <body>
-    <!-- TODO: 
-        Heartbeat - zjistit zda je uživatel přihlášený
-    -->
     <video autoplay muted loop id="background-video">
         <source src="../Videos/background.mp4" type="video/mp4">
     </video>
