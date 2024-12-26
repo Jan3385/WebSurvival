@@ -51,7 +51,7 @@
                 <input type="password" name="password" id="p-r" placeholder="Password" required>
                 <hr>
                 <label for="email">Optional email</label>
-                <input type="email" name="email" id="email" placeholder="*Email" autocomplete="email" title="Optional email to get automated emails about the status of your world">
+                <input type="email" name="email" id="email" placeholder="optional email" autocomplete="email" title="Optional email to get automated emails about the status of your world">
                 <hr>
                 <div class="gamemode">
                     <div>
