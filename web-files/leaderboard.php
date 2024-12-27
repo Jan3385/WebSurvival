@@ -23,6 +23,7 @@
                 echo '<option value="active" '.($sort == "active" ? "selected" : "").'>Last active</option>';
                 echo '<option value="placed" '.($sort == "placed" ? "selected" : "").'>Placed voxels</option>';
                 echo '<option value="alphabet" '.($sort == "alphabet" ? "selected" : "").'>Alphabetically</option>';
+                echo '<option value="days" '.($sort == "days" ? "selected" : "").'>Days played</option>';
                 echo '</select>';
                 ?>
                 <label for="entries">Entries: </label>
@@ -39,10 +40,12 @@
             $i = 0;
             foreach($userFiles as $file){
                 $f = fopen($dir."/".$file,"r");
-                fgets($f);
+                $users[$i]["gamemode"] = explode("|||", fgets($f))[1];
                 $users[$i]["last-login"] = fgets($f);
                 fgets($f);
-                $users[$i]["level"] = (int)explode("|", fgets($f))[0];
+                $user_data = explode("|", fgets($f));
+                $users[$i]["level"] = (int)($user_data[0]);
+                $users[$i]["days"] = (int)($user_data[9]);
                 $users[$i]["name"] = explode(".", $file)[0];
 
                 //read the number of placed voxels (excluding resources)
@@ -84,6 +87,10 @@
                     usort($users, function($a, $b){
                         return strcmp($b["name"], $a["name"]);
                     });
+                case "days":
+                    usort($users, function($a, $b){
+                        return $b["days"] - $a["days"];
+                    });
                 break;
             }
 
@@ -92,8 +99,10 @@
             echo "<tr>";
                 echo "<th>World Name</th>";
                 echo "<th>Level</th>";
+                echo "<th>Days played</th>";
                 echo "<th>Last Login</th>";
                 echo "<th>Placed voxels</th>";
+                echo "<th>Gamemode</th>";
             echo "</tr>";
 
             $defaultTimeZone = new DateTimeZone(date_default_timezone_get());
@@ -103,10 +112,12 @@
                 echo "<tr>";
                     echo "<td>".$users[$i]["name"]."</td>";
                     echo "<td>".$users[$i]["level"]."</td>";
+                    echo "<td>".$users[$i]["days"]."</td>";
                     $time = new DateTime($users[$i]["last-login"], $defaultTimeZone);
                     $time->setTimezone($userTimeZone);
                     echo "<td>".$time->format("d-m-Y H:i:s")."</td>";
                     echo "<td>".$users[$i]["placed"]."</td>";
+                    echo "<td>".$users[$i]["gamemode"]."</td>";
                 echo "</tr>";
             }
 
