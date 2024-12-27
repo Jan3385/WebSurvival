@@ -800,7 +800,7 @@ class ResourceManager {
             const resourceIndex = this.resources.findIndex(x => x[0] == type);
             this.resources.splice(resourceIndex, 1);
             this.DisplayStoredResources();
-            return false;
+            return true;
         }
         this.DisplayStoredResources();
         return true;
