@@ -99,7 +99,7 @@
             echo "<tr>";
                 echo "<th>World Name</th>";
                 echo "<th>Level</th>";
-                echo "<th>Days played</th>";
+                echo "<th>Days</th>";
                 echo "<th>Last Login</th>";
                 echo "<th>Placed voxels</th>";
                 echo "<th>Gamemode</th>";
