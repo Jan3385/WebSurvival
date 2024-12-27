@@ -453,7 +453,7 @@ body{
         border-radius: 5px;
         margin-top: 3px;
 
-        width: 50dvw;
+        width: min(50dvw, fit-content);
 
         overflow-x: auto;
 
