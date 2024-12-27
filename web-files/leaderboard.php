@@ -72,6 +72,7 @@
 
                 $i++;
             }
+            $user_count = $i;
             fclose($f);
 
             //sort users
@@ -118,7 +119,7 @@
             $defaultTimeZone = new DateTimeZone(date_default_timezone_get());
             $userTimeZone = new DateTimeZone("Europe/Prague"); //není uplně 💯 ale jinak to dělat nebudu
             
-            for($i = 0; $i < min($entries, count($users)); $i++){
+            for($i = 0; $i < min($entries, $user_count); $i++){
                 echo "<tr>";
                     echo "<td>".$users[$i]["name"]."</td>";
                     echo "<td>".$users[$i]["level"]."</td>";
