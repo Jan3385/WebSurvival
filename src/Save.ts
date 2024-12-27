@@ -15,7 +15,8 @@ function Save(){
 
     let save_player_data = QuestManager.PlayerLevel + "|" + QuestManager.PlayerXP + 
         "|" + QuestManager.PlayerXpToNextLevel + "|" + QuestManager.ins.activeQuestId + "|" + Player.Health + 
-        "|" + GameTime.ins.time + "|" + Player.x + "|" + Player.y  + "|" + QuestManager.ins.GetActiveQuest().questRequirementStep + "|\n";
+        "|" + GameTime.ins.time + "|" + Player.x + "|" + Player.y  + "|" + QuestManager.ins.GetActiveQuest().questRequirementStep + 
+        "|" + GameTime.ins.day + "|\n";
 
     let wolrd_data: string[] = [];
     for(let x = 0; x < Terrain.ins.mapData.length; x++){
@@ -87,6 +88,7 @@ function Load(Resource: string, PlayerData: string, WorldData: string[] | boolea
     Player.x = Number(playerData[6]);
     Player.y = Number(playerData[7]);
     Terrain.ins.MovePlayer(Player); //Draw player
+    GameTime.ins.day = Number(playerData[9]);
 
     WorldData.forEach(element => {
         if(element == false) return; //end line

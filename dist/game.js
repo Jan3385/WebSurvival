@@ -520,8 +520,16 @@ class GameTime {
         }
         this.day++;
         Save();
-        const raidMessage = this.day % 5 == 0 ? "Raid day!" : `${5 - this.day % 5} Day(s) until raid`;
-        document.getElementById("Game-Day").innerHTML = `Day ${this.day} <span>| ${raidMessage}</span>`;
+        this.UpdateDayDisplay();
+    }
+    UpdateDayDisplay() {
+        if (gamemode == "peaceful") {
+            document.getElementById("Game-Day").innerHTML = `Day ${this.day}`;
+        }
+        else {
+            const raidMessage = this.day % 5 == 0 ? "Raid day!" : `${5 - this.day % 5} Day(s) until raid`;
+            document.getElementById("Game-Day").innerHTML = `Day ${this.day} <span>| ${raidMessage}</span>`;
+        }
     }
     GetDayProgress() {
         return this.time / this.maxTime;
@@ -2207,7 +2215,8 @@ function Save() {
     save_resources += "\n";
     let save_player_data = QuestManager.PlayerLevel + "|" + QuestManager.PlayerXP +
         "|" + QuestManager.PlayerXpToNextLevel + "|" + QuestManager.ins.activeQuestId + "|" + Player.Health +
-        "|" + GameTime.ins.time + "|" + Player.x + "|" + Player.y + "|" + QuestManager.ins.GetActiveQuest().questRequirementStep + "|\n";
+        "|" + GameTime.ins.time + "|" + Player.x + "|" + Player.y + "|" + QuestManager.ins.GetActiveQuest().questRequirementStep +
+        "|" + GameTime.ins.day + "|\n";
     let wolrd_data = [];
     for (let x = 0; x < Terrain.ins.mapData.length; x++) {
         for (let y = 0; y < Terrain.ins.mapData[x].length; y++) {
@@ -2277,6 +2286,7 @@ function Load(Resource, PlayerData, WorldData) {
     Player.x = Number(playerData[6]);
     Player.y = Number(playerData[7]);
     Terrain.ins.MovePlayer(Player); //Draw player
+    GameTime.ins.day = Number(playerData[9]);
     WorldData.forEach(element => {
         if (element == false)
             return; //end line
