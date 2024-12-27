@@ -2287,6 +2287,7 @@ function Load(Resource, PlayerData, WorldData) {
     Player.y = Number(playerData[7]);
     Terrain.ins.MovePlayer(Player); //Draw player
     GameTime.ins.day = Number(playerData[9]);
+    GameTime.ins.UpdateDayDisplay();
     WorldData.forEach(element => {
         if (element == false)
             return; //end line
