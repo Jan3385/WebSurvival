@@ -30,7 +30,7 @@ function onRegister(){
     fwrite($f,$seed.$token);
 
     fwrite($f,date("d-m-Y H:i:s").$token);
-    fwrite($f,data: "\n".date("d-m-Y H:i:s"));
+    fwrite($f, "\n".date("d-m-Y H:i:s"));
 
     fclose($f);
 

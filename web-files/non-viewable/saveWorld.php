@@ -8,7 +8,7 @@ if( !isset($data["worldName"]) ||
     !isset($data["resources"]) ||
     !isset($data["playerData"])||
     !isset($data["worldData"])){
-    header(http_response_code(response_code: 400));
+    header(http_response_code(400));
     echo json_encode(["error"=> "Missing parameters"]);
     die("Missing parameters");
 }
@@ -22,7 +22,7 @@ $worldData = $data["worldData"];
 $filePath = "../../stored-users/".$worldName;
 
 if (!file_exists($filePath.$FILE_NAME)) {
-    header(http_response_code(response_code: 401));
+    header(http_response_code(401));
     echo json_encode(["error"=> scandir("World not found")]);
     die("World name does not exist");
 }
@@ -39,7 +39,7 @@ fclose($f);
 
 // use if this becomes an issue
 //if($interval <= 3){
-//    header(http_response_code(response_code: 403));
+//    header(http_response_code(403));
 //    echo json_encode(["error"=> "Too many requests"]);
 //    die("Wait a few seconds before saving again");
 //}
@@ -48,7 +48,7 @@ fclose($f);
 $world_password = explode("|||",$static_text)[0];
 
 if ($password != $world_password) {
-    header(http_response_code(response_code: 401));
+    header(http_response_code(401));
     echo json_encode(["error"=> "Unauthorized"]);
     die("Username or password is incorrect");
 }

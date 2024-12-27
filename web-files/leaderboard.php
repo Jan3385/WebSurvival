@@ -115,7 +115,7 @@
                     echo "<td>".$users[$i]["days"]."</td>";
                     $time = new DateTime($users[$i]["last-login"], $defaultTimeZone);
                     $time->setTimezone($userTimeZone);
-                    echo "<td>".$time->format("d-m-Y H:i:s")."</td>";
+                    echo "<td>".$time->format("d. m. Y | H:i:s")."</td>";
                     echo "<td>".$users[$i]["placed"]."</td>";
                     echo "<td>".$users[$i]["gamemode"]."</td>";
                 echo "</tr>";
