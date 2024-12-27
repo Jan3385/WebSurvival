@@ -15,8 +15,8 @@ class GameTime{
     maxTime: number = 1000; //default: 1000
     lightLevel: number = 5;
     minLightLevel: number = 30;
-    triggeredNight: boolean = false;
-    triggeredDay: boolean = false;
+    triggeredNight: boolean = true;
+    triggeredDay: boolean = true;
     constructor(){
         this.time = this.maxTime * 0.25;
     }
