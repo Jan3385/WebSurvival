@@ -26,6 +26,8 @@
                 echo '<option value="days" '.($sort == "days" ? "selected" : "").'>Days played</option>';
                 echo '</select>';
                 ?>
+                <label for="min-level">min. level: </label>
+                <input type="number" name="min-level" id="min-level" min="0" max="50" value="<?php echo isset($_POST["min-level"]) ? $_POST["min-level"] : 0; ?>">
                 <label for="entries">Entries: </label>
                 <input type="number" name="entries" id="entries" min="1" max="50" value="<?php echo isset($_POST["entries"]) ? $_POST["entries"] : 10; ?>">
                 <button type="submit" name="leaderboard" value="leaderboard">Submit</button>
@@ -36,6 +38,7 @@
             //get all users
             $dir = "../stored-users";
             $userFiles = array_diff(scandir($dir), array(".",".."));
+            $min_level = isset($_POST["min-level"]) ? $_POST["min-level"] : 0;
             $users = [];
             $i = 0;
             foreach($userFiles as $file){
@@ -45,6 +48,13 @@
                 fgets($f);
                 $user_data = explode("|", fgets($f));
                 $users[$i]["level"] = (int)($user_data[0]);
+
+                //skip any user that does not meet the level requirement
+                if($users[$i]["level"] < $min_level){
+                    fclose($f);
+                    continue;
+                }
+
                 $users[$i]["days"] = (int)($user_data[9]);
                 $users[$i]["name"] = explode(".", $file)[0];
 
