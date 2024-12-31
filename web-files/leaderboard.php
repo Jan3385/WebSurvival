@@ -55,7 +55,12 @@
                     continue;
                 }
 
-                $users[$i]["days"] = (int)($user_data[9]);
+                if(count($user_data) >= 8){
+                    $users[$i]["days"] = (int)($user_data[9]);
+                }else{
+                    $users[$i]["days"] = 0;
+                }
+
                 $users[$i]["name"] = explode(".", $file)[0];
 
                 //read the number of placed voxels (excluding resources)
